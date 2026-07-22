@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Matt Lavergne — Advancement Operations & Automation</title>
 <meta name="description" content="Matt Lavergne builds automation systems that move the right information to the right people. A portfolio, rendered from the point of view of a single speck of dust.">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="light">
 <style>
 /* ══════════════════════════════════════════════════════════════════
    MATT LAVERGNE — "From the point of view of a speck of dust."
@@ -16,26 +16,27 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
 :root{
-  /* ground — blue-biased graphite studio (lifted for legibility) */
-  --void:#121926;
-  --void-2:#182333;
-  --graphite:#20293a;
-  --steel:#33415a;
-  --steel-2:#45577a;
-  --chrome:#f4f7fc;
-  --mist:#b6c1d4;
-  --mist-dim:#8592ab;
+  /* ground — bright studio white, lit like a product shot */
+  --void:#eef1f7;      /* page floor */
+  --void-2:#f7f9fd;    /* lifted surface */
+  --graphite:#ffffff;  /* card face */
+  --steel:#e2e7f0;     /* hairline border */
+  --steel-2:#c8d0de;   /* stronger border */
+  --chrome:#141b28;    /* ink — primary text */
+  --mist:#4b5568;      /* secondary text */
+  --mist-dim:#8a94a6;  /* tertiary text */
+  --ink:#0c111b;       /* dark text on a bright accent chip */
 
   /* per-chapter material accent — set live by JS on :root */
-  --accent:#6fd7e8;
-  --accent-soft:rgba(111,215,232,.14);
+  --accent:#1596ad;
+  --accent-soft:rgba(21,150,173,.12);
 
-  /* fixed material hues */
-  --si:#6fd7e8;   /* silicon / CPU   */
-  --dram:#57e8a0; /* phosphor / RAM  */
-  --gpu:#8b7bff;  /* violet / GPU    */
-  --psu:#e8a24a;  /* tungsten / PSU  */
-  --io:#ff6ea9;   /* magenta / I/O   */
+  /* fixed material hues — darkened to read as ink on white */
+  --si:#1596ad;   /* silicon / CPU   */
+  --dram:#12996a; /* phosphor / RAM  */
+  --gpu:#6a58d8;  /* violet / GPU    */
+  --psu:#c07a15;  /* tungsten / PSU  */
+  --io:#e23e86;   /* magenta / I/O   */
 
   --sans:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   --mono:ui-monospace,"SF Mono","SFMono-Regular","Menlo","Cascadia Mono","Roboto Mono",monospace;
@@ -47,6 +48,10 @@
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 body{
   background:var(--void);
+  background-image:
+    radial-gradient(100% 75% at 50% -12%, #ffffff, rgba(255,255,255,0) 55%),
+    radial-gradient(120% 120% at 50% 116%, rgba(198,208,224,.55), rgba(198,208,224,0) 50%);
+  background-attachment:fixed;
   color:var(--chrome);
   font-family:var(--sans);
   font-weight:400;
@@ -56,17 +61,17 @@ body{
   text-rendering:optimizeLegibility;
 }
 a{color:inherit;text-decoration:none}
-::selection{background:var(--accent);color:var(--void)}
+::selection{background:var(--accent);color:#fff}
 :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
 
 /* ── ambient grain + vignette over everything ── */
 body::before{
   content:"";position:fixed;inset:0;z-index:80;pointer-events:none;
-  background:radial-gradient(140% 110% at 50% 0%,transparent 55%,rgba(4,7,13,.32) 100%);
+  background:radial-gradient(140% 110% at 50% 0%,transparent 64%,rgba(24,34,54,.11) 100%);
   mix-blend-mode:multiply;
 }
 body::after{
-  content:"";position:fixed;inset:-50%;z-index:81;pointer-events:none;opacity:.025;
+  content:"";position:fixed;inset:-50%;z-index:81;pointer-events:none;opacity:.03;
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
   animation:grain 6s steps(4) infinite;
 }
@@ -123,7 +128,7 @@ body::after{
 
 /* depth-of-field dust — foreground bokeh + mid specks */
 #dust{position:fixed;inset:0;z-index:55;pointer-events:none;overflow:hidden}
-.mote{position:absolute;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(255,255,255,.9),rgba(255,255,255,0) 70%);
+.mote{position:absolute;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(40,54,82,.5),rgba(40,54,82,0) 70%);
   will-change:transform,opacity}
 
 /* ═══════════════════════ CHAPTERS ═══════════════════════ */
@@ -168,10 +173,10 @@ h2.title .thin{display:block;font-weight:200;color:var(--mist);letter-spacing:-.
 .stage{position:relative;width:100%;height:100%;transform-style:preserve-3d;
   display:flex;align-items:center;justify-content:center}
 .comp-svg{width:118%;height:auto;max-height:100%;overflow:visible;
-  filter:drop-shadow(0 40px 80px rgba(0,0,0,.7))}
-.floor-glow{position:absolute;bottom:6%;left:50%;transform:translateX(-50%);width:80%;height:34%;
-  background:radial-gradient(ellipse at center,var(--accent-soft),transparent 70%);
-  filter:blur(24px);z-index:-1}
+  filter:drop-shadow(0 4px 9px rgba(20,30,50,.10)) drop-shadow(0 34px 48px rgba(20,30,50,.22))}
+.floor-glow{position:absolute;bottom:5%;left:50%;transform:translateX(-50%);width:74%;height:20%;
+  background:radial-gradient(ellipse at center,rgba(20,30,50,.24),transparent 70%);
+  filter:blur(26px);z-index:-1}
 
 /* fan rotation */
 .spin{transform-origin:center;animation:spin 6s linear infinite}
@@ -184,8 +189,8 @@ h2.title .thin{display:block;font-weight:200;color:var(--mist);letter-spacing:-.
 #hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
   text-align:center;padding:6rem var(--gutter);position:relative;overflow:hidden}
 .hero-grid{position:absolute;inset:0;z-index:0;
-  background-image:linear-gradient(rgba(111,215,232,.05) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(111,215,232,.05) 1px,transparent 1px);
+  background-image:linear-gradient(rgba(21,150,173,.08) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(21,150,173,.08) 1px,transparent 1px);
   background-size:74px 74px;
   mask-image:radial-gradient(ellipse 65% 65% at 50% 45%,#000,transparent 85%);
   -webkit-mask-image:radial-gradient(ellipse 65% 65% at 50% 45%,#000,transparent 85%);
@@ -193,7 +198,7 @@ h2.title .thin{display:block;font-weight:200;color:var(--mist);letter-spacing:-.
 @keyframes drift{to{background-position:74px 74px}}
 .hero-bloom{position:absolute;top:44%;left:50%;transform:translate(-50%,-50%);
   width:820px;height:820px;max-width:120vw;border-radius:50%;z-index:0;pointer-events:none;
-  background:radial-gradient(circle,rgba(111,215,232,.11),rgba(139,123,255,.05) 45%,transparent 70%);
+  background:radial-gradient(circle,rgba(21,150,173,.14),rgba(106,88,216,.09) 45%,transparent 70%);
   animation:breathe 8s ease-in-out infinite}
 @keyframes breathe{0%,100%{opacity:.8;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}}
 
@@ -206,7 +211,7 @@ h2.title .thin{display:block;font-weight:200;color:var(--mist);letter-spacing:-.
   letter-spacing:-.045em;font-weight:800;text-wrap:balance}
 .hero-name .l{display:block;font-weight:200;color:var(--mist);font-size:.42em;letter-spacing:.02em;
   margin-bottom:.35em}
-.hero-name .g{background:linear-gradient(115deg,#eef2f8 20%,#6fd7e8 55%,#8b7bff 90%);
+.hero-name .g{background:linear-gradient(115deg,#141b28 12%,#1596ad 52%,#6a58d8 92%);
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .hero-role{position:relative;z-index:2;margin-top:2rem;font-size:clamp(.95rem,1.4vw,1.15rem);
   color:var(--mist);font-weight:300;letter-spacing:.01em;max-width:30rem}
@@ -217,15 +222,17 @@ h2.title .thin{display:block;font-weight:200;color:var(--mist);letter-spacing:-.
   display:flex;flex-direction:column;align-items:center;gap:12px}
 .you-are-here{display:flex;align-items:center;gap:10px}
 .you-are-here .spec{width:4px;height:4px;border-radius:50%;background:var(--chrome);
-  box-shadow:0 0 0 4px rgba(238,242,248,.12),0 0 14px rgba(238,242,248,.6)}
+  box-shadow:0 0 0 4px rgba(21,150,173,.15),0 0 14px rgba(21,150,173,.45)}
 .hero-cta{position:relative;z-index:2;margin-top:3rem;display:flex;gap:1rem;flex-wrap:wrap;justify-content:center}
 .btn{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;
-  padding:.95rem 1.9rem;border-radius:9px;border:1px solid var(--steel-2);color:var(--chrome);
-  cursor:pointer;background:rgba(14,18,25,.5);backdrop-filter:blur(8px);
+  padding:.95rem 1.9rem;border-radius:10px;border:1px solid var(--steel-2);color:var(--chrome);
+  cursor:pointer;background:rgba(255,255,255,.72);backdrop-filter:blur(8px);
+  box-shadow:0 1px 2px rgba(20,30,50,.04),0 10px 22px -16px rgba(20,30,50,.22);
   transition:.3s var(--ease);display:inline-flex;align-items:center;gap:10px;min-height:48px}
-.btn:hover{border-color:var(--si);color:var(--si);transform:translateY(-2px)}
-.btn.primary{border-color:var(--si);color:var(--void);background:var(--si)}
-.btn.primary:hover{background:#8fe1ef;border-color:#8fe1ef;color:var(--void)}
+.btn:hover{border-color:var(--si);color:var(--si);transform:translateY(-2px);
+  box-shadow:0 12px 26px -16px rgba(21,150,173,.5)}
+.btn.primary{border-color:var(--si);color:#fff;background:var(--si)}
+.btn.primary:hover{background:#0f7f93;border-color:#0f7f93;color:#fff}
 .scroll-hint{position:absolute;bottom:1.8rem;left:50%;transform:translateX(-50%);z-index:2;
   font-family:var(--mono);font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--mist-dim);
   display:flex;flex-direction:column;align-items:center;gap:8px;animation:bob 2.4s ease-in-out infinite}
@@ -234,8 +241,9 @@ h2.title .thin{display:block;font-weight:200;color:var(--mist);letter-spacing:-.
 
 /* ═══════════════ CARDS / SKILLS / PROJECTS / EXP ═══════════════ */
 .spec-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.7rem;margin-top:.6rem}
-.spec-card{background:linear-gradient(160deg,var(--graphite),var(--void-2));
-  border:1px solid var(--steel);border-top:2px solid var(--accent);border-radius:11px;padding:1rem 1.15rem}
+.spec-card{background:#fff;
+  border:1px solid var(--steel);border-top:2px solid var(--accent);border-radius:12px;padding:1rem 1.15rem;
+  box-shadow:0 1px 2px rgba(20,30,50,.04),0 10px 24px -16px rgba(20,30,50,.22)}
 .spec-card .k{font-family:var(--mono);font-size:8px;letter-spacing:.2em;text-transform:uppercase;
   color:var(--mist-dim);margin-bottom:.35rem}
 .spec-card .v{font-weight:600;font-size:.95rem;letter-spacing:-.01em}
@@ -253,29 +261,45 @@ h2.title .thin{display:block;font-weight:200;color:var(--mist);letter-spacing:-.
 .fill.go{transform:scaleX(var(--w))}
 
 /* projects */
-.projects{display:grid;grid-template-columns:1fr 1fr;gap:.85rem;margin-top:.4rem}
-.project{position:relative;display:block;border:1px solid var(--steel);border-radius:13px;
-  padding:1.2rem 1.3rem;background:linear-gradient(160deg,var(--graphite),var(--void-2));
-  transition:.35s var(--ease);overflow:hidden}
-.project.wide{grid-column:1 / -1}
-.project::after{content:"";position:absolute;inset:0;border-radius:13px;pointer-events:none;
-  box-shadow:inset 0 0 0 1px transparent;transition:.35s var(--ease)}
-.project:hover{transform:translateY(-3px);border-color:transparent;background:linear-gradient(160deg,#131a26,var(--void-2))}
-.project:hover::after{box-shadow:inset 0 0 0 1px var(--gpu),0 0 34px rgba(139,123,255,.18)}
-.project .ptop{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:.55rem}
-.project .pname{font-size:1.05rem;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:9px}
-.project .arrow{color:var(--mist-dim);transition:.3s var(--ease);flex-shrink:0;font-size:1rem}
+.projects{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;margin-top:.4rem;counter-reset:proj}
+.project{position:relative;display:flex;flex-direction:column;isolation:isolate;
+  border:1px solid var(--steel);border-radius:18px;counter-increment:proj;
+  padding:1.7rem 1.8rem;background:#fff;
+  box-shadow:0 1px 2px rgba(20,30,50,.05),0 16px 36px -22px rgba(20,30,50,.30);
+  transition:transform .4s var(--ease),box-shadow .4s var(--ease),border-color .4s var(--ease)}
+.project.wide{grid-column:1 / -1;background:linear-gradient(120deg,#fff 55%,#f6f8ff)}
+/* faint index watermark for prominence */
+.project::after{content:counter(proj,decimal-leading-zero);position:absolute;top:.5rem;right:1.1rem;z-index:0;
+  font-family:var(--mono);font-weight:800;font-size:3.1rem;line-height:1;color:rgba(20,30,50,.05);pointer-events:none}
+/* accent bar that lights up on hover */
+.project::before{content:"";position:absolute;left:0;top:0;height:3px;width:100%;z-index:1;
+  background:linear-gradient(90deg,var(--gpu),rgba(106,88,216,0));opacity:0;transition:.4s var(--ease)}
+.project:hover{transform:translateY(-6px);border-color:transparent;
+  box-shadow:0 1px 2px rgba(20,30,50,.05),0 30px 52px -24px rgba(106,88,216,.42)}
+.project:hover::before{opacity:1}
+.project .ptop,.project .pdesc,.project .tags{position:relative;z-index:1}
+.project .ptop{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:.7rem}
+.project .pname{font-size:1.32rem;font-weight:700;letter-spacing:-.015em;display:flex;align-items:center;gap:10px}
+.project .arrow{color:var(--mist-dim);transition:.3s var(--ease);flex-shrink:0;font-size:1.05rem}
 .project:hover .arrow{color:var(--gpu);transform:translate(3px,-3px)}
 .status{font-family:var(--mono);font-size:8px;letter-spacing:.16em;text-transform:uppercase;
   padding:.28rem .55rem;border-radius:20px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
-.status.live{color:var(--dram);border:1px solid rgba(87,232,160,.35);background:rgba(87,232,160,.06)}
+.status.live{color:var(--dram);border:1px solid rgba(18,153,106,.4);background:rgba(18,153,106,.08)}
 .status.live i{width:5px;height:5px;border-radius:50%;background:var(--dram);box-shadow:0 0 8px var(--dram);
   animation:pulse 2s ease-in-out infinite;font-style:normal}
 .status.soon{color:var(--mist-dim);border:1px solid var(--steel-2)}
-.project .pdesc{font-size:.86rem;color:var(--mist);line-height:1.6;font-weight:300}
-.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:.85rem}
+.project .pdesc{font-size:.92rem;color:var(--mist);line-height:1.62;font-weight:400}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:1rem}
 .tag{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;
-  padding:3px 8px;border-radius:5px;border:1px solid var(--steel-2);color:var(--mist-dim)}
+  padding:3px 8px;border-radius:6px;border:1px solid var(--steel);background:var(--void-2);color:var(--mist-dim)}
+
+/* projects chapter — breaks full-width so the cards lead */
+.projects-chapter .chapter-inner{grid-template-columns:1fr;max-width:1180px}
+.proj-head{display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(2rem,5vw,4rem);
+  align-items:center;margin-bottom:clamp(2rem,4vw,3.4rem)}
+.proj-head .copy{max-width:40rem}
+.proj-visual{position:relative;height:min(40vh,340px);display:flex;align-items:center;
+  justify-content:center;perspective:1400px}
 
 /* experience timeline */
 .timeline{display:flex;flex-direction:column;gap:.75rem;margin-top:.4rem}
@@ -290,9 +314,10 @@ h2.title .thin{display:block;font-weight:200;color:var(--mist);letter-spacing:-.
 /* contact */
 .contact-actions{display:flex;flex-direction:column;gap:.7rem;margin-top:.5rem;max-width:26rem}
 .link-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;
-  border:1px solid var(--steel);border-radius:12px;padding:1rem 1.25rem;
-  background:linear-gradient(160deg,var(--graphite),var(--void-2));transition:.3s var(--ease)}
-.link-row:hover{border-color:var(--io);transform:translateX(4px)}
+  border:1px solid var(--steel);border-radius:14px;padding:1rem 1.25rem;background:#fff;
+  box-shadow:0 1px 2px rgba(20,30,50,.04),0 12px 26px -18px rgba(20,30,50,.24);transition:.3s var(--ease)}
+.link-row:hover{border-color:var(--io);transform:translateX(4px);
+  box-shadow:0 14px 30px -18px rgba(226,62,134,.4)}
 .link-row .lk{font-family:var(--mono);font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--mist-dim)}
 .link-row .lv{font-weight:600;font-size:.95rem;margin-top:.2rem}
 .link-row .arrow{color:var(--mist-dim);transition:.3s var(--ease)}
@@ -312,6 +337,8 @@ footer .fnote{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-tr
   .chapter.flip .chapter-inner{direction:ltr}
   .stagecol{height:min(52vh,420px);order:-1}
   .comp-svg{width:96%}
+  .proj-head{grid-template-columns:1fr;gap:2rem}
+  .proj-visual{height:min(40vh,300px);order:-1}
   .projects{grid-template-columns:1fr}
   .spec-grid{grid-template-columns:1fr 1fr}
   #hud{position:absolute;top:auto;bottom:1rem;right:var(--gutter)}
@@ -362,7 +389,7 @@ footer .fnote{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-tr
 
   <!-- ══════════ HERO ══════════ -->
   <section id="hero" data-chapter="0" data-subj="SURFACE" data-mag="1×" data-alt="0.0µm"
-           data-xk="STATE" data-x="IDLE" data-accent="#6fd7e8">
+           data-xk="STATE" data-x="IDLE" data-accent="#1596ad">
     <div class="hero-grid"></div>
     <div class="hero-bloom"></div>
 
@@ -390,7 +417,7 @@ footer .fnote{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-tr
 
   <!-- ══════════ CPU · ABOUT ══════════ -->
   <section class="chapter" id="about" data-chapter="1" data-subj="SILICON DIE" data-mag="1200×"
-           data-alt="4.2µm" data-xk="TEMP" data-x="48°C" data-accent="#6fd7e8">
+           data-alt="4.2µm" data-xk="TEMP" data-x="48°C" data-accent="#1596ad">
     <div class="chapter-inner">
       <div class="copy">
         <div class="eyebrow reveal"><span class="no">01</span> The Die · About</div>
@@ -461,7 +488,7 @@ footer .fnote{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-tr
 
   <!-- ══════════ RAM · SKILLS ══════════ -->
   <section class="chapter flip" id="skills" data-chapter="2" data-subj="DRAM MODULE" data-mag="800×"
-           data-alt="9.6µm" data-xk="BUS" data-x="6400 MT/s" data-accent="#57e8a0">
+           data-alt="9.6µm" data-xk="BUS" data-x="6400 MT/s" data-accent="#12996a">
     <div class="chapter-inner">
       <div class="copy">
         <div class="eyebrow reveal"><span class="no">02</span> Memory · Skills</div>
@@ -548,17 +575,17 @@ footer .fnote{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-tr
   </section>
 
   <!-- ══════════ GPU · PROJECTS ══════════ -->
-  <section class="chapter" id="projects" data-chapter="3" data-subj="GPU / COOLER" data-mag="400×"
-           data-alt="22µm" data-xk="FAN" data-x="1850 RPM" data-accent="#8b7bff">
+  <section class="chapter projects-chapter" id="projects" data-chapter="3" data-subj="GPU / COOLER" data-mag="400×"
+           data-alt="22µm" data-xk="FAN" data-x="1850 RPM" data-accent="#6a58d8">
     <div class="chapter-inner">
-      <div class="copy">
-        <div class="eyebrow reveal"><span class="no">03</span> The Render · Projects</div>
-        <h2 class="title reveal d1">Things I've<span class="thin">rendered.</span></h2>
-        <p class="lede reveal d2">The graphics card is where raw compute turns into something you can actually see. These are mine — automation, hardware, and a few experiments that got out of hand. <strong>One's already live.</strong></p>
-        <div class="projects reveal d3" id="project-list"></div>
-      </div>
-      <div class="stagecol reveal d2">
-        <div class="stage" data-parallax="0.1">
+      <div class="proj-head">
+        <div class="copy">
+          <div class="eyebrow reveal"><span class="no">03</span> The Render · Projects</div>
+          <h2 class="title reveal d1">Things I've<span class="thin">rendered.</span></h2>
+          <p class="lede reveal d2">The graphics card is where raw compute turns into something you can actually see. These are mine — automation, hardware, and a few experiments that got out of hand. <strong>One's already live.</strong></p>
+        </div>
+        <div class="proj-visual reveal d2">
+          <div class="stage" data-parallax="0.1">
           <svg class="comp-svg" viewBox="0 0 460 460" aria-label="Graphics card cooler">
             <defs>
               <radialGradient id="gpu-hub" cx=".5" cy=".5" r=".5">
@@ -604,12 +631,14 @@ footer .fnote{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-tr
           <div class="floor-glow"></div>
         </div>
       </div>
+      </div>
+      <div class="projects reveal d3" id="project-list"></div>
     </div>
   </section>
 
   <!-- ══════════ PSU · EXPERIENCE ══════════ -->
   <section class="chapter flip" id="experience" data-chapter="4" data-subj="POWER STAGE" data-mag="600×"
-           data-alt="14µm" data-xk="RAIL" data-x="12.0V" data-accent="#e8a24a">
+           data-alt="14µm" data-xk="RAIL" data-x="12.0V" data-accent="#c07a15">
     <div class="chapter-inner">
       <div class="copy">
         <div class="eyebrow reveal"><span class="no">04</span> The Supply · Experience</div>
@@ -683,7 +712,7 @@ footer .fnote{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-tr
 
   <!-- ══════════ SSD / I/O · CONTACT ══════════ -->
   <section class="chapter" id="contact" data-chapter="5" data-subj="I/O BUS" data-mag="1000×"
-           data-alt="6µm" data-xk="LINK" data-x="UP" data-accent="#ff6ea9">
+           data-alt="6µm" data-xk="LINK" data-x="UP" data-accent="#e23e86">
     <div class="chapter-inner">
       <div class="copy">
         <div class="eyebrow reveal"><span class="no">05</span> The Bus · Contact</div>
