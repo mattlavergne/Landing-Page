@@ -812,11 +812,7 @@ function renderProjects(list){
     </a>`;
   }).join("");
 }
-/* allow an optional saved list from the admin editor to override the defaults */
-try{
-  const saved = JSON.parse(localStorage.getItem("ml_projects") || "null");
-  renderProjects(Array.isArray(saved) && saved.length ? saved : PROJECTS);
-}catch(_){ renderProjects(PROJECTS); }
+renderProjects(PROJECTS);
 
 /* ── dust: foreground bokeh (blurred) + mid specks (sharp) for depth ── */
 (function dust(){
