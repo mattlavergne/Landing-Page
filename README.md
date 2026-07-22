@@ -1,45 +1,51 @@
-# mattlavergne.com — landing page
+# mattlavergne.com
 
-The portfolio landing page for **mattlavergne.com**, framed from the point of
-view of a speck of dust: computer parts (CPU, RAM, GPU, PSU, I/O bus) tower
-over you at proportional scale, Apple-keynote style.
+The landing page for **mattlavergne.com**, framed from the point of view of a
+speck of dust: computer parts (CPU, RAM, GPU, PSU, I/O bus) tower over you at
+proportional scale, Apple-keynote style.
 
-## Files
+Served by a Cloudflare Worker that fronts the whole domain — the portfolio is a
+static asset, and `/trafficmap` is reverse-proxied to a separate project.
 
-| File | What it is |
+## Layout
+
+| Path | What it is |
 | --- | --- |
-| `index.html` | The whole site — one self-contained file (all CSS/JS inline, no external assets). **This is the only file you edit.** |
-| `build-worker.js` | Wraps `index.html` into `worker.js`. Run with `node build-worker.js`. |
-| `worker.js` | Auto-generated. The Cloudflare Worker that serves the site. Don't edit by hand. |
+| `public/index.html` | The whole site — one self-contained file (all CSS/JS inline). **The only file you normally edit.** |
+| `src/index.js` | The Cloudflare Worker: proxies `/trafficmap*`, serves the landing page for everything else. |
+| `wrangler.toml` | Worker + static-assets + routes config. |
+| `.github/workflows/deploy.yml` | Deploys to Cloudflare on every push to `main`. |
 
-## How mattlavergne.com is served
+## Routing
 
-A single Cloudflare Worker owns the whole domain (Workers Route
-`mattlavergne.com/*`):
+The Worker owns `mattlavergne.com/*`:
 
-- `/trafficmap` and `/trafficmap/*` → reverse-proxied to the traffic map's
-  GitHub Pages site (unchanged).
-- **everything else** → this landing page.
+- `/trafficmap` → redirect to `/trafficmap/`
+- `/trafficmap/*` → reverse-proxied to the traffic map's GitHub Pages site
+- everything else → `public/index.html` (the portfolio)
 
-## Deploy / update
+## Deploying
 
-1. Edit `index.html` (see "Add a project" below).
-2. Regenerate the Worker:
-   ```
-   node build-worker.js
-   ```
-3. Ship it, either way:
-   - **Dashboard:** Cloudflare → Workers & Pages → `trafficmap-proxy` →
-     *Edit code* → paste the contents of `worker.js` → **Save and Deploy**.
-   - **CLI:** `npx wrangler deploy` (if the Worker is set up with Wrangler).
+Push to `main` and GitHub Actions runs `wrangler deploy` for you — no manual
+steps. (You can also deploy by hand with `npx wrangler deploy`.)
 
-The Workers Route stays `mattlavergne.com/*` — no routing changes needed, and
-the live traffic map is unaffected.
+### One-time setup for auto-deploy
+
+Add two repository secrets in **GitHub → Settings → Secrets and variables →
+Actions**:
+
+| Secret | Where to get it |
+| --- | --- |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare dashboard → My Profile → API Tokens → *Create Token* → **Edit Cloudflare Workers** template. |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare dashboard → Workers & Pages → right sidebar (Account ID). |
+
+The workflow deploys the Worker named `trafficmap-proxy` (same as the existing
+one) with the routes in `wrangler.toml`, so it takes over the domain in place.
 
 ## Add a project
 
-Open `index.html`, find the `PROJECTS` array near the top of the `<script>`,
-and copy an existing entry:
+Open `public/index.html`, find the `PROJECTS` array near the top of the
+`<script>`, and copy an existing entry:
 
 ```js
 {
@@ -52,4 +58,4 @@ and copy an existing entry:
 }
 ```
 
-Save, run `node build-worker.js`, and deploy. That's it.
+Save, commit, push. Done.

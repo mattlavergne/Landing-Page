@@ -1,0 +1,25 @@
+# Cloudflare Worker config for mattlavergne.com.
+#
+# Deploys src/index.js as the Worker "trafficmap-proxy" (same name as the
+# existing dashboard Worker, so this takes it over in place) and uploads
+# public/ as static assets. The routes below keep the Worker owning the whole
+# domain, exactly as before.
+
+name = "trafficmap-proxy"
+main = "src/index.js"
+compatibility_date = "2025-06-01"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+# Run the Worker first for every request so /trafficmap is proxied; the Worker
+# serves the landing page for everything else via env.ASSETS.
+run_worker_first = true
+
+[[routes]]
+pattern = "mattlavergne.com/*"
+zone_name = "mattlavergne.com"
+
+[[routes]]
+pattern = "*.mattlavergne.com/*"
+zone_name = "mattlavergne.com"
