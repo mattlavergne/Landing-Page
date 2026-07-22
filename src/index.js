@@ -41,7 +41,10 @@ export default {
       });
     }
 
-    // Everything else is the portfolio landing page.
+    // Everything else: serve the matching static asset (favicon, app icons,
+    // manifest, …) if one exists, otherwise fall back to the landing page.
+    const assetResponse = await env.ASSETS.fetch(request);
+    if (assetResponse.status !== 404) return assetResponse;
     return env.ASSETS.fetch(new URL("/index.html", url));
   },
 };
