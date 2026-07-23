@@ -106,6 +106,33 @@ one or two so the Desktop/Dock stay uncluttered; leave the rest to live in the
 Finder. To change the bio, skills, or experience, edit the `PROFILE`, `SKILLS`,
 `EXPERIENCE`, and `EDUCATION` objects right above `PROJECTS`.
 
+## Contact form (the Mail app)
+
+The **Contact** app is a real Mail-style composer that sends messages straight
+to your inbox — no backend required. It POSTs to
+[FormSubmit](https://formsubmit.co), a free form-to-email relay, configured in
+the `CONTACT` object near the top of the `<script>`:
+
+```js
+const CONTACT = {
+  to: "contact@mattlavergne.com",
+  toName: "Matt Lavergne",
+  endpoint: "https://formsubmit.co/ajax/contact@mattlavergne.com"
+};
+```
+
+**One-time activation:** the *first* message ever sent triggers a confirmation
+email from FormSubmit to `contact@mattlavergne.com`. Click the link in it once,
+and every message after that is delivered instantly. (Send yourself a test
+message to kick this off.) A honeypot field guards against basic spam bots, and
+if the network request ever fails the composer falls back to opening the
+visitor's own mail app pre-filled — so it never dead-ends.
+
+Prefer a different service? Swap `endpoint` for a
+[Web3Forms](https://web3forms.com) URL (immediate delivery, needs a free access
+key) or a `POST` route on your own Cloudflare Worker — the payload is JSON with
+`name`, `email`, `message`, and `_subject`.
+
 ## Hidden extras
 
 A few things aren't spelled out on screen: the **Konami code**
