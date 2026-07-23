@@ -74,27 +74,43 @@ one) with the routes in `wrangler.toml`, so it takes over the domain in place.
 
 ## Add or edit a project
 
-Projects are the files in the Finder (and entries in Spotlight & the Dock).
-Open `public/index.html`, find the `PROJECTS` array near the top of the
-`<script>`, and copy an existing entry:
+**One list drives the whole OS.** Every project comes from the `PROJECTS`
+array near the top of the `<script>` in `public/index.html`. Add one object
+and it shows up **consistently everywhere** — the Finder, Spotlight search, and
+its own project window. Set `pinned: true` and it *also* gets an icon on the
+**Desktop** and in the **Dock**. Nothing is hard-coded per-project anymore.
+
+Copy an existing entry:
 
 ```js
 {
   slug:"newthing",                 // unique id (used for the window + deep-link)
   name:"My New Thing",             // display name
   kind:"app",                      // "app" → shows a .app suffix; "case" → case study
-  status:"live",                   // "live" → green Live badge; anything else → "soon"
+  status:"live",                   // "live" → Live badge · "production" → In-production
+                                   //   badge (no public link) · anything else → "soon"
   url:"/newthing",                 // "/path", "https://…", or "#"
+  pinned:true,                     // OPTIONAL — also show on the Desktop + Dock
   icon:"sparkle",                  // one of: globe, sparkle, wave, flow, folder, note
   modified:"Live",                 // small caption under the icon
   size:"—",
   tagline:"One-line summary",
   tags:["Python","IoT"],
   desc:"A sentence or two shown in the project window.",
-  launch:"Open the live app"       // button label when live (null → "Coming soon")
+  launch:"Open the live app"       // button label when live (null → default)
 }
 ```
 
-Save, commit, push. The project appears everywhere automatically. To change the
-bio, skills, or experience, edit the `PROFILE`, `SKILLS`, and `EXPERIENCE`
-objects right above `PROJECTS`.
+Save, commit, push. The project appears everywhere automatically. Pin your best
+one or two so the Desktop/Dock stay uncluttered; leave the rest to live in the
+Finder. To change the bio, skills, or experience, edit the `PROFILE`, `SKILLS`,
+`EXPERIENCE`, and `EDUCATION` objects right above `PROJECTS`.
+
+## Hidden extras
+
+A few things aren't spelled out on screen: the **Konami code**
+(`↑ ↑ ↓ ↓ ← → ← → B A`), a **screensaver** after a minute idle, secret
+**Terminal** commands (`matrix`, `coffee`, `42`, `hire`, `credits`, `party`,
+`sl`, `sudo`), clickable **battery/Wi-Fi/clock** in the menu bar, and a
+progressively sassier **Trash**. The Konami code unlocks a `Secrets.txt` on the
+desktop that documents them all.

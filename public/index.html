@@ -431,8 +431,37 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
 .dock-item.bounce{animation:bounce .5s ease}
 @keyframes bounce{0%,100%{transform:translateY(0)}40%{transform:translateY(-18px)}}
 @media(max-width:640px){
-  #dock{gap:5px;padding:7px 8px}
-  .dock-item,.dock-item .di,.dock-item .di svg{width:42px;height:42px}
+  /* Dock: fit the phone width and let it scroll horizontally if needed */
+  #dock{gap:6px;padding:7px 9px;left:8px;right:8px;transform:none;max-width:none;
+    overflow-x:auto;overflow-y:hidden;justify-content:flex-start;scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;border-radius:20px}
+  #dock::-webkit-scrollbar{display:none}
+  .dock-item,.dock-item .di,.dock-item .di svg{width:46px;height:46px}
+  .dock-sep{height:44px}
+  .dock-item .tip{display:none}          /* no hover tooltips on touch */
+}
+
+/* Touch devices: bigger, more forgiving tap targets */
+@media(pointer:coarse){
+  .win-bar{height:46px}
+  .win-lights{gap:12px}
+  .wl{width:15px;height:15px}
+  .wl::after{content:"";position:absolute;inset:-9px}   /* enlarge hit area */
+  .win-title{font-size:15px}
+  .menu button,.fs-item,.contact .row{padding-top:11px;padding-bottom:11px}
+  .icon-btn,.ft-btn{min-width:38px;min-height:38px}
+  .f-file{padding:14px 8px}
+  .desk-icon{padding:10px 6px}
+}
+
+/* Very small screens (iPhone mini / SE): tighten chrome, roomier icons */
+@media(max-width:400px){
+  :root{--menubar-h:32px}
+  #iconLayer{gap:10px;top:10px;right:10px}
+  .desk-icon{width:84px}
+  .mb-tray .mb-item{padding:0 6px}
+  #mbBatteryPct{display:none}
+  .spot-box{width:94vw}
 }
 
 /* ═══════════════════ SPOTLIGHT ═══════════════════ */
@@ -488,6 +517,22 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
 .wall-swatches{display:flex;gap:8px;margin-top:2px}
 .wall-swatches button{all:unset;width:34px;height:34px;border-radius:10px;cursor:pointer;border:2px solid transparent;box-shadow:var(--edge)}
 .wall-swatches button.on{border-color:var(--accent)}
+
+/* ═══════════════════ CALENDAR / TODAY POPOVER ═══════════════════ */
+#calendar{position:fixed;top:calc(var(--menubar-h) + 6px);right:8px;z-index:9600;width:280px;display:none;
+  background:var(--panel-strong);border:1px solid var(--panel-border);border-radius:20px;padding:16px;
+  box-shadow:var(--shadow),var(--edge);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  animation:menu-in .16s cubic-bezier(.34,1.3,.64,1)}
+#calendar.on{display:block}
+.cal-today{text-align:center;margin-bottom:12px}
+.cal-today .dow{font-size:12px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.cal-today .num{font-size:46px;font-weight:800;line-height:1;letter-spacing:-.02em;margin-top:2px}
+.cal-today .mon{font-size:12.5px;color:var(--text-2);margin-top:3px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-top:4px}
+.cal-grid .h{font-size:10px;color:var(--text-3);text-align:center;font-weight:700;padding:4px 0}
+.cal-grid .d{font-size:12.5px;text-align:center;padding:6px 0;border-radius:9px;color:var(--text-2);font-variant-numeric:tabular-nums}
+.cal-grid .d.today{background:var(--accent);color:#fff;font-weight:800}
+.cal-grid .d.empty{visibility:hidden}
 
 /* ═══════════════════ CONTEXT MENU ═══════════════════ */
 #ctxmenu{position:fixed;z-index:9650;display:none}
@@ -570,7 +615,7 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
 <div class="sr-only">
   <h1>Matt Lavergne — Automation Specialist &amp; Digital Services Coordinator, Lafayette, Louisiana</h1>
   <p>Matthew Lavergne is a Digital Services Coordinator at the University of Louisiana at Lafayette Foundation, where he designs enterprise Power Automate solutions, REST API integrations, and custom connector architecture that replace manual processes with scalable systems across Microsoft 365. His flagship is a 47-flow Power Automate solution automating gift processing, donor operations, events, and onboarding. This portfolio is presented as an interactive desktop operating system, "mattOS". Projects include a live Lafayette 911 traffic incident map at mattlavergne.com/trafficmap, a map background generator, a VBA PDF bookmark router, a social-to-CRM bulk import, and WiFi trilateration motion detection.</p>
-  <p>Contact: matt@mattlavergne.com · LinkedIn /in/matthew-a-lavergne · GitHub github.com/mattlavergne · <a href="/trafficmap">Live traffic map</a></p>
+  <p>Contact: contact@mattlavergne.com · LinkedIn /in/matthew-a-lavergne · GitHub github.com/mattlavergne · <a href="/trafficmap">Live traffic map</a></p>
 </div>
 <noscript>
   <div style="padding:40px;max-width:640px;margin:0 auto;font-family:system-ui,sans-serif;line-height:1.6">
@@ -578,7 +623,7 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
     <p>Automation Specialist &amp; Digital Services Coordinator — Lafayette, Louisiana. This site is an interactive desktop that needs JavaScript. Here are the essentials:</p>
     <ul>
       <li><a href="/trafficmap">Lafayette Traffic — live 911 incident map</a></li>
-      <li>Email: <a href="mailto:matt@mattlavergne.com">matt@mattlavergne.com</a></li>
+      <li>Email: <a href="mailto:contact@mattlavergne.com">contact@mattlavergne.com</a></li>
       <li><a href="https://www.linkedin.com/in/matthew-a-lavergne/">LinkedIn</a> · <a href="https://github.com/mattlavergne">GitHub</a></li>
     </ul>
   </div>
@@ -612,6 +657,7 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
 </div>
 
 <div id="control" role="dialog" aria-label="Control Center"></div>
+<div id="calendar" role="dialog" aria-label="Calendar"></div>
 <div id="ctxmenu"></div>
 <div id="notify" aria-live="polite"></div>
 
@@ -652,6 +698,8 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
    Cloudflare Worker can serve this file verbatim.
 ════════════════════════════════════════════════════════════════════ */
 const REDUCE = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const COARSE = window.matchMedia("(pointer: coarse)").matches;   // touch device
+const isPhone = ()=> window.innerWidth < 640;
 const $ = (s,r=document)=>r.querySelector(s);
 const el = (t,c,h)=>{const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e;};
 const esc = s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -666,7 +714,7 @@ const PROFILE = {
   title:"Automation Specialist · Digital Services Coordinator",
   location:"Lafayette, Louisiana",
   status:"Open to work",
-  email:"matt@mattlavergne.com",
+  email:"contact@mattlavergne.com",
   linkedin:"https://www.linkedin.com/in/matthew-a-lavergne/",
   github:"https://github.com/mattlavergne",
   bio:[
@@ -700,7 +748,7 @@ const EDUCATION = [
 
 const PROJECTS = [
   {
-    slug:"trafficmap", name:"Traffic Map", kind:"app", status:"live", url:"/trafficmap",
+    slug:"trafficmap", name:"Traffic Map", kind:"app", status:"live", url:"/trafficmap", pinned:true,
     icon:"globe", modified:"Live", size:"—",
     tagline:"Live Lafayette 911 incident map",
     tags:["Live","Mapping","Real-time","Python","Leaflet"],
@@ -932,6 +980,9 @@ function makeWindow(id, app){
   enableResize(node,$(".win-resize",node),id);
   if(app.mount) app.mount(body,id,node);
   focusWin(id);
+  // On phones, open full-screen (one app at a time) — no fiddly drag/resize.
+  // toggleMax stores the normal rect above as the restore size.
+  if(isPhone()) toggleMax(id);
   return node;
 }
 
@@ -1202,11 +1253,11 @@ APPS.readme = {
       <h1>Welcome to mattOS 👋</h1>
       <p>You're looking at <b>${esc(PROFILE.name)}</b>'s portfolio — built as a real, working desktop.</p>
       <ul>
-        <li><b>Double-click</b> a desktop icon to open it.</li>
+        <li><b>Open</b> a desktop icon — double-click, or a single tap on touch.</li>
         <li>Open <b>Projects</b> in the Finder to browse everything I've built.</li>
-        <li>Click the <b>Dock</b> icons at the bottom to launch apps.</li>
-        <li>Press <span class="kbd">⌘K</span> (or <span class="kbd">Ctrl K</span>) for Spotlight search.</li>
-        <li>Drag windows by their title bar. Resize from the bottom-right.</li>
+        <li>Tap the <b>Dock</b> icons at the bottom to launch apps.</li>
+        <li>Press <span class="kbd">⌘K</span> / <span class="kbd">Ctrl K</span> (or tap 🔍) for Spotlight.</li>
+        <li>On a desktop, drag windows by their title bar and resize from the corner.</li>
         <li>Try the <b>Terminal</b> — type <span class="kbd">help</span>.</li>
         <li>Right-click the desktop for more. Toggle light/dark in the menu bar.</li>
       </ul>
@@ -1351,6 +1402,7 @@ function wireFinder(body){
       let last=0;
       cell.addEventListener("click",()=>{
         bodyEl.querySelectorAll(".sel").forEach(x=>x.classList.remove("sel")); cell.classList.add("sel");
+        if(COARSE){ finderOpenIndex(i); return; }
         const now=Date.now(); if(now-last<380){ finderOpenIndex(i); } last=now;
       });
       cell.addEventListener("dblclick",()=>finderOpenIndex(i));
@@ -1367,21 +1419,27 @@ function wireFinder(body){
 }
 
 /* ═══════════════════════ DOCK ═══════════════════════ */
-const DOCK = [
-  {id:"finder", label:"Finder", icon:APPICON.finder},
-  {id:"about", label:"About This Machine", icon:APPICON.about},
-  {id:"activity", label:"Activity Monitor", icon:APPICON.activity},
-  {id:"career", label:"Career", icon:APPICON.career},
-  {id:"contact", label:"Contact", icon:APPICON.contact},
-  {id:"terminal", label:"Terminal", icon:APPICON.terminal},
-  {sep:true},
-  {id:"project:trafficmap", label:"Traffic Map", icon:APPICON.globe},
-  {sep:true},
-  {id:"trash", label:"Trash", icon:APPICON.trash, trash:true}
-];
+/* The Dock is derived from the core apps + any PROJECTS marked `pinned:true`.
+   Pin a project (see PROJECTS at the top) and it appears here automatically. */
+function pinnedProjects(){ return PROJECTS.filter(p=>p.pinned); }
+function dockList(){
+  const core=[
+    {id:"finder", label:"Finder", icon:APPICON.finder},
+    {id:"about", label:"About This Machine", icon:APPICON.about},
+    {id:"activity", label:"Activity Monitor", icon:APPICON.activity},
+    {id:"career", label:"Career", icon:APPICON.career},
+    {id:"contact", label:"Contact", icon:APPICON.contact},
+    {id:"terminal", label:"Terminal", icon:APPICON.terminal},
+  ];
+  const projs=pinnedProjects().map(p=>({id:"project:"+p.slug, label:p.name, icon:projIcon(p)}));
+  const list=[...core];
+  if(projs.length){ list.push({sep:true}, ...projs); }
+  list.push({sep:true}, {id:"trash", label:"Trash", icon:APPICON.trash, trash:true});
+  return list;
+}
 function buildDock(){
   const dock=$("#dock"); dock.innerHTML="";
-  DOCK.forEach(d=>{
+  dockList().forEach(d=>{
     if(d.sep){ dock.appendChild(el("div","dock-sep")); return; }
     const item=el("div","dock-item");
     item.dataset.open=d.id;
@@ -1393,8 +1451,7 @@ function buildDock(){
     dock.appendChild(item);
   });
   refreshDock();
-  dock.addEventListener("pointermove",dockMagnify);
-  dock.addEventListener("pointerleave",dockReset);
+  if(!COARSE){ dock.addEventListener("pointermove",dockMagnify); dock.addEventListener("pointerleave",dockReset); }
 }
 function dockMagnify(e){
   const items=[...document.querySelectorAll("#dock .dock-item")];
@@ -1433,7 +1490,7 @@ function buildMenubar(){
       <div class="mb-item" id="trayWifi" title="Wi-Fi"><span class="tray-icon">${I.wifi}</span></div>
       <div class="mb-item" id="trayTheme" title="Toggle theme"><span class="tray-icon" id="trayThemeIco">${I.auto}</span></div>
       <div class="mb-item" id="trayBattery" title="Battery"><span class="tray-icon">${I.battery}</span><span id="mbBatteryPct">100%</span></div>
-      <div class="mb-item"><span id="mbClock">--:--</span>&nbsp;<span id="mbDate" class="muted"></span></div>
+      <div class="mb-item" id="trayClock" title="Calendar"><span id="mbClock">--:--</span>&nbsp;<span id="mbDate" class="muted"></span></div>
     </div>`;
   mb.querySelectorAll("[data-menu]").forEach(it=>{
     it.addEventListener("click",e=>{ e.stopPropagation(); openMbMenu(it); });
@@ -1443,6 +1500,7 @@ function buildMenubar(){
   $("#trayTheme").addEventListener("click",e=>{e.stopPropagation();cycleTheme();});
   $("#trayWifi").addEventListener("click",()=>toast("Wi-Fi","Connected to “Lafayette-Foundation” · signal excellent 📶", I.wifi));
   $("#trayBattery").addEventListener("click",()=>toast("Battery","100% — powered by coffee and Power Automate ☕", I.battery));
+  $("#trayClock").addEventListener("click",e=>{e.stopPropagation();toggleCalendar();});
   applyTheme();
   updateMenubarApp();
 }
@@ -1511,7 +1569,7 @@ function openMbMenu(anchor){
   m.style.left=Math.min(r.left, window.innerWidth-m.offsetWidth-8)+"px";
   m.style.top=(r.bottom+4)+"px";
   const buttons=[...m.querySelectorAll("button")];
-  let vi=0; items.forEach(it=>{ if(it.divider)return; const btn=buttons[vi++]; btn.addEventListener("click",()=>{ closeMenus(); it.action&&it.action(); }); });
+  let vi=0; items.forEach(it=>{ if(it.divider)return; const btn=buttons[vi++]; btn.addEventListener("click",(e)=>{ e.stopPropagation(); closeMenus(); it.action&&it.action(); }); });
   anchor.classList.add("open");
   openMenuEl=m; openMenuAnchor=anchor;
 }
@@ -1555,7 +1613,29 @@ function buildControl(){
   tog("#ccMotion",v=>{ document.documentElement.style.setProperty("--wall-motion",v?"paused":"running"); document.querySelectorAll("#wallpaper .blob").forEach(b=>b.style.animationPlayState=v?"paused":"running"); });
   applyTheme(); applyWall();
 }
-function toggleControl(){ closeMenus(); $("#control").classList.toggle("on"); }
+function toggleControl(){ closeMenus(); $("#calendar").classList.remove("on"); $("#control").classList.toggle("on"); }
+
+/* ═══════════════════════ CALENDAR / TODAY POPOVER ═══════════════════════ */
+function buildCalendar(){
+  const d=new Date();
+  const dow=d.toLocaleDateString(undefined,{weekday:"long"});
+  const mon=d.toLocaleDateString(undefined,{month:"long",year:"numeric"});
+  const first=new Date(d.getFullYear(),d.getMonth(),1).getDay();
+  const days=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+  const today=d.getDate();
+  let cells=["S","M","T","W","T","F","S"].map(h=>`<div class="h">${h}</div>`).join("");
+  for(let i=0;i<first;i++) cells+=`<div class="d empty">0</div>`;
+  for(let n=1;n<=days;n++) cells+=`<div class="d${n===today?" today":""}">${n}</div>`;
+  $("#calendar").innerHTML=`
+    <div class="cal-today"><div class="dow">${esc(dow)}</div><div class="num">${today}</div><div class="mon">${esc(mon)}</div></div>
+    <div class="cal-grid">${cells}</div>`;
+}
+function toggleCalendar(){
+  closeMenus(); $("#control").classList.remove("on");
+  const c=$("#calendar"), open=!c.classList.contains("on");
+  if(open) buildCalendar();
+  c.classList.toggle("on");
+}
 
 /* ═══════════════════════ SPOTLIGHT ═══════════════════════ */
 const spot=$("#spotlight"), spotInput=$("#spotInput"), spotResults=$("#spotResults");
@@ -1640,20 +1720,25 @@ function unlock(){ $("#lock").classList.remove("on"); }
 $("#lock").addEventListener("click",unlock);
 
 /* ═══════════════════════ DESKTOP ICONS + WIDGETS ═══════════════════════ */
-const DESK_ICONS=[
-  {label:"Projects", icon:APPICON.folder, open:()=>{ finderLoc="projects"; openApp("finder"); setTimeout(()=>refreshFinderAll(),20); }},
-  {label:"About Me", icon:APPICON.about, open:()=>openApp("about")},
-  {label:"Traffic Map", icon:APPICON.globe, open:()=>openApp("project:trafficmap")},
-  {label:"README.txt", icon:APPICON.note, open:()=>openApp("readme")}
-];
+/* Desktop icons = Projects folder + About + any `pinned:true` PROJECTS + README.
+   Pinning a project shows it on the desktop, the Dock, and (always) the Finder. */
+function deskIconList(){
+  const projs=pinnedProjects().map(p=>({label:p.name, icon:projIcon(p), open:()=>openApp("project:"+p.slug)}));
+  return [
+    {label:"Projects", icon:APPICON.folder, open:()=>{ finderLoc="projects"; openApp("finder"); setTimeout(()=>refreshFinderAll(),20); }},
+    {label:"About Me", icon:APPICON.about, open:()=>openApp("about")},
+    ...projs,
+    {label:"README.txt", icon:APPICON.note, open:()=>openApp("readme")}
+  ];
+}
 function buildDesktop(){
   const layerEl=$("#iconLayer");
-  DESK_ICONS.forEach(d=>{
+  deskIconList().forEach(d=>{
     const i=el("div","desk-icon");
     i.tabIndex=0;
     i.innerHTML=`<div class="di-img">${d.icon}</div><div class="di-label">${esc(d.label)}</div>`;
     let last=0;
-    i.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll(".desk-icon.sel").forEach(x=>x.classList.remove("sel")); i.classList.add("sel"); const now=Date.now(); if(now-last<380) d.open(); last=now; });
+    i.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll(".desk-icon.sel").forEach(x=>x.classList.remove("sel")); i.classList.add("sel"); if(COARSE){ d.open(); return; } const now=Date.now(); if(now-last<380) d.open(); last=now; });
     i.addEventListener("dblclick",e=>{ e.stopPropagation(); d.open(); });
     i.addEventListener("keydown",e=>{ if(e.key==="Enter") d.open(); });
     layerEl.appendChild(i);
@@ -1774,13 +1859,14 @@ $("#boot").addEventListener("click",()=>{ if($("#boot")._iv)clearInterval($("#bo
 document.addEventListener("click",e=>{
   if(!e.target.closest(".menu") && !e.target.closest("[data-menu]")) closeMenus();
   if(!e.target.closest("#control") && !e.target.closest("#trayControl")) $("#control").classList.remove("on");
+  if(!e.target.closest("#calendar") && !e.target.closest("#trayClock")) $("#calendar").classList.remove("on");
   if(!e.target.closest("#ctxmenu")) closeContext();
   if(!e.target.closest(".desk-icon")) document.querySelectorAll(".desk-icon.sel").forEach(x=>x.classList.remove("sel"));
 });
 $("#desktop").addEventListener("contextmenu",e=>{ e.preventDefault(); closeMenus(); buildContext(e.clientX,e.clientY); });
 document.addEventListener("keydown",e=>{
   if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){ e.preventDefault(); spot.classList.contains("on")?closeSpotlight():openSpotlight(); }
-  else if(e.key==="Escape"){ closeMenus(); closeContext(); $("#control").classList.remove("on"); if(spot.classList.contains("on"))closeSpotlight(); if($("#lock").classList.contains("on"))unlock(); }
+  else if(e.key==="Escape"){ closeMenus(); closeContext(); $("#control").classList.remove("on"); $("#calendar").classList.remove("on"); if(spot.classList.contains("on"))closeSpotlight(); if($("#lock").classList.contains("on"))unlock(); }
   else if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="w"&&activeId){ e.preventDefault(); closeWin(activeId); }
   else if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="m"&&activeId){ e.preventDefault(); minimizeWin(activeId); }
   else if($("#lock").classList.contains("on")){ unlock(); }
@@ -1840,7 +1926,7 @@ function addSecretsIcon(){
   const i=el("div","desk-icon"); i.dataset.secret="1"; i.tabIndex=0;
   i.innerHTML=`<div class="di-img">${APPICON.note}</div><div class="di-label">Secrets.txt</div>`;
   let last=0; const open=()=>openApp("secrets");
-  i.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll(".desk-icon.sel").forEach(x=>x.classList.remove("sel")); i.classList.add("sel"); const now=Date.now(); if(now-last<380) open(); last=now; });
+  i.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll(".desk-icon.sel").forEach(x=>x.classList.remove("sel")); i.classList.add("sel"); if(COARSE){ open(); return; } const now=Date.now(); if(now-last<380) open(); last=now; });
   i.addEventListener("dblclick",e=>{ e.stopPropagation(); open(); });
   i.addEventListener("keydown",e=>{ if(e.key==="Enter") open(); });
   $("#iconLayer").appendChild(i);
@@ -1945,7 +2031,10 @@ runBoot(true);
 // open the Finder to Projects shortly after boot, and greet
 setTimeout(()=>{
   if(window.innerWidth>720){ openApp("finder"); }
-  setTimeout(()=>toast("Welcome to mattOS","Double-click the Projects folder, or press ⌘K to search. Everything here really works.", I.apple), 900);
+  const msg = COARSE
+    ? "Tap the Projects folder to explore, or tap 🔍 up top to search. Everything here really works."
+    : "Double-click the Projects folder, or press ⌘K to search. Everything here really works.";
+  setTimeout(()=>toast("Welcome to mattOS", msg, I.apple), 900);
 }, REDUCE?400:2100);
 </script>
 </body>
