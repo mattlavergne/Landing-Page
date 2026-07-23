@@ -580,17 +580,33 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
 /* ═══════════════════ NOTIFICATIONS ═══════════════════ */
 #notify{position:fixed;top:calc(var(--menubar-h) + 10px);right:10px;z-index:9800;display:flex;flex-direction:column;gap:10px;
   max-width:min(340px,90vw)}
-.toast{background:var(--panel-strong);border:1px solid var(--panel-border);border-radius:16px;padding:13px 15px;
+.toast{position:relative;background:var(--panel-strong);border:1px solid var(--panel-border);border-radius:16px;padding:13px 15px;
   box-shadow:var(--shadow),var(--edge);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
-  display:flex;gap:12px;align-items:flex-start;animation:toast-in .28s cubic-bezier(.34,1.3,.64,1)}
+  display:flex;gap:12px;align-items:flex-start;animation:toast-in .28s cubic-bezier(.34,1.3,.64,1);
+  transition:transform .2s ease,opacity .2s ease;touch-action:none;cursor:default}
+.toast.dragging{transition:none}
 .toast.out{animation:toast-out .25s ease forwards}
 @keyframes toast-in{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
 @keyframes toast-out{to{opacity:0;transform:translateX(20px)}}
 .toast .tico{width:32px;height:32px;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;
   background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff}
 .toast .tico svg{width:18px;height:18px}
+.toast .tbody{flex:1;min-width:0}
 .toast .tbody .tt{font-weight:700;font-size:13.5px}
 .toast .tbody .tm{font-size:12.5px;color:var(--text-2);margin-top:2px;line-height:1.4}
+.toast .tclose{position:absolute;top:-8px;left:-8px;width:20px;height:20px;border-radius:50%;padding:0;
+  background:var(--panel-solid);border:1px solid var(--panel-border);color:var(--text-2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);
+  opacity:0;transform:scale(.8);transition:opacity .12s ease,transform .12s ease;z-index:3}
+.toast:hover .tclose{opacity:1;transform:scale(1)}
+.toast .tclose svg{width:11px;height:11px}
+.toast .tgrab{display:none}
+@media(pointer:coarse){
+  .toast .tclose{display:none}                       /* touch: swipe up instead */
+  .toast .tgrab{display:block;position:absolute;top:5px;left:50%;transform:translateX(-50%);
+    width:34px;height:4px;border-radius:3px;background:var(--text-3);opacity:.4}
+  .toast{padding-top:15px}
+}
 
 /* ═══════════════════ LOCK SCREEN ═══════════════════ */
 #lock{position:fixed;inset:0;z-index:9990;display:none;flex-direction:column;align-items:center;justify-content:center;
@@ -856,6 +872,7 @@ const line = (p)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 I.apple = `<svg viewBox="0 0 100 100" fill="currentColor"><path d="M24 74V26h9l17 24 17-24h9v48H64V47L50 68 36 47v27z"/></svg>`;
 I.search = line(`<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>`);
 I.wifi = line(`<path d="M2 8.5a15 15 0 0 1 20 0"/><path d="M5 12a10 10 0 0 1 14 0"/><path d="M8.5 15.5a5 5 0 0 1 7 0"/><path d="M12 19h.01"/>`);
+I.wifiOff = line(`<path d="M2 4l20 20"/><path d="M8.7 6.2A15 15 0 0 1 22 8.5"/><path d="M5 12a10 10 0 0 1 3.3-2.2"/><path d="M8.5 15.5a5 5 0 0 1 5.4-1.1"/><path d="M12 19h.01"/>`);
 I.battery = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="8" width="18" height="9" rx="2.5"/><path d="M22 11v3" stroke-linecap="round"/><rect x="3.5" y="9.5" width="12" height="6" rx="1" fill="currentColor" stroke="none"/></svg>`;
 I.control = line(`<rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/>`);
 I.sun = line(`<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>`);
@@ -1610,6 +1627,7 @@ function buildMenubar(){
     <div class="mb-tray">
       <div class="mb-item" id="traySearch" title="Spotlight (⌘K)"><span class="tray-icon">${I.search}</span></div>
       <div class="mb-item" id="trayControl" title="Control Center"><span class="tray-icon">${I.control}</span></div>
+      <div class="mb-item" id="trayDnd" title="Do Not Disturb is on" style="display:none"><span class="tray-icon">${I.moon}</span></div>
       <div class="mb-item" id="trayWifi" title="Wi-Fi"><span class="tray-icon">${I.wifi}</span></div>
       <div class="mb-item" id="trayTheme" title="Toggle theme"><span class="tray-icon" id="trayThemeIco">${I.auto}</span></div>
       <div class="mb-item" id="trayBattery" title="Battery"><span class="tray-icon">${I.battery}</span><span id="mbBatteryPct">100%</span></div>
@@ -1621,7 +1639,8 @@ function buildMenubar(){
   $("#traySearch").addEventListener("click",e=>{e.stopPropagation();openSpotlight();});
   $("#trayControl").addEventListener("click",e=>{e.stopPropagation();toggleControl();});
   $("#trayTheme").addEventListener("click",e=>{e.stopPropagation();cycleTheme();});
-  $("#trayWifi").addEventListener("click",()=>toast("Wi-Fi","Connected to “Lafayette-Foundation” · signal excellent 📶", I.wifi));
+  $("#trayWifi").addEventListener("click",()=>toast("Wi-Fi", wifiOn?"Connected to “Lafayette-Foundation” · signal excellent 📶":"Wi-Fi is off. Turn it back on in Control Center.", wifiOn?I.wifi:I.wifiOff));
+  $("#trayDnd").addEventListener("click",()=>setDnd(false));
   $("#trayBattery").addEventListener("click",()=>toast("Battery","100% — powered by coffee and Power Automate ☕", I.battery));
   $("#trayClock").addEventListener("click",e=>{e.stopPropagation();toggleCalendar();});
   applyTheme();
@@ -1711,7 +1730,7 @@ function buildControl(){
           <button data-theme-seg="dark">Dark</button>
         </div>
       </div>
-      <div class="cc-tile"><div class="cc-h">Wi-Fi</div><div class="cc-toggle"><div class="toggle on" id="ccWifi"></div><span style="font-size:12px">On</span></div></div>
+      <div class="cc-tile"><div class="cc-h">Wi-Fi</div><div class="cc-toggle"><div class="toggle on" id="ccWifi"></div><span style="font-size:12px" id="ccWifiL">On</span></div></div>
       <div class="cc-tile"><div class="cc-h">Do Not Disturb</div><div class="cc-toggle"><div class="toggle" id="ccDnd"></div><span style="font-size:12px" id="ccDndL">Off</span></div></div>
       <div class="cc-tile wide">
         <div class="cc-h">Brightness</div>
@@ -1731,12 +1750,32 @@ function buildControl(){
   c.querySelectorAll("[data-wall]").forEach(b=>b.addEventListener("click",()=>setWall(b.dataset.wall)));
   $("#ccBright").addEventListener("input",e=>{ brightness=+e.target.value; localStorage.setItem("mattos-bright",brightness); applyBright(); });
   const tog=(id,fn)=>{ const t=$(id); t.addEventListener("click",()=>{ t.classList.toggle("on"); fn&&fn(t.classList.contains("on")); }); };
-  tog("#ccWifi");
-  tog("#ccDnd",v=>{ $("#ccDndL").textContent=v?"On":"Off"; });
+  tog("#ccWifi", v=>setWifi(v));
+  tog("#ccDnd", v=>setDnd(v));
   tog("#ccMotion",v=>{ document.documentElement.style.setProperty("--wall-motion",v?"paused":"running"); document.querySelectorAll("#wallpaper .blob").forEach(b=>b.style.animationPlayState=v?"paused":"running"); });
   applyTheme(); applyWall();
 }
 function toggleControl(){ closeMenus(); $("#calendar").classList.remove("on"); $("#control").classList.toggle("on"); }
+
+/* Wi-Fi is cosmetic (never touches the real connection) — it just flips the
+   menu-bar icon and reports status. Do Not Disturb genuinely silences the
+   notification banners and shows a moon in the menu bar. */
+function setWifi(on){
+  wifiOn=on;
+  const l=$("#ccWifiL"); if(l) l.textContent=on?"On":"Off";
+  const t=$("#ccWifi"); if(t) t.classList.toggle("on",on);
+  const ic=$("#trayWifi .tray-icon"); if(ic) ic.innerHTML = on?I.wifi:I.wifiOff;
+  toast("Wi-Fi", on?"Reconnected to “Lafayette-Foundation”. 📶":"Wi-Fi off (just for show — your real connection is untouched).", on?I.wifi:I.wifiOff);
+}
+function setDnd(on){
+  // show the confirmation BEFORE enabling (an enabled DND would suppress it)
+  if(on) toast("Do Not Disturb", "Notifications silenced. Tap the 🌙 in the menu bar to turn it off.", I.moon);
+  dndOn=on;
+  const t=$("#ccDnd"); if(t) t.classList.toggle("on",on);
+  const l=$("#ccDndL"); if(l) l.textContent=on?"On":"Off";
+  const tray=$("#trayDnd"); if(tray) tray.style.display = on?"inline-flex":"none";
+  if(!on) toast("Do Not Disturb", "Off — notifications resumed.", I.moon);
+}
 
 /* ═══════════════════════ CALENDAR / TODAY POPOVER ═══════════════════════ */
 function buildCalendar(){
@@ -1829,11 +1868,45 @@ function buildContext(x,y){
 function closeContext(){ const m=$("#ctxmenu"); m.classList.remove("on"); m.className=""; m.innerHTML=""; }
 
 /* ═══════════════════════ NOTIFICATIONS ═══════════════════════ */
+let dndOn=false, wifiOn=true;   // Control Center state
 function toast(title, msg, icon){
+  if(dndOn) return;             // Do Not Disturb silences banners
   const t=el("div","toast");
-  t.innerHTML=`<span class="tico">${icon||I.info}</span><div class="tbody"><div class="tt">${esc(title)}</div><div class="tm">${msg}</div></div>`;
+  t.innerHTML=`<span class="tgrab"></span><button class="tclose" aria-label="Dismiss">${I.close}</button>
+    <span class="tico">${icon||I.info}</span><div class="tbody"><div class="tt">${esc(title)}</div><div class="tm">${msg}</div></div>`;
   $("#notify").appendChild(t);
-  setTimeout(()=>{ t.classList.add("out"); setTimeout(()=>t.remove(),260); }, 3600);
+  let timer=setTimeout(()=>dismissToast(t), 5000);
+  const stopTimer=()=>clearTimeout(timer);
+  t.querySelector(".tclose").addEventListener("click",e=>{ e.stopPropagation(); stopTimer(); dismissToast(t); });
+  enableToastSwipe(t, stopTimer);
+  return t;
+}
+function dismissToast(t){
+  if(!t||t._gone) return; t._gone=true;
+  t.classList.add("out"); setTimeout(()=>t.remove(),260);
+}
+/* swipe up to dismiss (touch) / drag up (mouse) — snaps back if not far enough */
+function enableToastSwipe(t, stopTimer){
+  let sy=0, dy=0, dragging=false, pid=null;
+  t.addEventListener("pointerdown",e=>{
+    if(e.target.closest(".tclose")) return;
+    dragging=true; sy=e.clientY; dy=0; pid=e.pointerId;
+    t.classList.add("dragging"); stopTimer(); try{t.setPointerCapture(pid);}catch(_){}
+  });
+  t.addEventListener("pointermove",e=>{
+    if(!dragging) return;
+    dy=e.clientY-sy; if(dy>8) dy=8;                    // resist downward pull
+    t.style.transform=`translateY(${dy}px)`;
+    t.style.opacity=String(clamp(1+Math.min(dy,0)/70,0,1));
+  });
+  const end=()=>{
+    if(!dragging) return; dragging=false; t.classList.remove("dragging");
+    try{t.releasePointerCapture(pid);}catch(_){}
+    if(dy<-38){ t._gone=true; t.style.transform="translateY(-130%)"; t.style.opacity="0"; setTimeout(()=>t.remove(),200); }
+    else { t.style.transform=""; t.style.opacity=""; }
+  };
+  t.addEventListener("pointerup",end);
+  t.addEventListener("pointercancel",end);
 }
 function aboutOS(){ openApp("about"); toast("mattOS 4.8 “Liquid”", "A portfolio, disguised as a desktop. Built by "+PROFILE.name+".", I.apple); }
 
