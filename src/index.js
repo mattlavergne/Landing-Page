@@ -30,13 +30,21 @@ export default {
       const originResponse = await fetch(originUrl, {
         cf: { cacheTtl: 300, cacheEverything: true },
       });
+      const headers = new Headers(originResponse.headers);
+      // Let the browser reuse assets but always revalidate with the edge, so
+      // updates aren't hidden behind a stale browser cache. The 5-min edge
+      // cache (cacheTtl above) still answers most revalidations instantly.
+      headers.set("Cache-Control", "no-cache");
       return new Response(originResponse.body, {
         status: originResponse.status,
-        headers: originResponse.headers,
+        headers,
       });
     }
 
-    // Everything else is the portfolio landing page.
+    // Everything else: serve the matching static asset (favicon, app icons,
+    // manifest, …) if one exists, otherwise fall back to the landing page.
+    const assetResponse = await env.ASSETS.fetch(request);
+    if (assetResponse.status !== 404) return assetResponse;
     return env.ASSETS.fetch(new URL("/index.html", url));
   },
 };
