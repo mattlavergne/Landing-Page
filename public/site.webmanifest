@@ -1,11 +1,11 @@
 {
-  "name": "Matt Lavergne — Advancement Operations & Automation",
-  "short_name": "M. Lavergne",
-  "description": "Portfolio of Matt Lavergne — automation systems, rendered from the point of view of a single speck of dust.",
+  "name": "mattOS — Matt Lavergne",
+  "short_name": "mattOS",
+  "description": "The portfolio of Matt Lavergne, rendered as a liquid-glass desktop operating system.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0c1220",
-  "theme_color": "#0c1220",
+  "background_color": "#e9edf5",
+  "theme_color": "#3b82f6",
   "icons": [
     { "src": "/favicon.svg", "type": "image/svg+xml", "sizes": "any" },
     { "src": "/icon-192.png", "type": "image/png", "sizes": "192x192" },
