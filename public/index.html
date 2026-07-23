@@ -369,6 +369,44 @@ html[data-theme="dark"] .desk-icon:hover{background:rgba(148,163,184,.14)}
 .contact .row .cv{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .contact .row .arr{color:var(--text-3)}
 
+/* ── Mail composer (Contact) ── */
+input,textarea{user-select:text;-webkit-user-select:text}
+.mail{display:flex;flex-direction:column;height:100%;position:relative}
+.mail-toolbar{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--hairline);flex:none}
+.mail-send{padding:8px 18px}
+.mail-toolbar .mstat{font-size:12.5px;color:var(--text-3);margin-left:auto;text-align:right}
+.mail-toolbar .mstat.err{color:var(--bad)}
+.mail-toolbar .mstat.ok{color:var(--good)}
+.mail-fields{flex:none}
+.mail-row{display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--hairline);font-size:13.5px}
+.mail-row .lbl{color:var(--text-3);width:58px;flex:none;font-size:12.5px}
+.mail-row input{all:unset;flex:1;font-size:13.5px;color:var(--text);min-width:0}
+.mail-row input::placeholder{color:var(--text-3)}
+.mail-chip{display:inline-flex;align-items:center;gap:7px;background:var(--accent-soft);color:var(--accent);
+  padding:4px 11px 4px 4px;border-radius:999px;font-weight:600;font-size:12.5px}
+.mail-chip .av{width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800}
+.mail-body{flex:1;display:flex;min-height:80px}
+.mail-body textarea{all:unset;flex:1;padding:16px;font-size:14px;line-height:1.65;color:var(--text);
+  resize:none;overflow:auto;font-family:var(--font);white-space:pre-wrap}
+.mail-body textarea::placeholder{color:var(--text-3)}
+.mail-foot{display:flex;align-items:center;gap:14px;padding:9px 16px;border-top:1px solid var(--hairline);
+  font-size:12.5px;color:var(--text-3);flex:none;flex-wrap:wrap}
+.mail-foot a{color:var(--text-2);display:inline-flex;align-items:center;gap:5px}
+.mail-foot a:hover{color:var(--accent)}
+.mail-foot a svg{width:14px;height:14px}
+.mail-foot .sp{flex:1}
+.mail-sent{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;background:var(--panel-strong);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  text-align:center;padding:30px;z-index:5;border-radius:inherit}
+.mail-sent.show{display:flex;animation:fade .2s ease}
+.mail-sent .circle{width:76px;height:76px;border-radius:50%;background:var(--good);display:flex;align-items:center;
+  justify-content:center;color:#fff;box-shadow:0 10px 30px color-mix(in srgb,var(--good) 45%,transparent);
+  animation:pop .42s cubic-bezier(.34,1.5,.6,1)}
+.mail-sent .circle svg{width:38px;height:38px}
+.mail-sent h3{font-size:19px;font-weight:800}
+@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+
 /* ── Project detail ── */
 .pd{padding:0}
 .pd .hero{padding:26px 26px 22px;display:flex;gap:18px;align-items:center;border-bottom:1px solid var(--hairline)}
@@ -724,6 +762,20 @@ const PROFILE = {
   ]
 };
 
+/* ── Contact form delivery ─────────────────────────────────────────────
+   The Mail app sends messages straight to `to` via FormSubmit — a free,
+   no-backend form-to-email relay (https://formsubmit.co). ONE-TIME SETUP:
+   the first message you send triggers an activation email to the address
+   below; click the link in it once, and every message afterward is
+   delivered to your inbox instantly. No API keys, no server.
+   Swap `endpoint` for a Web3Forms URL or your own Worker route anytime;
+   if a send ever fails, the composer falls back to the visitor's mail app. */
+const CONTACT = {
+  to: "contact@mattlavergne.com",
+  toName: "Matt Lavergne",
+  endpoint: "https://formsubmit.co/ajax/contact@mattlavergne.com"
+};
+
 const SKILLS = [
   {name:"Microsoft Power Automate", pct:95, tag:"orchestration"},
   {name:"Process Automation & Documentation", pct:92, tag:"systems"},
@@ -832,6 +884,7 @@ I.starMini = line(`<path d="M12 3.5 14.6 9l6 .5-4.6 4 1.4 5.9L12 16.3 6.6 19.4 8
 I.clock = line(`<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>`);
 I.pin = line(`<path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>`);
 I.launch = line(`<path d="M7 17 17 7M9 7h8v8"/>`);
+I.send = line(`<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/>`);
 I.trash = line(`<path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/>`);
 
 /* colorful "app" tile icons (macOS squircle style) */
@@ -1217,22 +1270,91 @@ APPS.career = {
 };
 
 APPS.contact = {
-  title:"Contact", icon:APPICON.contact, w:440, h:400,
+  title:"New Message", appName:"Mail", icon:APPICON.contact, w:560, h:540,
   body(){
-    const rows=[
-      {k:"Email", v:PROFILE.email, href:"mailto:"+PROFILE.email, ico:I.mail, c:"#2563eb"},
-      {k:"LinkedIn", v:"/in/matthew-a-lavergne", href:PROFILE.linkedin, ico:I.linkedin, c:"#0a66c2"},
-      {k:"GitHub", v:"github.com/mattlavergne", href:PROFILE.github, ico:I.github, c:"#24292f"},
-      {k:"Live project", v:"mattlavergne.com/trafficmap", href:"/trafficmap", ico:I.globe||I.pin, c:"#16a34a"}
-    ].map(r=>`<a class="row" href="${esc(r.href)}" ${/^https?:/.test(r.href)?'target="_blank" rel="noopener"':""}>
-        <span class="ci" style="background:${r.c}">${r.ico}</span>
-        <span class="cbody"><span class="ck">${esc(r.k)}</span><span class="cv">${esc(r.v)}</span></span>
-        <span class="arr">${I.chevR}</span>
-      </a>`).join("");
-    return `<div class="contact">
-      <div class="pad" style="padding:8px 6px 14px"><div class="muted" style="font-size:13px">Open a connection. Project, role, or just a question — I read everything.</div></div>
-      ${rows}
+    const check='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+    return `<div class="mail">
+      <div class="mail-toolbar">
+        <button class="btn primary mail-send" id="mailSend">${I.send}<span>Send</span></button>
+        <span class="mstat" id="mailStat"></span>
+      </div>
+      <div class="mail-fields">
+        <div class="mail-row"><span class="lbl">To</span>
+          <span class="mail-chip"><span class="av">M</span>${esc(CONTACT.toName)} · ${esc(CONTACT.to)}</span></div>
+        <div class="mail-row"><span class="lbl">Your name</span><input id="mailName" placeholder="Jane Doe" autocomplete="name"></div>
+        <div class="mail-row"><span class="lbl">Your email</span><input id="mailFrom" type="email" placeholder="you@example.com" autocomplete="email" inputmode="email"></div>
+        <div class="mail-row"><span class="lbl">Subject</span><input id="mailSubject" placeholder="What's this about?"></div>
+      </div>
+      <div class="mail-body"><textarea id="mailBody" placeholder="Write your message…  (⌘/Ctrl + Enter to send)"></textarea></div>
+      <input type="text" id="mailHoney" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0">
+      <div class="mail-foot">
+        <span>Prefer another channel?</span>
+        <a href="${esc(PROFILE.linkedin)}" target="_blank" rel="noopener">${I.linkedin}LinkedIn</a>
+        <a href="${esc(PROFILE.github)}" target="_blank" rel="noopener">${I.github}GitHub</a>
+        <span class="sp"></span>
+        <a href="mailto:${esc(CONTACT.to)}" id="mailFallbackLink">Open in mail app</a>
+      </div>
+      <div class="mail-sent" id="mailSent">
+        <div class="circle">${check}</div>
+        <h3>Message sent</h3>
+        <div class="muted" id="mailSentMsg">Thanks — I'll get back to you soon.</div>
+        <div style="display:flex;gap:10px;margin-top:8px">
+          <button class="btn" id="mailAnother">Write another</button>
+          <button class="btn primary" id="mailDone">Done</button>
+        </div>
+      </div>
     </div>`;
+  },
+  mount(body,id,node){
+    const q=s=>body.querySelector(s);
+    const stat=q("#mailStat"), sent=q("#mailSent");
+    const setStat=(t,c)=>{ stat.textContent=t; stat.className="mstat"+(c?" "+c:""); };
+    const valid=e=>/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e);
+    function mailtoLink(){
+      const name=q("#mailName").value.trim(), from=q("#mailFrom").value.trim();
+      const subj=q("#mailSubject").value.trim()||"Portfolio message", msg=q("#mailBody").value.trim();
+      const b=`${msg}\n\n— ${name||from}${from?" <"+from+">":""}`;
+      return `mailto:${CONTACT.to}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(b)}`;
+    }
+    async function send(){
+      if(q("#mailHoney").value) return;                       // bot trap
+      const name=q("#mailName").value.trim();
+      const from=q("#mailFrom").value.trim();
+      const subject=q("#mailSubject").value.trim();
+      const msg=q("#mailBody").value.trim();
+      if(!valid(from)){ setStat("Add a valid email so I can reply.","err"); q("#mailFrom").focus(); return; }
+      if(!msg){ setStat("Write a message first.","err"); q("#mailBody").focus(); return; }
+      const btn=q("#mailSend"); btn.disabled=true; setStat("Sending…","");
+      const payload={ name:name||from, email:from,
+        _subject: subject||("Portfolio message from "+(name||from)),
+        message: msg, _template:"table", _captcha:"false" };
+      try{
+        const res=await fetch(CONTACT.endpoint,{method:"POST",
+          headers:{"Content-Type":"application/json",Accept:"application/json"},
+          body:JSON.stringify(payload)});
+        const data=await res.json().catch(()=>({}));
+        if(res.ok && (data.success===true||data.success==="true")){
+          sent.classList.add("show"); setStat("",""); toast("Mail","Your message was sent to Matt. ✉️", APPICON.contact); return;
+        }
+        const m=(data.message||"").toLowerCase();
+        if(m.includes("activat")||m.includes("confirm")){
+          setStat("Almost there — the form needs a one-time confirmation. Try again shortly.","err");
+        } else throw new Error(data.message||"send failed");
+      }catch(err){
+        setStat("Couldn't send from here — opening your mail app…","err");
+        setTimeout(()=>{ window.location.href=mailtoLink(); },600);
+      } finally { btn.disabled=false; }
+    }
+    q("#mailSend").addEventListener("click",send);
+    q("#mailDone").addEventListener("click",()=>closeWin(id));
+    q("#mailAnother").addEventListener("click",()=>{
+      sent.classList.remove("show");
+      ["#mailName","#mailFrom","#mailSubject","#mailBody"].forEach(s=>q(s).value="");
+      setStat("",""); q("#mailName").focus();
+    });
+    q("#mailFallbackLink").addEventListener("click",()=>{ q("#mailFallbackLink").href=mailtoLink(); });
+    body.addEventListener("keydown",e=>{ if((e.metaKey||e.ctrlKey)&&e.key==="Enter"){ e.preventDefault(); send(); } });
+    setTimeout(()=>q("#mailName").focus(),60);
   }
 };
 
@@ -1649,7 +1771,7 @@ function spotIndex(){
   list.push({t:"Change wallpaper", s:"Cycle palette", kind:"action", icon:I.control, act:cycleWall});
   list.push({t:"Lock screen", s:"Sleep mattOS", kind:"action", icon:I.moon, act:lockScreen});
   list.push({t:"Restart", s:"Replay the boot sequence", kind:"action", icon:I.restart, act:()=>runBoot(false)});
-  list.push({t:"Email Matt", s:PROFILE.email, kind:"action", icon:I.mail, act:()=>location.href="mailto:"+PROFILE.email});
+  list.push({t:"Email Matt", s:"Compose a message", kind:"action", icon:APPICON.contact, act:()=>openApp("contact")});
   list.push({t:"Open Traffic Map", s:"mattlavergne.com/trafficmap", kind:"live", icon:APPICON.globe, act:()=>location.href="/trafficmap"});
   return list;
 }
