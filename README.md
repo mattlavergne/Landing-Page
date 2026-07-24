@@ -19,8 +19,9 @@ static asset, and `/trafficmap` is reverse-proxied to a separate project.
 
 | Path | What it is |
 | --- | --- |
-| `public/index.html` | The whole OS — one self-contained file (all CSS/JS inline, no build, no CDN). **The only file you normally edit.** |
-| `src/index.js` | The Cloudflare Worker: proxies `/trafficmap*`, serves the landing page for everything else. |
+| `public/index.html` | The whole OS, one self-contained file (all CSS/JS inline, no build, no CDN). **The file you normally edit.** |
+| `public/app.html` | The **app-window shell**: renders one project as a browser-style window on the mattOS desktop. One shell serves every framed project. |
+| `src/index.js` | The Cloudflare Worker: serves framed apps, proxies their embedded content, and serves the landing page for everything else. |
 | `wrangler.toml` | Worker + static-assets + routes config. |
 | `.github/workflows/deploy.yml` | Deploys to Cloudflare on every push to `main`. |
 
@@ -50,9 +51,47 @@ no-JS summary for SEO and accessibility.
 
 The Worker owns `mattlavergne.com/*`:
 
-- `/trafficmap` → redirect to `/trafficmap/`
-- `/trafficmap/*` → reverse-proxied to the traffic map's GitHub Pages site
-- everything else → `public/index.html` (the portfolio)
+- `/trafficmap` → the **app-window shell** (`public/app.html`): the traffic map
+  framed as an application window on the mattOS desktop, with working close /
+  minimize / zoom controls and an address bar.
+- `/trafficmap/_app/*` → reverse-proxied to the traffic map's GitHub Pages
+  site. This is the raw map, and it's what the app window's iframe loads.
+- everything else → `public/index.html` (the portfolio) and its static assets.
+
+## Framed apps (windowed projects)
+
+Any project can open at its own pretty URL while *looking* like an app running
+on the desktop: same wallpaper and menu bar, wrapped in a browser-style window.
+The close and minimize buttons return to the desktop; zoom toggles full-screen;
+the pop-out button opens the content full-screen in a new tab. The theme and
+wallpaper follow whatever the visitor picked on the desktop (shared
+`localStorage`).
+
+**Everything is driven by one registry** — the `APPS` object near the top of
+`src/index.js`:
+
+```js
+const APPS = {
+  "/trafficmap": {
+    title: "Traffic Map",                 // shown in the menu bar + tab title
+    subtitle: "Lafayette 911 · live incident map",
+    address: "mattlavergne.com/trafficmap",   // text in the address bar
+    accent: "#1573c9",                    // per-app accent color (optional)
+    // Reverse-proxy the real content under /trafficmap/_app/* :
+    proxy: "https://mattlavergne.github.io/Lafayette-911-Traffic",
+  },
+};
+```
+
+To add another framed project, add one entry. The key is the pretty URL. Point
+it at **either**:
+
+- `proxy: "<origin>"` — the Worker reverse-proxies `<path>/_app/*` to that
+  origin (use this for a separate site, like a GitHub Pages project), **or**
+- `embed: "/some/path"` — a URL already reachable on this domain (a static
+  asset, another route). No proxying is done.
+
+The shell, window chrome, and controls come for free. Nothing else to wire up.
 
 ## Deploying
 
@@ -139,5 +178,5 @@ A few things aren't spelled out on screen: the **Konami code**
 (`↑ ↑ ↓ ↓ ← → ← → B A`), a **screensaver** after a minute idle, secret
 **Terminal** commands (`matrix`, `coffee`, `42`, `hire`, `credits`, `party`,
 `sl`, `sudo`), clickable **battery/Wi-Fi/clock** in the menu bar, and a
-progressively sassier **Trash**. The Konami code unlocks a `Secrets.txt` on the
-desktop that documents them all.
+**Trash** that reveals a hint after a few clicks. The Konami code unlocks a
+`Secrets.txt` on the desktop that documents them all.
