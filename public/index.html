@@ -505,11 +505,38 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
 /* Very small screens (iPhone mini / SE): tighten chrome, roomier icons */
 @media(max-width:400px){
   :root{--menubar-h:32px}
-  #iconLayer{gap:10px;top:10px;right:10px}
-  .desk-icon{width:84px}
   .mb-tray .mb-item{padding:0 6px}
   #mbBatteryPct{display:none}
   .spot-box{width:94vw}
+}
+
+/* ═══════════════════ MOBILE HOME SCREEN ═══════════════════
+   A phone can't sensibly run a draggable-window desktop, so on small screens
+   mattOS becomes a scrollable home screen: widgets up top, apps in a tidy
+   grid, the Dock pinned to the bottom. Apps still open full-screen, one at a
+   time (see makeWindow / isPhone). */
+@media(max-width:640px){
+  #desktop{inset:var(--menubar-h) 0 0 0;display:flex;flex-direction:column;gap:14px;
+    padding:16px 16px calc(104px + env(safe-area-inset-bottom));
+    overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+  /* widgets: shown again, stacked full-width at the top */
+  #widgets{display:flex!important;position:static;flex-direction:column;max-width:none;
+    top:auto;left:auto;gap:12px}
+  #widgets .widget{padding:15px 17px}
+  .w-clock .time{font-size:34px}
+  /* app icons: a centered springboard grid, not a cramped right-edge column */
+  #iconLayer{position:static;top:auto;right:auto;display:grid;
+    grid-template-columns:repeat(4,1fr);gap:16px 4px;align-items:start;justify-items:center;margin-top:2px}
+  .desk-icon{width:100%;max-width:88px;gap:7px;padding:8px 2px}
+  .desk-icon .di-label{font-size:11px;line-height:1.2;max-width:100%;overflow-wrap:anywhere}
+  /* Finder: a two-column grid fits a phone better than one giant column */
+  .finder-side{width:118px}
+  .f-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .f-file .fi,.f-file .fi svg{width:46px;height:46px}
+  .f-file .fn{font-size:11.5px}
+}
+@media(max-width:360px){
+  #iconLayer{grid-template-columns:repeat(3,1fr)}
 }
 
 /* ═══════════════════ SPOTLIGHT ═══════════════════ */

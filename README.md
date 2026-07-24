@@ -61,11 +61,13 @@ The Worker owns `mattlavergne.com/*`:
 ## Framed apps (windowed projects)
 
 Any project can open at its own pretty URL while *looking* like an app running
-on the desktop: same wallpaper and menu bar, wrapped in a browser-style window.
-The close and minimize buttons return to the desktop; zoom toggles full-screen;
-the pop-out button opens the content full-screen in a new tab. The theme and
-wallpaper follow whatever the visitor picked on the desktop (shared
-`localStorage`).
+on the desktop: same wallpaper, the same menu bar (with a working Control
+Center), wrapped in a browser-style window that opens **maximized**. The close
+and minimize buttons return to the desktop; the green zoom button toggles a
+smaller floating window; the pop-out button opens the content full-screen in a
+new tab. Theme, wallpaper, and brightness follow whatever the visitor picked on
+the desktop (shared `localStorage`) and can be changed right from the app's
+Control Center. On phones the window is always full-bleed and touch-sized.
 
 **Everything is driven by one registry** — the `APPS` object near the top of
 `src/index.js`:
