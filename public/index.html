@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Matt Lavergne — mattOS · Automation & Digital Services</title>
-<meta name="description" content="The portfolio of Matt Lavergne, rendered as a fully interactive desktop operating system. Explore projects in the Finder, meet Matt in About, and open a live traffic map — all in liquid glass.">
+<title>Matt Lavergne · mattOS · Automation & Digital Services</title>
+<meta name="description" content="The portfolio of Matt Lavergne, rendered as a fully interactive desktop operating system. Explore projects in the Finder, meet Matt in About, and open a live traffic map, all in liquid glass.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#eef1f7" id="metaTheme">
 <!-- Favicon + app icons: the mattOS "M" mark -->
@@ -14,11 +14,11 @@
 <link rel="manifest" href="/site.webmanifest">
 <style>
 /* ══════════════════════════════════════════════════════════════════
-   mattOS — Matt Lavergne's portfolio, rendered as a web operating system.
+   mattOS: Matt Lavergne's portfolio, rendered as a web operating system.
    Design language is shared with the Lafayette Traffic map: the same
    "liquid glass" material (translucent panels, inset edge highlights,
    refractive sheen, heavy backdrop blur), the same blue accent, and the
-   same auto/light/dark theming — so the two sites feel like one system.
+   same auto/light/dark theming, so the two sites feel like one system.
 ════════════════════════════════════════════════════════════════════ */
 
 :root{
@@ -56,7 +56,7 @@
   --bar-track: rgba(15,23,42,0.09);
   --menubar-h: 30px;
 
-  /* wallpaper blob palette — set live by JS (defaults: "Aurora") */
+  /* wallpaper blob palette, set live by JS (defaults: "Aurora") */
   --wb1:#5eead4; --wb2:#818cf8; --wb3:#c084fc; --wb4:#f0abfc; --wb5:#38bdf8;
   --wall-dim:0;
 }
@@ -125,6 +125,14 @@ html[data-theme="dark"] #wallpaper .blob{opacity:.5;filter:blur(72px)}
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/></svg>");
   background-size:auto, 160px 160px; opacity:.5; mix-blend-mode:overlay}
 #wallDim{position:fixed;inset:0;z-index:1;pointer-events:none;background:#000;opacity:var(--wall-dim);transition:opacity .3s ease}
+/* subtle desktop wordmark: sits above the dock, behind every window */
+#brandmark{position:fixed;left:0;right:0;bottom:94px;z-index:1;pointer-events:none;text-align:center;
+  font-weight:800;font-size:clamp(30px,5vw,66px);letter-spacing:-.02em;line-height:1;
+  color:var(--text);opacity:.07;user-select:none;-webkit-user-select:none}
+html[data-theme="dark"] #brandmark{opacity:.10}
+#brandmark b{color:var(--accent);font-weight:800;opacity:.85}
+@media(max-width:760px){#brandmark{bottom:auto;top:44%;font-size:clamp(26px,9vw,52px);opacity:.06}}
+@media(max-width:520px){#brandmark{display:none}}
 
 /* ═══════════════════ MENU BAR ═══════════════════ */
 #menubar{position:fixed;top:0;left:0;right:0;height:var(--menubar-h);z-index:9500;
@@ -192,13 +200,14 @@ html[data-theme="dark"] .desk-icon:hover{background:rgba(148,163,184,.14)}
 .w-clock .time{font-size:40px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
 .w-clock .date{font-size:12.5px;color:var(--text-2);margin-top:4px;font-weight:600}
 .w-clock .zone{font-size:11px;color:var(--text-3);margin-top:2px}
-.w-status .wl-head{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.08em;
-  text-transform:uppercase;color:var(--text-3);font-weight:700;margin-bottom:8px}
-.w-status .avail{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px}
-.w-status .avail .dot{width:9px;height:9px;border-radius:50%;background:var(--good);position:relative;flex:none}
-.w-status .avail .dot::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--good);opacity:.5;animation:ping 2.2s ease-out infinite}
-.w-status .loc{font-size:12.5px;color:var(--text-2);margin-top:6px;display:flex;align-items:center;gap:6px}
-@keyframes ping{0%{transform:scale(1);opacity:.5}100%{transform:scale(2.1);opacity:0}}
+.w-profile .wp-top{display:flex;align-items:center;gap:11px}
+.w-profile .wp-av{width:42px;height:42px;border-radius:13px;flex:none;display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  box-shadow:0 6px 16px color-mix(in srgb,var(--accent) 40%,transparent);letter-spacing:-.02em}
+.w-profile .wp-name{font-size:15px;font-weight:700;letter-spacing:-.01em;line-height:1.15}
+.w-profile .wp-role{font-size:11.5px;color:var(--text-2);margin-top:2px;line-height:1.3}
+.w-profile .loc{font-size:12.5px;color:var(--text-2);margin-top:12px;display:flex;align-items:center;gap:6px}
+.w-profile .loc svg{width:15px;height:15px;flex:none;opacity:.7}
 @media(max-width:760px){#widgets{display:none}}
 @media(max-width:520px){.desk-icon{width:78px}.desk-icon .di-img,.desk-icon .di-img svg{width:44px;height:44px}}
 
@@ -469,7 +478,7 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
 .dock-item.bounce{animation:bounce .5s ease}
 @keyframes bounce{0%,100%{transform:translateY(0)}40%{transform:translateY(-18px)}}
 @media(max-width:640px){
-  /* Dock spans the width and fits EVERY icon — never scrolls horizontally.
+  /* Dock spans the width and fits EVERY icon, never scrolls horizontally.
      Items flex to share the available width, so any count stays on one row. */
   #dock{left:8px;right:8px;transform:none;max-width:none;gap:5px;padding:7px 8px;
     overflow:visible;border-radius:20px}
@@ -668,16 +677,16 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
 
 <!-- Static, crawlable summary (also the no-JS fallback) -->
 <div class="sr-only">
-  <h1>Matt Lavergne — Automation Specialist &amp; Digital Services Coordinator, Lafayette, Louisiana</h1>
+  <h1>Matt Lavergne: Automation Specialist &amp; Digital Services Coordinator, Lafayette, Louisiana</h1>
   <p>Matthew Lavergne is a Digital Services Coordinator at the University of Louisiana at Lafayette Foundation, where he designs enterprise Power Automate solutions, REST API integrations, and custom connector architecture that replace manual processes with scalable systems across Microsoft 365. His flagship is a 47-flow Power Automate solution automating gift processing, donor operations, events, and onboarding. This portfolio is presented as an interactive desktop operating system, "mattOS". Projects include a live Lafayette 911 traffic incident map at mattlavergne.com/trafficmap, a map background generator, a VBA PDF bookmark router, a social-to-CRM bulk import, and WiFi trilateration motion detection.</p>
   <p>Contact: contact@mattlavergne.com · LinkedIn /in/matthew-a-lavergne · GitHub github.com/mattlavergne · <a href="/trafficmap">Live traffic map</a></p>
 </div>
 <noscript>
   <div style="padding:40px;max-width:640px;margin:0 auto;font-family:system-ui,sans-serif;line-height:1.6">
     <h1>Matt Lavergne</h1>
-    <p>Automation Specialist &amp; Digital Services Coordinator — Lafayette, Louisiana. This site is an interactive desktop that needs JavaScript. Here are the essentials:</p>
+    <p>Automation Specialist &amp; Digital Services Coordinator in Lafayette, Louisiana. This site is an interactive desktop that needs JavaScript. Here are the essentials:</p>
     <ul>
-      <li><a href="/trafficmap">Lafayette Traffic — live 911 incident map</a></li>
+      <li><a href="/trafficmap">Lafayette Traffic: live 911 incident map</a></li>
       <li>Email: <a href="mailto:contact@mattlavergne.com">contact@mattlavergne.com</a></li>
       <li><a href="https://www.linkedin.com/in/matthew-a-lavergne/">LinkedIn</a> · <a href="https://github.com/mattlavergne">GitHub</a></li>
     </ul>
@@ -689,6 +698,7 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
   <div class="blob b4"></div><div class="blob b5"></div>
 </div>
 <div id="wallDim" aria-hidden="true"></div>
+<div id="brandmark" aria-hidden="true">mattlavergne<b>.com</b></div>
 
 <header id="menubar" role="menubar" aria-label="mattOS menu bar"></header>
 
@@ -705,7 +715,7 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
   <div class="spot-box">
     <div class="spot-in">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-      <input id="spotInput" type="text" placeholder="Search mattOS — apps, projects, actions…" autocomplete="off" spellcheck="false" aria-label="Search">
+      <input id="spotInput" type="text" placeholder="Search mattOS: apps, projects, actions…" autocomplete="off" spellcheck="false" aria-label="Search">
     </div>
     <div class="spot-results" id="spotResults"></div>
   </div>
@@ -761,25 +771,25 @@ const esc = s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
 /* ─────────────────────────── PROFILE + CONTENT ───────────────────────────
-   Edit these to change what the OS shows.  PROJECTS is the important one —
+   Edit these to change what the OS shows.  PROJECTS is the important one:
    each entry becomes a file in the Finder and an entry in Spotlight. */
 const PROFILE = {
   name:"Matt Lavergne",
   first:"Matt",
   title:"Automation Specialist · Digital Services Coordinator",
   location:"Lafayette, Louisiana",
-  status:"Open to work",
+  role:"Digital Services Coordinator",
   email:"contact@mattlavergne.com",
   linkedin:"https://www.linkedin.com/in/matthew-a-lavergne/",
   github:"https://github.com/mattlavergne",
   bio:[
     "I'm the <b>Digital Services Coordinator</b> at the University of Louisiana at Lafayette Foundation, where I design enterprise automation that replaces manual work with scalable, maintainable systems.",
-    "My flagship is a <b>47-flow Power Automate solution</b> that runs gift processing, donor operations, events, and onboarding across Microsoft 365 — built on custom REST API connectors and child-flow architecture. I'm also pursuing an MBA. Poke around: everything here is a real, working desktop."
+    "My flagship is a <b>47-flow Power Automate solution</b> that runs gift processing, donor operations, events, and onboarding across Microsoft 365, built on custom REST API connectors and child-flow architecture. I'm also pursuing an MBA."
   ]
 };
 
 /* ── Contact form delivery ─────────────────────────────────────────────
-   The Mail app sends messages straight to `to` via FormSubmit — a free,
+   The Mail app sends messages straight to `to` via FormSubmit, a free,
    no-backend form-to-email relay (https://formsubmit.co). ONE-TIME SETUP:
    the first message you send triggers an activation email to the address
    below; click the link in it once, and every message afterward is
@@ -802,12 +812,12 @@ const SKILLS = [
 ];
 
 const EXPERIENCE = [
-  {when:"07/2024 — Current · ULL Foundation", what:"Digital Services Coordinator", where:"University of Louisiana at Lafayette Foundation",
-   desc:"Architected and maintain a 47-flow Power Automate solution integrating Teamwork, SharePoint, Microsoft Forms, and M365 — automating gift processing, donor operations, event management, and onboarding/offboarding. Built custom REST API connectors, child-flow architecture, and environment-variable management to eliminate hard-coded dependencies across all 47 flows."},
-  {when:"01/2024 — 06/2024 · ULL Foundation", what:"Graduate Assistant", where:"University of Louisiana at Lafayette Foundation",
+  {when:"07/2024 to Present · ULL Foundation", what:"Digital Services Coordinator", where:"University of Louisiana at Lafayette Foundation",
+   desc:"Architected and maintain a 47-flow Power Automate solution integrating Teamwork, SharePoint, Microsoft Forms, and M365, automating gift processing, donor operations, event management, and onboarding/offboarding. Built custom REST API connectors, child-flow architecture, and environment-variable management to eliminate hard-coded dependencies across all 47 flows."},
+  {when:"01/2024 to 06/2024 · ULL Foundation", what:"Graduate Assistant", where:"University of Louisiana at Lafayette Foundation",
    desc:"Managed event data for 20+ events per quarter with 100% accuracy on donor and attendee records, and collected social-media data to support engagement strategy. Provided Tier 1 IT support across departmental systems, resolving user issues and keeping operations running."},
-  {when:"2017 — 2024 · Lafayette, LA", what:"Shift Manager → Team Member", where:"Taco Bell · Planet Ice",
-   desc:"Led shifts and trained teams before moving into technology — where I learned reliability, throughput, and grace under a lunch rush. Also taught ice skating, because someone had to."}
+  {when:"2017 to 2024 · Lafayette, LA", what:"Shift Manager → Team Member", where:"Taco Bell · Planet Ice",
+   desc:"Led shifts and trained teams before moving into technology, where I built the reliability and throughput habits I still work by. Also taught ice skating."}
 ];
 
 const EDUCATION = [
@@ -818,50 +828,50 @@ const EDUCATION = [
 const PROJECTS = [
   {
     slug:"trafficmap", name:"Traffic Map", kind:"app", status:"live", url:"/trafficmap", pinned:true,
-    icon:"globe", modified:"Live", size:"—",
+    icon:"globe", modified:"Live", size:"-",
     tagline:"Live Lafayette 911 incident map",
     tags:["Live","Mapping","Real-time","Python","Leaflet"],
-    desc:"A real-time map and analytics dashboard for Lafayette Parish 911 traffic incidents — accidents, hazards, and road conditions with live weather context. Built in Python, published to the web on a schedule, and wearing the same liquid-glass interface you're looking at now.",
+    desc:"A real-time map and analytics dashboard for Lafayette Parish 911 traffic incidents: accidents, hazards, and road conditions with live weather context. Built in Python, published on a schedule, and built with the same liquid-glass interface as this site.",
     launch:"Open the live map"
   },
   {
     slug:"flow47", name:"47-Flow Automation Engine", kind:"app", status:"production", url:"#",
-    icon:"flow", modified:"In production", size:"—",
+    icon:"flow", modified:"In production", size:"-",
     tagline:"The system that runs a foundation",
     tags:["Power Automate","M365","REST API","Child flows"],
-    desc:"The flagship: a 47-flow Power Automate solution integrating Teamwork, SharePoint, Microsoft Forms, and M365 to automate gift processing, donor operations, event management, and staff onboarding/offboarding. Custom REST API connectors, child-flow architecture, and environment-variable management eliminate hard-coded dependencies across all 47 flows — so the whole thing stays maintainable as it grows.",
+    desc:"The flagship: a 47-flow Power Automate solution integrating Teamwork, SharePoint, Microsoft Forms, and M365 to automate gift processing, donor operations, event management, and staff onboarding/offboarding. Custom REST API connectors, child-flow architecture, and environment-variable management eliminate hard-coded dependencies across all 47 flows, so it stays maintainable as it grows.",
     launch:null
   },
   {
     slug:"pdfrouter", name:"PDF Bookmark Router", kind:"app", status:"production", url:"#",
-    icon:"note", modified:"In production", size:"—",
+    icon:"note", modified:"In production", size:"-",
     tagline:"1,000+ pages, split and delivered",
     tags:["VBA","Automation","Documents"],
-    desc:"A VBA script that splits a 1,000+ page PDF along its bookmarks and auto-routes each section to the right recipient — replacing a fully manual, hours-long distribution process with a one-click run.",
+    desc:"A VBA script that splits a 1,000+ page PDF along its bookmarks and auto-routes each section to the right recipient, replacing a manual, hours-long distribution process with a one-click run.",
     launch:null
   },
   {
     slug:"crmimport", name:"Social → CRM Import", kind:"app", status:"production", url:"#",
-    icon:"flow", modified:"In production", size:"—",
-    tagline:"Kill the copy-paste",
+    icon:"flow", modified:"In production", size:"-",
+    tagline:"Retire the copy-paste",
     tags:["REST API","CRM","Data integrity"],
     desc:"A bulk import pipeline that captures social-media interactions straight into the CRM, retiring manual data entry and keeping donor engagement records clean and current.",
     launch:null
   },
   {
     slug:"mapbg", name:"Map Background Generator", kind:"app", status:"soon", url:"#",
-    icon:"sparkle", modified:"In progress", size:"—",
+    icon:"sparkle", modified:"In progress", size:"-",
     tagline:"Generative map-art wallpapers",
     tags:["Generative","Canvas","WebGL","Design"],
-    desc:"A tool that turns real map data into beautiful, high-resolution generative wallpapers — tunable palettes, projections, and density. Currently under construction; it will land right here in the Finder when it's ready.",
+    desc:"A tool that turns real map data into high-resolution generative wallpapers, with tunable palettes, projections, and density. Currently under construction; it will appear in the Finder when it's ready.",
     launch:null
   },
   {
     slug:"trilateration", name:"WiFi Trilateration", kind:"case", status:"soon", url:"#",
-    icon:"wave", modified:"Experiment", size:"—",
+    icon:"wave", modified:"Experiment", size:"-",
     tagline:"Physics-based motion detection",
     tags:["Raspberry Pi","Python","IoT","RSSI"],
-    desc:"Motion detection using RSSI trilateration on a Raspberry Pi — no cameras, just radio physics. Maps the location of a disturbance in a room in real time. Write-up coming soon.",
+    desc:"Motion detection using RSSI trilateration on a Raspberry Pi: no cameras, just radio physics. Maps the location of a disturbance in a room in real time. Write-up coming soon.",
     launch:null
   }
 ];
@@ -1052,7 +1062,7 @@ function makeWindow(id, app){
   enableResize(node,$(".win-resize",node),id);
   if(app.mount) app.mount(body,id,node);
   focusWin(id);
-  // On phones, open full-screen (one app at a time) — no fiddly drag/resize.
+  // On phones, open full-screen (one app at a time), no fiddly drag/resize.
   // toggleMax stores the normal rect above as the restore size.
   if(isPhone()) toggleMax(id);
   return node;
@@ -1170,8 +1180,8 @@ APPS.finder = {
 APPS.about = {
   title:"About This Machine", icon:APPICON.about, w:440, h:560,
   body(){
-    const badges = `<span class="pill">${esc(PROFILE.title)}</span>
-      <span class="pill"><span class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--good)"></span>${esc(PROFILE.status)}</span>`;
+    const badges = `<span class="pill">${esc(PROFILE.role)}</span>
+      <span class="pill">${esc(PROFILE.location)}</span>`;
     const bio = PROFILE.bio.map(b=>`<p style="margin-top:12px">${b}</p>`).join("");
     return `<div class="about">
       <div class="avatar">M</div>
@@ -1186,7 +1196,6 @@ APPS.about = {
         <div class="spec-row"><span class="k">Location</span><span class="v">${esc(PROFILE.location)}</span></div>
         <div class="spec-row"><span class="k">Focus</span><span class="v">Automation · Integrations · M365</span></div>
         <div class="spec-row"><span class="k">Education</span><span class="v">B.S. Informatics · MBA in&nbsp;progress</span></div>
-        <div class="spec-row"><span class="k">Status</span><span class="v on">${esc(PROFILE.status)}</span></div>
       </div>
       <div class="actions">
         <button class="btn primary" data-open="contact">${I.mail}<span>Get in touch</span></button>
@@ -1202,10 +1211,10 @@ APPS.about = {
       const FACTS=[
         "Runs a 47-flow Power Automate engine for a university foundation.",
         "Once split a 1,000+ page PDF with a VBA script instead of by hand.",
-        "Taught ice skating — in Louisiana, of all places.",
-        "Pursuing an MBA while shipping automations full-time.",
+        "Taught ice skating before a career in automation.",
+        "Pursuing an MBA while building automations full-time.",
         "Built the live traffic map you can open from the Dock.",
-        "Believes the best process is the one nobody has to think about."
+        "Aims for processes that run without anyone having to think about them."
       ];
       let fi=0;
       av.addEventListener("click",()=>{ toast("Did you know?", FACTS[fi%FACTS.length], "💡"); fi++; });
@@ -1223,9 +1232,9 @@ APPS.activity = {
       </div>`).join("");
     return `<div class="act">
       <h2>System Load</h2>
-      <div class="sub">The tools kept resident in memory — reached for without thinking.</div>
+      <div class="sub">The tools I use most, always resident in memory.</div>
       <div class="graphwrap">
-        <div class="lg"><span>% CPU — Automation Engine</span><span id="cpuNow">0%</span></div>
+        <div class="lg"><span>% CPU · Automation Engine</span><span id="cpuNow">0%</span></div>
         <canvas id="cpuCanvas" width="600" height="140"></canvas>
       </div>
       <div class="proc">${rows}</div>
@@ -1278,7 +1287,7 @@ APPS.career = {
       </div>`).join("");
     return `<div class="career">
       <h2 style="font-size:16px;font-weight:800;margin-bottom:2px">Experience</h2>
-      <div class="muted" style="font-size:12.5px;margin-bottom:6px">What keeps the machine powered on.</div>
+      <div class="muted" style="font-size:12.5px;margin-bottom:6px">The roles behind the work.</div>
       <div class="tl">${jobs}</div>
       <h2 style="font-size:16px;font-weight:800;margin:20px 0 2px">Education</h2>
       <div class="muted" style="font-size:12.5px;margin-bottom:6px">University of Louisiana at Lafayette.</div>
@@ -1315,7 +1324,7 @@ APPS.contact = {
       <div class="mail-sent" id="mailSent">
         <div class="circle">${check}</div>
         <h3>Message sent</h3>
-        <div class="muted" id="mailSentMsg">Thanks — I'll get back to you soon.</div>
+        <div class="muted" id="mailSentMsg">Thanks. I'll get back to you soon.</div>
         <div style="display:flex;gap:10px;margin-top:8px">
           <button class="btn" id="mailAnother">Write another</button>
           <button class="btn primary" id="mailDone">Done</button>
@@ -1331,7 +1340,7 @@ APPS.contact = {
     function mailtoLink(){
       const name=q("#mailName").value.trim(), from=q("#mailFrom").value.trim();
       const subj=q("#mailSubject").value.trim()||"Portfolio message", msg=q("#mailBody").value.trim();
-      const b=`${msg}\n\n— ${name||from}${from?" <"+from+">":""}`;
+      const b=`${msg}\n\n${name||from}${from?" <"+from+">":""}`;
       return `mailto:${CONTACT.to}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(b)}`;
     }
     async function send(){
@@ -1356,10 +1365,10 @@ APPS.contact = {
         }
         const m=(data.message||"").toLowerCase();
         if(m.includes("activat")||m.includes("confirm")){
-          setStat("Almost there — the form needs a one-time confirmation. Try again shortly.","err");
+          setStat("Almost there. The form needs a one-time confirmation, so try again shortly.","err");
         } else throw new Error(data.message||"send failed");
       }catch(err){
-        setStat("Couldn't send from here — opening your mail app…","err");
+        setStat("Couldn't send from here, so opening your mail app…","err");
         setTimeout(()=>{ window.location.href=mailtoLink(); },600);
       } finally { btn.disabled=false; }
     }
@@ -1377,7 +1386,7 @@ APPS.contact = {
 };
 
 APPS.terminal = {
-  title:"mattsh — ~", icon:APPICON.terminal, w:600, h:400,
+  title:"mattsh ~", appName:"Terminal", icon:APPICON.terminal, w:600, h:400,
   body(){
     return `<div class="term">
       <div class="out" id="termOut"></div>
@@ -1391,18 +1400,18 @@ APPS.readme = {
   title:"README.txt", icon:APPICON.note, w:460, h:400,
   body(){
     return `<div class="note">
-      <h1>Welcome to mattOS 👋</h1>
-      <p>You're looking at <b>${esc(PROFILE.name)}</b>'s portfolio — built as a real, working desktop.</p>
+      <h1>Welcome to mattOS</h1>
+      <p>You're looking at <b>${esc(PROFILE.name)}</b>'s portfolio, built as a working desktop.</p>
       <ul>
-        <li><b>Open</b> a desktop icon — double-click, or a single tap on touch.</li>
+        <li><b>Open</b> a desktop icon: double-click, or a single tap on touch.</li>
         <li>Open <b>Projects</b> in the Finder to browse everything I've built.</li>
         <li>Tap the <b>Dock</b> icons at the bottom to launch apps.</li>
-        <li>Press <span class="kbd">⌘K</span> / <span class="kbd">Ctrl K</span> (or tap 🔍) for Spotlight.</li>
+        <li>Press <span class="kbd">⌘K</span> / <span class="kbd">Ctrl K</span> for Spotlight.</li>
         <li>On a desktop, drag windows by their title bar and resize from the corner.</li>
-        <li>Try the <b>Terminal</b> — type <span class="kbd">help</span>.</li>
+        <li>Try the <b>Terminal</b>: type <span class="kbd">help</span>.</li>
         <li>Right-click the desktop for more. Toggle light/dark in the menu bar.</li>
       </ul>
-      <p style="margin-top:14px">The <b>Traffic Map</b> is live — open it from the Finder, Dock, or desktop.</p>
+      <p style="margin-top:14px">The <b>Traffic Map</b> is live. Open it from the Finder, Dock, or desktop.</p>
     </div>`;
   }
 };
@@ -1424,7 +1433,7 @@ function projectApp(p){
            <button class="btn" data-copy="${esc(location.origin+p.url)}">${I.folderMini}<span>Copy link</span></button>`
         : prod
           ? `<span class="pill live" style="padding:8px 13px;font-size:12.5px">${check}Shipped &amp; running in production</span>
-             <span class="muted" style="font-size:12px;align-self:center">Internal system — no public link</span>`
+             <span class="muted" style="font-size:12px;align-self:center">Internal system, no public link</span>`
           : `<button class="btn" disabled>${I.clock}<span>Coming soon</span></button>`;
       return `<div class="pd">
         <div class="hero">
@@ -1640,16 +1649,16 @@ function buildMenubar(){
   $("#traySearch").addEventListener("click",e=>{e.stopPropagation();openSpotlight();});
   $("#trayControl").addEventListener("click",e=>{e.stopPropagation();toggleControl();});
   $("#trayTheme").addEventListener("click",e=>{e.stopPropagation();cycleTheme();});
-  $("#trayWifi").addEventListener("click",()=>toast("Wi-Fi", wifiOn?"Connected to “Lafayette-Foundation” · signal excellent 📶":"Wi-Fi is off. Turn it back on in Control Center.", wifiOn?I.wifi:I.wifiOff));
+  $("#trayWifi").addEventListener("click",()=>toast("Wi-Fi", wifiOn?"Connected to “Lafayette-Foundation”. Signal is excellent.":"Wi-Fi is off. Turn it back on in Control Center.", wifiOn?I.wifi:I.wifiOff));
   $("#trayDnd").addEventListener("click",()=>setDnd(false));
-  $("#trayBattery").addEventListener("click",()=>toast("Battery","100% — powered by coffee and Power Automate ☕", I.battery));
+  $("#trayBattery").addEventListener("click",()=>toast("Battery","Battery at 100%.", I.battery));
   $("#trayClock").addEventListener("click",e=>{e.stopPropagation();toggleCalendar();});
   applyTheme();
   updateMenubarApp();
 }
 function updateMenubarApp(){
   const w=activeId?wins.get(activeId):null;
-  const name = w? (w.app.appName||w.app.title.split(" —")[0]) : "Finder";
+  const name = w? (w.app.appName||w.app.title) : "Finder";
   const e=$("#mbApp"); if(e) e.textContent = name.length>22?name.slice(0,22)+"…":name;
 }
 function menuItems(kind){
@@ -1664,7 +1673,7 @@ function menuItems(kind){
     {label:"Restart…", icon:I.restart, action:()=>runBoot(false)},
   ];
   if(kind==="app") return [
-    {label:"About "+(w?(w.app.title.split(" —")[0]):"Finder"), icon:I.info, action:()=>{ w?toast(w.app.title.split(" —")[0], "A mattOS application.", w.app.icon):openApp("finder"); }},
+    {label:"About "+(w?(w.app.appName||w.app.title):"Finder"), icon:I.info, action:()=>{ w?toast(w.app.appName||w.app.title, "A mattOS application.", w.app.icon):openApp("finder"); }},
     {divider:true},
     {label:"Minimize", sc:"⌘M", disabled:!w, action:()=>w&&minimizeWin(activeId)},
     {label:"Zoom", disabled:!w, action:()=>w&&toggleMax(activeId)},
@@ -1758,7 +1767,7 @@ function buildControl(){
 }
 function toggleControl(){ closeMenus(); $("#calendar").classList.remove("on"); $("#control").classList.toggle("on"); }
 
-/* Wi-Fi is cosmetic (never touches the real connection) — it just flips the
+/* Wi-Fi is cosmetic (never touches the real connection); it just flips the
    menu-bar icon and reports status. Do Not Disturb genuinely silences the
    notification banners and shows a moon in the menu bar. */
 function setWifi(on){
@@ -1766,16 +1775,16 @@ function setWifi(on){
   const l=$("#ccWifiL"); if(l) l.textContent=on?"On":"Off";
   const t=$("#ccWifi"); if(t) t.classList.toggle("on",on);
   const ic=$("#trayWifi .tray-icon"); if(ic) ic.innerHTML = on?I.wifi:I.wifiOff;
-  toast("Wi-Fi", on?"Reconnected to “Lafayette-Foundation”. 📶":"Wi-Fi off (just for show — your real connection is untouched).", on?I.wifi:I.wifiOff);
+  toast("Wi-Fi", on?"Reconnected to “Lafayette-Foundation”.":"Wi-Fi off. This is cosmetic; your real connection is untouched.", on?I.wifi:I.wifiOff);
 }
 function setDnd(on){
   // show the confirmation BEFORE enabling (an enabled DND would suppress it)
-  if(on) toast("Do Not Disturb", "Notifications silenced. Tap the 🔕 in the menu bar to turn it off.", I.bellOff);
+  if(on) toast("Do Not Disturb", "Notifications silenced. Use the menu bar icon to turn it off.", I.bellOff);
   dndOn=on;
   const t=$("#ccDnd"); if(t) t.classList.toggle("on",on);
   const l=$("#ccDndL"); if(l) l.textContent=on?"On":"Off";
   const tray=$("#trayDnd"); if(tray) tray.style.display = on?"inline-flex":"none";
-  if(!on) toast("Do Not Disturb", "Off — notifications resumed.", I.bellOff);
+  if(!on) toast("Do Not Disturb", "Off. Notifications resumed.", I.bellOff);
 }
 
 /* ═══════════════════════ CALENDAR / TODAY POPOVER ═══════════════════════ */
@@ -1805,7 +1814,7 @@ const spot=$("#spotlight"), spotInput=$("#spotInput"), spotResults=$("#spotResul
 let spotSel=0, spotList=[];
 function spotIndex(){
   const list=[];
-  Object.entries(APPS).forEach(([id,a])=>list.push({t:a.title.split(" —")[0], s:"Application", kind:"app", icon:a.icon, act:()=>openApp(id)}));
+  Object.entries(APPS).forEach(([id,a])=>list.push({t:a.appName||a.title, s:"Application", kind:"app", icon:a.icon, act:()=>openApp(id)}));
   PROJECTS.forEach(p=>list.push({t:p.name, s:p.tagline, kind:p.status==="live"?"live project":"project", icon:projIcon(p), act:()=>openApp("project:"+p.slug)}));
   list.push({t:"Toggle theme", s:"Auto / Light / Dark", kind:"action", icon:I.sun, act:cycleTheme});
   list.push({t:"Change wallpaper", s:"Cycle palette", kind:"action", icon:I.control, act:cycleWall});
@@ -1886,7 +1895,7 @@ function dismissToast(t){
   if(!t||t._gone) return; t._gone=true;
   t.classList.add("out"); setTimeout(()=>t.remove(),260);
 }
-/* swipe up to dismiss (touch) / drag up (mouse) — snaps back if not far enough */
+/* swipe up to dismiss (touch) / drag up (mouse); snaps back if not far enough */
 function enableToastSwipe(t, stopTimer){
   let sy=0, dy=0, dragging=false, pid=null;
   t.addEventListener("pointerdown",e=>{
@@ -1946,9 +1955,14 @@ function buildDesktop(){
       <div class="date"><span id="wClockDate"></span></div>
       <div class="zone">Lafayette, LA · Central Time</div>
     </div>
-    <div class="widget w-status">
-      <div class="wl-head">${I.info}<span>Status</span></div>
-      <div class="avail"><span class="dot"></span>${esc(PROFILE.status)}</div>
+    <div class="widget w-profile">
+      <div class="wp-top">
+        <div class="wp-av">M</div>
+        <div>
+          <div class="wp-name">${esc(PROFILE.name)}</div>
+          <div class="wp-role">${esc(PROFILE.role)}</div>
+        </div>
+      </div>
       <div class="loc">${I.pin}<span>${esc(PROFILE.location)}</span></div>
     </div>`;
   tickClock();
@@ -1976,13 +1990,13 @@ function initTerminal(body,id){
     p("","<pre>"+logo+"</pre>");
   }
   const cmds={
-    help(){ p("","<pre>Available commands:\n  <b>about</b>      who is Matt\n  <b>projects</b>   list projects   ·  <b>open</b> &lt;name&gt;\n  <b>skills</b>     resident tools  ·  <b>experience</b>\n  <b>contact</b>    ways to reach me\n  <b>neofetch</b>   system info     ·  <b>theme</b> &lt;auto|light|dark&gt;\n  <b>wallpaper</b>  next palette    ·  <b>ls</b>, <b>whoami</b>, <b>date</b>, <b>echo</b>\n  <b>sudo</b>       nice try        ·  <b>clear</b>, <b>exit</b></pre>"); },
-    about(){ p("",`<b>${esc(PROFILE.name)}</b> — ${esc(PROFILE.title)}.\n${PROFILE.bio[0].replace(/<\/?b>/g,"")}`.replace(/\n/g,"<br>")); },
-    whoami(){ p("","matt — <span class='u'>the human. you're the guest.</span>"); },
+    help(){ p("","<pre>Available commands:\n  <b>about</b>      who is Matt\n  <b>projects</b>   list projects   ·  <b>open</b> &lt;name&gt;\n  <b>skills</b>     resident tools  ·  <b>experience</b>\n  <b>contact</b>    ways to reach me\n  <b>neofetch</b>   system info     ·  <b>theme</b> &lt;auto|light|dark&gt;\n  <b>wallpaper</b>  next palette    ·  <b>ls</b>, <b>whoami</b>, <b>date</b>, <b>echo</b>\n  <b>sudo</b>       restricted      ·  <b>clear</b>, <b>exit</b></pre>"); },
+    about(){ p("",`<b>${esc(PROFILE.name)}</b>: ${esc(PROFILE.title)}.\n${PROFILE.bio[0].replace(/<\/?b>/g,"")}`.replace(/\n/g,"<br>")); },
+    whoami(){ p("","matt"); },
     ls(){ p("","<pre>"+PROJECTS.map(x=>x.slug+(x.kind==="app"?".app":"/")+(x.status==="live"?"  <span class='ok'>[live]</span>":"")).join("\n")+"\nAbout Me   README.txt   Contact</pre>"); },
     projects(){ this.ls(); },
     skills(){ p("","<pre>"+SKILLS.map(s=>s.name.padEnd(34,' ')+" "+"█".repeat(Math.round(s.pct/6)).padEnd(17,'░')+" "+s.pct+"%").join("\n")+"</pre>"); },
-    experience(){ EXPERIENCE.forEach(j=>p("",`<b>${esc(j.what)}</b> — <span class="acc">${esc(j.where)}</span>\n<span class="u">${esc(j.when)}</span>`.replace(/\n/g,"<br>"))); },
+    experience(){ EXPERIENCE.forEach(j=>p("",`<b>${esc(j.what)}</b> · <span class="acc">${esc(j.where)}</span>\n<span class="u">${esc(j.when)}</span>`.replace(/\n/g,"<br>"))); },
     contact(){ p("",`email    <a data-x="mailto:${PROFILE.email}">${PROFILE.email}</a><br>linkedin <a data-x="${PROFILE.linkedin}">/in/matthew-a-lavergne</a><br>github   <a data-x="${PROFILE.github}">github.com/mattlavergne</a>`); wireLinks(); },
     neofetch(){ neofetch(); },
     date(){ p("",new Date().toString()); },
@@ -1994,22 +2008,22 @@ function initTerminal(body,id){
       if(pr){ if(pr.status==="live"&&pr.url!=="#"){ p("ok","launching "+pr.name+" → "+pr.url); setTimeout(()=>location.href=pr.url,500); } else { openApp("project:"+pr.slug); p("ok","opened "+pr.name); } return; }
       if(APPS[q]){ openApp(q); p("ok","opened "+q); return; }
       p("err","not found: "+q); },
-    sudo(){ p("warn","matt is not in the sudoers file. This incident will be reported. 🚨"); },
+    sudo(){ p("err","Permission denied: you don't have sudo access on mattOS."); },
     clear(){ out.innerHTML=""; },
     exit(){ closeWin(id); },
     matt(){ p("acc","👋 hi!"); },
     /* ── hidden commands (not shown in help) ── */
     matrix(){ p("ok","entering the matrix… (press any key or click to exit)"); matrixRain(); },
-    coffee(){ p("","<pre>      (  )   (   )  )\n       ) (   )  (  (\n       ( )  (    ) )\n       _____________\n      &lt;_____________&gt; ___\n      |             |/ _ \\\n      |               | | |\n      |               |_| |\n   ___|_______________|___/\n  /                       \\   ☕  brewed. +100 focus.\n \\_________________________/</pre>"); },
+    coffee(){ p("","<pre>      (  )   (   )  )\n       ) (   )  (  (\n       ( )  (    ) )\n       _____________\n      &lt;_____________&gt; ___\n      |             |/ _ \\\n      |               | | |\n      |               |_| |\n   ___|_______________|___/\n  /                       \\   coffee, brewed.\n \\_________________________/</pre>"); },
     party(){ partyMode(); p("ok","🎉 party mode!"); },
     konami(){ p("acc","↑ ↑ ↓ ↓ ← → ← → B A"); },
     "42"(){ p("acc","The Answer to the Ultimate Question of Life, the Universe, and Everything."); },
     hire(){ this.hireme(); },
-    hireme(){ openApp("contact"); p("ok","Excellent choice. Opening Contact…"); },
-    credits(){ p("","<pre>mattOS 4.8 “Liquid”\n  design + build   Matt Lavergne\n  window manager   GlassWM\n  material         liquid glass (shared with the traffic map)\n  built with       too much coffee ☕</pre>"); },
+    hireme(){ openApp("contact"); p("ok","Opening Contact…"); },
+    credits(){ p("","<pre>mattOS 4.8 “Liquid”\n  design + build   Matt Lavergne\n  window manager   GlassWM\n  material         liquid glass (shared with the traffic map)\n  built with       HTML, CSS, and JavaScript</pre>"); },
     secret(){ this.secrets(); },
-    secrets(){ if(secretsUnlocked){ openApp("secrets"); p("ok","opening Secrets.txt"); } else { unlockSecrets(true); p("ok","🔓 secrets unlocked — check your desktop."); } },
-    sl(){ p("","<pre>      ====        ________\n  _D _|  |_______/        \\__I_I_____===__|_______|\n   |(_)---  |   H\\________/ |   |        =|___ ___|\n   /     |  |   H  |  |     |   |         ||_| |_||\n  |      |  |   H  |__--------------------| [___] |\n  | ________|___H__/__|_____/[][]~\\_______|       |\n  |/ |   |-----------I_____I [][] []  D   |=======|_\ntoot toot 🚂  (you meant “ls”, didn't you?)</pre>"); }
+    secrets(){ if(secretsUnlocked){ openApp("secrets"); p("ok","opening Secrets.txt"); } else { unlockSecrets(true); p("ok","Secrets unlocked. Check your desktop."); } },
+    sl(){ p("","<pre>      ====        ________\n  _D _|  |_______/        \\__I_I_____===__|_______|\n   |(_)---  |   H\\________/ |   |        =|___ ___|\n   /     |  |   H  |  |     |   |         ||_| |_||\n  |      |  |   H  |__--------------------| [___] |\n  | ________|___H__/__|_____/[][]~\\_______|       |\n  |/ |   |-----------I_____I [][] []  D   |=======|_\n(sl: you probably meant ls)</pre>"); }
   };
   function wireLinks(){ out.querySelectorAll("a[data-x]").forEach(a=>a.addEventListener("click",()=>{ const u=a.dataset.x; if(u.startsWith("mailto"))location.href=u; else window.open(u,"_blank"); })); }
   function run(raw){
@@ -2018,7 +2032,7 @@ function initTerminal(body,id){
     history.push(line); hi=history.length;
     const [c,...rest]=line.split(/\s+/);
     const fn=cmds[c.toLowerCase()];
-    if(fn) fn.call(cmds,rest); else p("err",`command not found: ${esc(c)} — try <b>help</b>`);
+    if(fn) fn.call(cmds,rest); else p("err",`command not found: ${esc(c)}, try <b>help</b>`);
   }
   input.addEventListener("keydown",e=>{
     if(e.key==="Enter"){ run(input.value); input.value=""; }
@@ -2027,7 +2041,7 @@ function initTerminal(body,id){
     else if((e.key==="l"||e.key==="k")&&(e.metaKey||e.ctrlKey)){ e.preventDefault(); out.innerHTML=""; }
   });
   body.addEventListener("click",()=>input.focus());
-  p("u",`mattsh 1.0 — type <b>help</b> to get started, or <b>neofetch</b>.`);
+  p("u",`mattsh 1.0. Type <b>help</b> to get started, or <b>neofetch</b>.`);
   setTimeout(()=>input.focus(),60);
 }
 
@@ -2109,7 +2123,7 @@ function rainbowWallpaper(ms){
 }
 function partyMode(){
   confettiBurst(150); rainbowWallpaper(6000);
-  toast("Achievement unlocked","Konami code — party mode engaged! 🎉","🏆");
+  toast("Achievement unlocked","Konami code accepted. Party mode engaged.","🏆");
   unlockSecrets(true);
 }
 function unlockSecrets(announce){
@@ -2132,17 +2146,17 @@ APPS.secrets = {
   title:"Secrets.txt", icon:APPICON.note, w:470, h:450,
   body(){
     return `<div class="note">
-      <h1>🕵️ You found the secrets</h1>
-      <p>Nice work. Here's everything hidden in mattOS:</p>
+      <h1>You found the secrets</h1>
+      <p>Here's everything hidden in mattOS:</p>
       <ul>
-        <li><b>Konami code</b> — <span class="kbd">↑ ↑ ↓ ↓ ← → ← → B A</span> for party mode.</li>
-        <li><b>Screensaver</b> — leave the desktop idle for a minute and watch the logo bounce.</li>
-        <li><b>Terminal</b> secrets — try <span class="kbd">matrix</span>, <span class="kbd">coffee</span>, <span class="kbd">42</span>, <span class="kbd">hire</span>, <span class="kbd">credits</span>, <span class="kbd">party</span>, <span class="kbd">sl</span>, and <span class="kbd">sudo</span>.</li>
-        <li><b>Menu-bar tray</b> — click the battery and Wi-Fi icons.</li>
-        <li><b>About This Machine</b> — click my avatar for a random fact.</li>
-        <li><b>Trash</b> — keep clicking it. It gets sassy.</li>
+        <li><b>Konami code</b>: <span class="kbd">↑ ↑ ↓ ↓ ← → ← → B A</span> for party mode.</li>
+        <li><b>Screensaver</b>: leave the desktop idle for a minute and watch the logo bounce.</li>
+        <li><b>Terminal</b> secrets: try <span class="kbd">matrix</span>, <span class="kbd">coffee</span>, <span class="kbd">42</span>, <span class="kbd">hire</span>, <span class="kbd">credits</span>, <span class="kbd">party</span>, <span class="kbd">sl</span>, and <span class="kbd">sudo</span>.</li>
+        <li><b>Menu-bar tray</b>: click the battery and Wi-Fi icons.</li>
+        <li><b>About This Machine</b>: click my avatar for a random fact.</li>
+        <li><b>Trash</b>: click it a few times.</li>
       </ul>
-      <p style="margin-top:14px">That's the tour. Now go <a href="mailto:${PROFILE.email}" style="color:var(--accent)">hire me</a>. 😄</p>
+      <p style="margin-top:14px">That's the tour. <a href="mailto:${PROFILE.email}" style="color:var(--accent)">Get in touch</a> if you'd like to work together.</p>
     </div>`;
   }
 };
@@ -2208,11 +2222,11 @@ function resetIdle(){ clearTimeout(idleTimer); if(ssActive) stopScreensaver(); i
 
 let trashN=0;
 const TRASH_MSGS=[
-  "It's empty — I ship things, I don't throw them away.",
-  "Still empty. Persistence is a good trait, though.",
-  "Nothing here. Have you tried the Konami code? ↑↑↓↓←→←→ B A",
-  "Okay, you REALLY want something in here. Fine — a tip: type “matrix” in the Terminal.",
-  "This is the last one. The trash is a metaphor. Let go. 🧘"
+  "The Trash is empty.",
+  "Still empty.",
+  "Nothing here. Tip: the Konami code (↑↑↓↓←→←→ B A) does something.",
+  "Still nothing. Another tip: type “matrix” in the Terminal.",
+  "Empty. Nothing has been thrown away."
 ];
 function trashClick(){ toast("Trash", TRASH_MSGS[Math.min(trashN,TRASH_MSGS.length-1)], I.trash); trashN++; if(trashN===3) unlockSecrets(false); }
 
@@ -2229,8 +2243,8 @@ runBoot(true);
 setTimeout(()=>{
   if(window.innerWidth>720){ openApp("finder"); }
   const msg = COARSE
-    ? "Tap the Projects folder to explore, or tap 🔍 up top to search. Everything here really works."
-    : "Double-click the Projects folder, or press ⌘K to search. Everything here really works.";
+    ? "Tap the Projects folder to explore, or tap the search icon up top. Everything here is interactive."
+    : "Double-click the Projects folder, or press ⌘K to search. Everything here is interactive.";
   setTimeout(()=>toast("Welcome to mattOS", msg, I.apple), 900);
 }, REDUCE?400:2100);
 </script>
