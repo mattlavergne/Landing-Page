@@ -21,6 +21,8 @@ static asset, and `/trafficmap` is reverse-proxied to a separate project.
 | --- | --- |
 | `public/index.html` | The whole OS, one self-contained file (all CSS/JS inline, no build, no CDN). **The file you normally edit.** |
 | `public/app.html` | The **app-window shell**: renders one project as a browser-style window on the mattOS desktop. One shell serves every framed project. |
+| `public/games.js` | The **Arcade**: a small game engine plus five games (Snake, Chomper, Flap, Bricks, Twenty48). Shared by the desktop and the standalone arcade page, so there is one copy of each game. |
+| `public/arcade.html` | The standalone arcade at **/arcade** — the same games as a normal web page, for direct links and phones. |
 | `src/index.js` | The Cloudflare Worker: serves framed apps, proxies their embedded content, and serves the landing page for everything else. |
 | `wrangler.toml` | Worker + static-assets + routes config. |
 | `.github/workflows/deploy.yml` | Deploys to Cloudflare on every push to `main`. |
@@ -39,7 +41,12 @@ Everything is real and interactive:
   controls (close / minimize / zoom).
 - **Apps** — Finder (the project browser), About This Machine, Activity Monitor
   (skills as a live load graph), Career, Contact, Terminal (`help`, `neofetch`,
-  `open <project>`, `theme`, …), and README.
+  `open <project>`, `theme`, `play <game>`, …), README, and the **Arcade**.
+- **Arcade** — five games written from scratch, each opening in its own window:
+  **Snake**, **Chomper** (a Pac-Man style maze chase with four ghosts, power
+  pellets and a wrap-around tunnel), **Flap**, **Bricks**, and **Twenty48**.
+  Keyboard on a desktop; swipes and an on-screen pad on a phone. High scores
+  persist per device.
 - **Spotlight** (`⌘K` / `Ctrl-K`), **Control Center**, right-click **context
   menu**, **notifications**, and a **lock screen**.
 
@@ -56,6 +63,9 @@ The Worker owns `mattlavergne.com/*`:
   minimize / zoom controls and an address bar.
 - `/trafficmap/_app/*` → reverse-proxied to the traffic map's GitHub Pages
   site. This is the raw map, and it's what the app window's iframe loads.
+- `/arcade` → `public/arcade.html` (see the `PAGES` map in `src/index.js`).
+  It already wears the mattOS look, so it is served directly instead of being
+  framed in a window — no nested chrome, and only one wallpaper to animate.
 - everything else → `public/index.html` (the portfolio) and its static assets.
 
 ## Framed apps (windowed projects)
@@ -147,6 +157,50 @@ one or two so the Desktop/Dock stay uncluttered; leave the rest to live in the
 Finder. To change the bio, skills, or experience, edit the `PROFILE`, `SKILLS`,
 `EXPERIENCE`, and `EDUCATION` objects right above `PROJECTS`.
 
+## The Arcade
+
+Five games live in `public/games.js`, behind one small API:
+
+```js
+MATTGAMES.list             // metadata for every game
+MATTGAMES.best(id)         // this visitor's high score
+MATTGAMES.mount(id, host)  // build a playable instance; returns {destroy()}
+```
+
+Both surfaces call it, so a game is written once:
+
+- **the desktop** (`public/index.html`) opens each game in its own mattOS window
+  (Dock, Desktop icon, Finder → Arcade, Spotlight, and `play <game>` in the
+  Terminal), and
+- **`/arcade`** (`public/arcade.html`) is a normal page for direct links and
+  phones.
+
+The shared stage handles the parts every game needs: a canvas with fixed
+logical coordinates that letterboxes into any window size, a HUD, start /
+pause / game-over overlays, keyboard **and** swipe **and** on-screen controls,
+sound with a remembered mute, high scores in `localStorage`, pausing when a
+window is minimized or the tab is hidden, and teardown when the window closes.
+
+**To add a game**, write a factory that returns `{reset, update(dt), draw}` and
+add one entry to `GAMES` at the bottom of `games.js`:
+
+```js
+{
+  id:"pong", name:"Pong", tagline:"One-line summary",
+  tags:["Classic"], icon: ICONS.pong,     // squircle tile, like the app icons
+  w:480, h:600,                           // suggested mattOS window size
+  stage:{ w:360, h:480, pad:"dpad" },     // logical play field + touch controls
+                                          //   pad: "dpad" | "lr" | "tap" | "none"
+  help:"Shown on the start overlay.",
+  hintKeys:"Arrow keys / WASD", hintTouch:"Swipe anywhere",
+  make: makePong
+}
+```
+
+It then appears in the launcher, the Dock's Arcade window, the Finder, Spotlight
+and `/arcade` automatically. If `games.js` ever fails to load, the desktop
+simply has no Arcade — nothing else breaks.
+
 ## Contact form (the Mail app)
 
 The **Contact** app is a real Mail-style composer that sends messages straight
@@ -179,6 +233,7 @@ key) or a `POST` route on your own Cloudflare Worker — the payload is JSON wit
 A few things aren't spelled out on screen: the **Konami code**
 (`↑ ↑ ↓ ↓ ← → ← → B A`), a **screensaver** after a minute idle, secret
 **Terminal** commands (`matrix`, `coffee`, `42`, `hire`, `credits`, `party`,
-`sl`, `sudo`), clickable **battery/Wi-Fi/clock** in the menu bar, and a
+`sl`, `sudo`), `play snake` and friends from the Terminal, clickable
+**battery/Wi-Fi/clock** in the menu bar, and a
 **Trash** that reveals a hint after a few clicks. The Konami code unlocks a
 `Secrets.txt` on the desktop that documents them all.
