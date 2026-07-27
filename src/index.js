@@ -17,8 +17,8 @@
 //      the origin, so the iframe loads it same-origin and relative asset URLs
 //      resolve correctly.
 //
-//   3. Pretty URLs for pages we host ourselves (see PAGES): /arcade serves
-//      public/arcade.html, which already looks like part of mattOS.
+//   3. Arcade URLs: /arcade and /arcade/<game> are real URLs served by the
+//      desktop itself, which opens the matching window (see DESKTOP_PATHS).
 //
 //   4. Everything else -> the portfolio landing page (public/index.html) and
 //      its static assets, served via the ASSETS binding.
@@ -40,12 +40,13 @@ const APPS = {
   },
 };
 
-// Pretty URLs for pages that already live in public/ and already wear the
-// mattOS look, so they are served directly instead of being framed in a
-// window (no nested chrome, no second wallpaper to animate on a phone).
-const PAGES = {
-  "/arcade": "/arcade.html",
-};
+// Pretty URLs the desktop owns.  The arcade is not a separate site: it is
+// part of mattOS, so /arcade and /arcade/<game> serve the desktop itself and
+// it deep-links to the right window client-side (see ROUTES in
+// public/index.html).  That keeps the transition between "pages" seamless —
+// clicking a game inside the desktop just pushes its URL, no reload — while
+// a shared link or a refresh still lands in exactly the same place.
+const DESKTOP_PATHS = /^\/arcade(\/|$)/;
 
 // If pathname is "<appPath>/_app[/...]" for a proxied app, return the app and
 // the remaining origin path (always starting with "/").
@@ -96,15 +97,8 @@ export default {
     const key = appKeyFor(path);
     if (key) return renderAppFrame(env, url, key, APPS[key]);
 
-    // 2b) A pretty URL for a page we serve ourselves (e.g. /arcade).
-    const page = PAGES[path.length > 1 ? path.replace(/\/+$/, "") : path];
-    if (page) {
-      const res = await env.ASSETS.fetch(new URL(page, url));
-      return new Response(res.body, {
-        status: res.status,
-        headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-cache" },
-      });
-    }
+    // 2b) An arcade URL -> the desktop, which opens that game's window.
+    if (DESKTOP_PATHS.test(path)) return env.ASSETS.fetch(new URL("/index.html", url));
 
     // The shell template must never be served raw (its placeholders would be
     // unfilled JavaScript); send stray requests for it back to the desktop.
