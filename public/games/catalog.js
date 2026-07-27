@@ -65,6 +65,15 @@ const ICONS = {
     `<ellipse cx="50" cy="52" rx="17" ry="15" fill="#fff"/><circle cx="43" cy="45" r="4" fill="#9333ea"/><circle cx="57" cy="45" r="4" fill="#9333ea"/>
      <path d="M30 40c-4-6-2-12 3-13s8 5 6 11M70 40c4-6 2-12-3-13s-8 5-6 11" fill="#fff"/>
      <path d="M26 72h48" stroke="#fde047" stroke-width="5" stroke-linecap="round" stroke-dasharray="9 8"/>`, "ho"),
+  dino: squircle(["#e2e8f0", "#94a3b8"],
+    `<path d="M38 30h16v10h8v14h-8v10h-6l-4 14h-8l4-14h-8V54h-6V40h6V30z" fill="#334155"/>
+     <rect x="26" y="72" width="48" height="4" rx="2" fill="#334155"/>
+     <circle cx="50" cy="35" r="2.4" fill="#f8fafc"/>`, "di"),
+  pong: squircle(["#0f172a", "#000000"],
+    `<rect x="20" y="34" width="7" height="32" rx="3" fill="#fff"/>
+     <rect x="73" y="42" width="7" height="32" rx="3" fill="#fb7185"/>
+     <circle cx="52" cy="52" r="6" fill="#fde047"/>
+     <path d="M50 20v60" stroke="rgba(255,255,255,.35)" stroke-width="3" stroke-dasharray="6 8"/>`, "po"),
   sweeper: squircle(["#94a3b8", "#334155"],
     `<rect x="22" y="22" width="24" height="24" rx="5" fill="#fff"/><rect x="54" y="22" width="24" height="24" rx="5" fill="#fff" opacity=".5"/>
      <rect x="22" y="54" width="24" height="24" rx="5" fill="#fff" opacity=".5"/>
@@ -158,6 +167,28 @@ MATTGAMES.setCatalog([
     help: "Numbers count the mines touching that square. Clear every safe square to win. Right-click (or the flag button) marks a mine; on a phone, long-press does the same.",
     hintKeys: "Click to clear  ·  Right-click to flag  ·  R restarts",
     hintTouch: "Tap to clear  ·  Long-press to flag"
+  },
+
+  /* ── hidden ──────────────────────────────────────────────────────
+     `hidden` keeps a game out of every listing until it is unlocked.
+     Its URL still works, which is rather the point of a reward. */
+  {
+    id: "dino", name: "No Connection", tagline: "The offline classic", hidden: true,
+    tags: ["Endless", "Hidden"], icon: ICONS.dino, w: 620, h: 480,
+    stage: { w: 600, h: 360, pad: "dpad", swipe: true },
+    help: "Jump the cacti, duck the birds. It gets faster, and night falls every few hundred metres.",
+    hintKeys: "Space / ↑ to jump  ·  ↓ to duck",
+    hintTouch: "Tap to jump  ·  swipe down to duck"
+  },
+  {
+    id: "pong", name: "Pong", tagline: "1972, still undefeated", hidden: true,
+    tags: ["Classic", "Hidden"], icon: ICONS.pong, w: 620, h: 470,
+    stage: { w: 520, h: 340, pad: "dpad", swipe: false },
+    stats: [{ key: "score", label: "Score" }, { key: "best", label: "Best" },
+            { key: "you", label: "You" }, { key: "cpu", label: "CPU" }],
+    help: "First to seven. Hit the ball with the edge of the paddle to change its angle.",
+    hintKeys: "↑ ↓ or the mouse",
+    hintTouch: "Drag to move your paddle"
   }
 ]);
 })();

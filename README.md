@@ -24,6 +24,10 @@ static asset, and `/trafficmap` is reverse-proxied to a separate project.
 | `public/games/engine.js` | The **Arcade engine**: the stage every game runs on, plus the registry and the on-demand loader. Machinery only. |
 | `public/games/catalog.js` | The list of games (name, icon, sizes, controls). Metadata only, so the desktop can show the arcade without downloading any game. |
 | `public/games/<id>.js` | **One file per game** — `snake.js`, `chomper.js`, `stacks.js`, … Fetched the first time that game is opened. |
+| `public/apps/registry.js` | The **bundled apps**: metadata + loader, same pattern as the arcade. |
+| `public/apps/<id>.js` | **One file per app** — Calculator, Notes, Clock, Weather, Sketch, Music, Achievements. Each ships its own CSS and loads on demand. |
+| `public/shell.js` | The rest of **mattsh**: a small filesystem, `sudo`, a text adventure, and a pile of joke commands. Loads with the Terminal. |
+| `public/eggs.js` | The **achievement registry** and every easter egg that isn't in the shell. Loads last. |
 | `src/index.js` | The Cloudflare Worker: serves framed apps, proxies their embedded content, and serves the landing page for everything else. |
 | `wrangler.toml` | Worker + static-assets + routes config. |
 | `.github/workflows/deploy.yml` | Deploys to Cloudflare on every push to `main`. |
@@ -37,12 +41,21 @@ Everything is real and interactive:
 - **Menu bar** — Apple-style  menu, contextual app menu, Go / Window / Help,
   and a system tray (Spotlight, Control Center, Wi-Fi, theme toggle, battery,
   clock).
-- **Dock** — magnifies on hover; launches apps; shows running indicators.
+- **Dock** — magnifies on hover; launches apps; shows running indicators;
+  right-click a tile for its menu.
+- **Launchpad** (`F4` / `⌘⇧A` / the Dock tile) — every app, game and pinned
+  project on one searchable screen.
+- **Mission Control** (`F3`) — spreads every open window out; click one to focus.
+- **Force Quit** (`⌘⌥⎋`) — a real process list. Some processes take it personally.
 - **Windows** — draggable, resizable, focusable, with working traffic-light
   controls (close / minimize / zoom).
 - **Apps** — Finder (the project browser), About This Machine, Activity Monitor
   (skills as a live load graph), Career, Contact, Terminal (`help`, `neofetch`,
-  `open <project>`, `theme`, `play <game>`, …), README, and the **Arcade**.
+  `open <project>`, `theme`, `play <game>`, …), README, the **Arcade**, and the
+  bundled apps: **Calculator**, **Notes** (persists), **Clock** (world clock,
+  stopwatch, timer), **Weather** (live Lafayette conditions), **Sketch**,
+  **Music** (chiptunes synthesized in the browser — no audio files) and
+  **Achievements**.
 - **Arcade** — nine games written from scratch, each opening in its own window
   *and* at its own URL (`/arcade/snake`): **Snake**, **Chomper** (a Pac-Man
   style maze chase with four ghosts, power pellets and a wrap-around tunnel),
@@ -66,6 +79,9 @@ The Worker owns `mattlavergne.com/*`:
   minimize / zoom controls and an address bar.
 - `/trafficmap/_app/*` → reverse-proxied to the traffic map's GitHub Pages
   site. This is the raw map, and it's what the app window's iframe loads.
+- `/apps` and `/apps/<app>` → the desktop, opening that app's window
+  (`/apps/calculator`, `/apps/notes`, …). The pattern ignores anything with a
+  dot in it, so the real files under `/apps/` are still served as files.
 - `/arcade` and `/arcade/<game>` → **the desktop itself** (`public/index.html`),
   which opens the matching window on arrival. The arcade is not a separate
   site, so it does not need the framed shell: inside the desktop, opening a
@@ -247,6 +263,61 @@ Terminal (`arcade`, `play pong`) and at `/arcade/pong` — automatically. If the
 arcade files ever fail to load, the desktop simply has no Arcade and nothing
 else breaks.
 
+## The bundled apps
+
+Same pattern as the arcade, one folder over:
+
+```
+public/apps/
+  registry.js   metadata + loader          (machinery)
+  calculator.js notes.js  clock.js  weather.js
+  sketch.js     music.js  achievements.js  (one app per file, each with its CSS)
+```
+
+`registry.js` holds only names, icons and window sizes, so the Dock, Launchpad,
+Finder and Spotlight can list every app without downloading one. An app's file
+arrives when its window opens (the frame shows a spinner for the blink it takes).
+
+**To add an app**: write `public/apps/<id>.js` —
+
+```js
+MATTAPPS.style("<id>", `.my-app{…}`);          // its CSS, injected once
+MATTAPPS.define("<id>", {
+  body(){ return `<div class="my-app">…</div>`; },
+  mount(body, id, node){ /* wire it up */ },
+  unmount(node){ /* stop timers, remove listeners */ }
+});
+```
+
+— then add one entry to `LIST` in `registry.js` (`dock:true` also puts it in the
+Dock). It appears everywhere else automatically, including at `/apps/<id>`.
+
+The Weather app is the only thing on the site that talks to a third party
+(Open-Meteo — no key, no account). If the request fails it says so and offers a
+retry rather than inventing a forecast.
+
+## Hidden things
+
+mattOS has **42 achievements**, and finding them all unlocks *mattOS Pro*: a
+gold wallpaper, one more game, and a note. The system lives in two files:
+
+- `public/eggs.js` — the registry (`id`, `name`, `desc`, `hint`) and the wiring
+  for everything outside the Terminal. It only talks to the desktop through
+  `window.MATTOS`, the small bridge exposed by `index.html`.
+- `public/shell.js` — the Terminal half: a read-only filesystem (`ls -a`, `cat`,
+  `cd`, `find`, `tree`), a `sudo` that eventually gives in, a key hidden in a
+  file, a text adventure with a real ending, and a stack of joke commands.
+
+The **Achievements** app shows unlocked entries in full and locked ones as a
+cryptic hint only — enough to prove something is there, never enough to hand it
+over. Two of the eleven arcade games are hidden until they're earned; their URLs
+work regardless, which is the reward for knowing about them.
+
+**To add an egg**: append one entry to `EGGS` in `eggs.js`, then call
+`MATTOS.egg("<id>")` from wherever it should fire (an app, the shell, a DOM
+listener). The toast, the confetti, the persistence and the progress ring are
+handled for you.
+
 ## Contact form (the Mail app)
 
 The **Contact** app is a real Mail-style composer that sends messages straight
@@ -276,10 +347,8 @@ key) or a `POST` route on your own Cloudflare Worker — the payload is JSON wit
 
 ## Hidden extras
 
-A few things aren't spelled out on screen: the **Konami code**
-(`↑ ↑ ↓ ↓ ← → ← → B A`), a **screensaver** after a minute idle, secret
-**Terminal** commands (`matrix`, `coffee`, `42`, `hire`, `credits`, `party`,
-`sl`, `sudo`), `arcade` and `play stacks` from the Terminal, clickable
-**battery/Wi-Fi/clock** in the menu bar, and a
-**Trash** that reveals a hint after a few clicks. The Konami code unlocks a
-`Secrets.txt` on the desktop that documents them all.
+Nothing here is spelled out on screen, on purpose. The **Achievements** app
+(Launchpad, or Spotlight) keeps score and gives one hint per locked entry; the
+full list with answers is `EGGS` in `public/eggs.js`, and the Terminal half is
+`public/shell.js`. The Konami code still works, and still unlocks `Secrets.txt`
+on the desktop.
