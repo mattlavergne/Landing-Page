@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Matt Lavergne · mattOS · Automation & Digital Services</title>
-<meta name="description" content="The portfolio of Matt Lavergne, rendered as a fully interactive desktop operating system. Explore projects in the Finder, meet Matt in About, and open a live traffic map, all in liquid glass.">
+<meta name="description" content="The portfolio of Matt Lavergne, rendered as a fully interactive desktop operating system. Explore projects in the Finder, meet Matt in About, open a live traffic map, and play the built-in arcade: Snake, Chomper, Flap, Bricks and Twenty48.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#eef1f7" id="metaTheme">
 <!-- Favicon + app icons: the mattOS "M" mark -->
@@ -446,6 +446,31 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
 .term .inl input{all:unset;flex:1;color:#e6edf7;caret-color:#5eead4;font-family:var(--mono);font-size:13px}
 .term ::selection{background:#5eead4;color:#04121a}
 
+/* ── Arcade launcher ──
+   The Arcade app is a chooser: every tile opens that game in its own
+   mattOS window.  The games themselves live in /games.js. */
+.arcade{padding:16px 18px 20px}
+.arcade .ahead{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
+.arcade h2{font-size:16px;font-weight:800;letter-spacing:-.01em}
+.arcade .asub{font-size:12.5px;color:var(--text-3);margin-bottom:14px;line-height:1.5}
+.agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px}
+.gcard{display:flex;gap:12px;align-items:center;padding:12px;border-radius:15px;cursor:pointer;
+  background:var(--chip);border:1px solid var(--panel-border);box-shadow:var(--edge);
+  transition:transform .13s cubic-bezier(.34,1.3,.64,1),background .13s ease}
+.gcard:hover{background:var(--chip-hover);transform:translateY(-2px)}
+.gcard:active{transform:scale(.98)}
+.gcard .gi{width:46px;height:46px;flex:none;filter:drop-shadow(0 5px 10px rgba(15,23,42,.26))}
+.gcard .gi svg{width:46px;height:46px;display:block}
+.gcard .gb{min-width:0}
+.gcard .gn{font-size:14px;font-weight:700;letter-spacing:-.01em}
+.gcard .gt{font-size:11.5px;color:var(--text-3);line-height:1.35;margin-top:1px}
+.gcard .gbest{font-size:10.5px;font-weight:700;color:var(--accent);margin-top:4px;font-variant-numeric:tabular-nums}
+.arcade .afoot{margin-top:16px;padding-top:13px;border-top:1px solid var(--hairline);
+  font-size:12px;color:var(--text-3);line-height:1.7}
+.arcade .afoot a{color:var(--accent);font-weight:600;cursor:pointer}
+/* a game window is all game: no padding, the engine fills it */
+.win-body.game{overflow:hidden;display:flex;flex-direction:column}
+
 /* ── README note ── */
 .note{padding:22px 24px;font-size:13.5px;line-height:1.7;color:var(--text-2)}
 .note h1{font-size:17px;color:var(--text);margin-bottom:10px}
@@ -706,7 +731,8 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
 <div class="sr-only">
   <h1>Matt Lavergne: Automation Specialist &amp; Digital Services Coordinator, Lafayette, Louisiana</h1>
   <p>Matthew Lavergne is a Digital Services Coordinator at the University of Louisiana at Lafayette Foundation, where he designs enterprise Power Automate solutions, REST API integrations, and custom connector architecture that replace manual processes with scalable systems across Microsoft 365. His flagship is a 47-flow Power Automate solution automating gift processing, donor operations, events, and onboarding. This portfolio is presented as an interactive desktop operating system, "mattOS". Projects include a live Lafayette 911 traffic incident map at mattlavergne.com/trafficmap, a map background generator, a VBA PDF bookmark router, a social-to-CRM bulk import, and WiFi trilateration motion detection.</p>
-  <p>Contact: contact@mattlavergne.com · LinkedIn /in/matthew-a-lavergne · GitHub github.com/mattlavergne · <a href="/trafficmap">Live traffic map</a></p>
+  <p>The desktop also ships an arcade of five original browser games, playable on desktop and mobile: Snake, Chomper (a Pac-Man style maze chase), Flap, Bricks and Twenty48. They are at <a href="/arcade">mattlavergne.com/arcade</a>.</p>
+  <p>Contact: contact@mattlavergne.com · LinkedIn /in/matthew-a-lavergne · GitHub github.com/mattlavergne · <a href="/trafficmap">Live traffic map</a> · <a href="/arcade">Arcade</a></p>
 </div>
 <noscript>
   <div style="padding:40px;max-width:640px;margin:0 auto;font-family:system-ui,sans-serif;line-height:1.6">
@@ -714,6 +740,7 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
     <p>Automation Specialist &amp; Digital Services Coordinator in Lafayette, Louisiana. This site is an interactive desktop that needs JavaScript. Here are the essentials:</p>
     <ul>
       <li><a href="/trafficmap">Lafayette Traffic: live 911 incident map</a></li>
+      <li><a href="/arcade">The arcade: five browser games (Snake, Chomper, Flap, Bricks, Twenty48)</a></li>
       <li>Email: <a href="mailto:contact@mattlavergne.com">contact@mattlavergne.com</a></li>
       <li><a href="https://www.linkedin.com/in/matthew-a-lavergne/">LinkedIn</a> · <a href="https://github.com/mattlavergne">GitHub</a></li>
     </ul>
@@ -782,6 +809,8 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
   <div class="skip">click to skip</div>
 </div>
 
+<!-- The Arcade's games, shared with the standalone page at /arcade. -->
+<script src="/games.js"></script>
 <script>
 "use strict";
 /* ══════════════════════════════════════════════════════════════════
@@ -941,6 +970,7 @@ I.pin = line(`<path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11z"/><circ
 I.launch = line(`<path d="M7 17 17 7M9 7h8v8"/>`);
 I.send = line(`<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/>`);
 I.trash = line(`<path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/>`);
+I.gamepad = line(`<path d="M7 12h4M9 10v4"/><circle cx="15.5" cy="11" r=".8" fill="currentColor"/><circle cx="17.5" cy="13.5" r=".8" fill="currentColor"/><path d="M8.5 6h7a5.5 5.5 0 0 1 5.4 4.5l.7 4a3.2 3.2 0 0 1-5.9 2.2L15 15H9l-.7 1.7a3.2 3.2 0 0 1-5.9-2.2l.7-4A5.5 5.5 0 0 1 8.5 6z"/>`);
 
 /* colorful "app" tile icons (macOS squircle style) */
 const squircle = (grad, inner, id)=>{
@@ -967,6 +997,14 @@ const APPICON = {
   trash: `<svg viewBox="0 0 100 100"><rect x="6" y="6" width="88" height="88" rx="24" fill="rgba(255,255,255,.16)" stroke="rgba(255,255,255,.3)"/><path d="M32 38h36M42 38v-5a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v5M36 38l2 32a4 4 0 0 0 4 4h16a4 4 0 0 0 4-4l2-32" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>`
 };
 const projIcon = p => APPICON[p.icon] || APPICON.folder;
+
+/* ── Arcade ──────────────────────────────────────────────────────────
+   The games live in /games.js so the desktop and the standalone page
+   (/arcade) share one copy.  If that file ever fails to load, the OS
+   degrades gracefully: no Arcade icons, no Arcade app, nothing broken. */
+const ARCADE = window.MATTGAMES || null;
+const GAMES = ARCADE ? ARCADE.list : [];
+if (ARCADE) APPICON.arcade = ARCADE.icons.arcade;
 
 /* ─────────────────────────── THEME ─────────────────────────── */
 const mqDark = window.matchMedia("(prefers-color-scheme: dark)");
@@ -1148,10 +1186,17 @@ function toggleMax(id){
     w.max=true;
   }
 }
+/* the Dock tile a window should fly into: its own, its app family's, or Finder */
+function dockItemFor(id){
+  const base=id.split(":")[0];
+  const family = base==="game" ? "arcade" : base;
+  return $(`.dock-item[data-open="${CSS.escape(id)}"]`) || $(`.dock-item[data-open="${family}"]`)
+      || $(`.dock-item[data-open="finder"]`);
+}
 function minimizeWin(id){
   const w=wins.get(id); if(!w||w.min) return;
   const node=w.node;
-  const dockItem=$(`.dock-item[data-open="${id.split(":")[0]}"]`) || $(`.dock-item[data-open="finder"]`);
+  const dockItem=dockItemFor(id);
   const nr=node.getBoundingClientRect();
   let tx=0,ty=window.innerHeight;
   if(dockItem){ const dr=dockItem.getBoundingClientRect(); tx=dr.left+dr.width/2-(nr.left+nr.width/2); ty=dr.top-nr.top; }
@@ -1184,13 +1229,17 @@ function openApp(id, opts){
   if(w){ if(w.min) restoreWin(id); else bringToFront(id); return; }
   makeWindow(id, app);
   refreshDock();
-  bounceDock(id.split(":")[0]);
+  bounceDock(id);
 }
 function resolveApp(id){
   if(id.startsWith("project:")){
     const slug=id.split(":")[1];
     const p=PROJECTS.find(x=>x.slug===slug);
     return p?projectApp(p):null;
+  }
+  if(id.startsWith("game:")){
+    const meta=GAMES.find(g=>g.id===id.split(":")[1]);
+    return meta?gameApp(meta):null;
   }
   return APPS[id];
 }
@@ -1436,12 +1485,62 @@ APPS.readme = {
         <li>Press <span class="kbd">⌘K</span> / <span class="kbd">Ctrl K</span> for Spotlight.</li>
         <li>On a desktop, drag windows by their title bar and resize from the corner.</li>
         <li>Try the <b>Terminal</b>: type <span class="kbd">help</span>.</li>
+        <li>Open the <b>Arcade</b> for five games: Snake, Chomper, Flap, Bricks and Twenty48.</li>
         <li>Right-click the desktop for more. Toggle light/dark in the menu bar.</li>
       </ul>
       <p style="margin-top:14px">The <b>Traffic Map</b> is live. Open it from the Finder, Dock, or desktop.</p>
     </div>`;
   }
 };
+
+/* ── Arcade: a launcher window, plus one window per game ── */
+if(ARCADE){
+  APPS.arcade = {
+    title:"Arcade", icon:APPICON.arcade, w:520, h:470,
+    body(){
+      const cards = GAMES.map(g=>{
+        const best = ARCADE.best(g.id);
+        return `<div class="gcard" data-game="${esc(g.id)}" role="button" tabindex="0" aria-label="Play ${esc(g.name)}">
+          <span class="gi">${g.icon}</span>
+          <span class="gb">
+            <span class="gn">${esc(g.name)}</span>
+            <div class="gt">${esc(g.tagline)}</div>
+            ${best?`<div class="gbest">Best ${best}</div>`:""}
+          </span>
+        </div>`;
+      }).join("");
+      return `<div class="arcade">
+        <div class="ahead"><h2>Arcade</h2></div>
+        <div class="asub">${GAMES.length} games, written from scratch for this desktop. Each one opens in its own window,
+          plays with a keyboard or a touchscreen, and remembers your high score on this device.</div>
+        <div class="agrid">${cards}</div>
+        <div class="afoot">Keyboard: arrows or WASD, <span class="kbd">Space</span> to act,
+          <span class="kbd">P</span> pause, <span class="kbd">R</span> restart. On a phone: swipe, or use the pad under the game.<br>
+          Prefer a full page? <a data-arcade-page>Open the arcade at /arcade</a>.</div>
+      </div>`;
+    },
+    mount(body){
+      body.querySelectorAll("[data-game]").forEach(c=>{
+        const go = ()=>openApp("game:"+c.dataset.game);
+        c.addEventListener("click",go);
+        c.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); go(); } });
+      });
+      const link=body.querySelector("[data-arcade-page]");
+      if(link) link.addEventListener("click",()=>{ location.href="/arcade"; });
+    }
+  };
+}
+/* one window per game; the engine tears itself down when the window closes */
+function gameApp(meta){
+  return {
+    title:meta.name, appName:"Arcade", icon:meta.icon, w:meta.w, h:meta.h,
+    body(){ const d=el("div","game-host"); d.style.cssText="flex:1;min-height:0;display:flex;flex-direction:column"; return d; },
+    mount(body){
+      body.classList.add("game");
+      ARCADE.mount(meta.id, body.querySelector(".game-host"));
+    }
+  };
+}
 
 /* dynamic per-project window */
 function projectApp(p){
@@ -1494,8 +1593,12 @@ const FINDER_LOCS = {
   desktop:{label:"Desktop", items:()=>[
     {name:"Projects", icon:APPICON.folder, meta:"Folder", open:()=>{finderLoc="projects"; refreshFinderAll();}},
     {name:"About Me", icon:APPICON.about, meta:"App", open:()=>openApp("about")},
+    ...(ARCADE?[{name:"Arcade", icon:APPICON.arcade, meta:"Folder", open:()=>{finderLoc="arcade"; refreshFinderAll();}}]:[]),
     {name:"README.txt", icon:APPICON.note, meta:"Document", open:()=>openApp("readme")}
   ]},
+  arcade:{label:"Arcade", items:()=>GAMES.map(g=>({
+    name:g.name, icon:g.icon, meta:"Game", open:()=>openApp("game:"+g.id)
+  }))},
   about:{label:"About Me", items:()=>[{aboutcard:true}]}
 };
 function renderFinder(){
@@ -1504,6 +1607,7 @@ function renderFinder(){
       <div class="fs-group">Favorites</div>
       <div class="fs-item" data-loc="projects">${I.folderMini}<span>Projects</span></div>
       <div class="fs-item" data-loc="desktop">${I.window}<span>Desktop</span></div>
+      ${ARCADE?`<div class="fs-item" data-loc="arcade">${I.gamepad}<span>Arcade</span></div>`:""}
       <div class="fs-item" data-loc="about">${I.starMini}<span>About Me</span></div>
       <div class="fs-group" style="margin-top:8px">Apps</div>
       <div class="fs-item" data-app="terminal">${I.term}<span>Terminal</span></div>
@@ -1608,6 +1712,7 @@ function dockList(){
     {id:"contact", label:"Contact", icon:APPICON.contact},
     {id:"terminal", label:"Terminal", icon:APPICON.terminal},
   ];
+  if(ARCADE) core.push({id:"arcade", label:"Arcade", icon:APPICON.arcade});
   const projs=pinnedProjects().map(p=>({id:"project:"+p.slug, label:p.name, icon:projIcon(p)}));
   const list=[...core];
   if(projs.length){ list.push({sep:true}, ...projs); }
@@ -1645,8 +1750,8 @@ function refreshDock(){
     it.classList.toggle("running", wins.has(id));
   });
 }
-function bounceDock(baseId){
-  const it=$(`.dock-item[data-open="${baseId}"]`); if(!it||REDUCE) return;
+function bounceDock(id){
+  const it=dockItemFor(id); if(!it||REDUCE) return;
   it.classList.remove("bounce"); void it.offsetWidth; it.classList.add("bounce");
   setTimeout(()=>it.classList.remove("bounce"),600);
 }
@@ -1711,6 +1816,7 @@ function menuItems(kind){
     {label:"Projects", icon:APPICON.folder, action:()=>{ finderLoc="projects"; openApp("finder"); setTimeout(refreshFinderAll,20); }},
     {label:"About This Machine", icon:APPICON.about, action:()=>openApp("about")},
     {label:"Traffic Map", icon:APPICON.globe, action:()=>openApp("project:trafficmap")},
+    ...(ARCADE?[{label:"Arcade", icon:APPICON.arcade, action:()=>openApp("arcade")}]:[]),
     {label:"Terminal", icon:APPICON.terminal, action:()=>openApp("terminal")},
     {divider:true},
     {label:"Spotlight…", sc:"⌘K", icon:I.search, action:openSpotlight},
@@ -1843,6 +1949,7 @@ function spotIndex(){
   const list=[];
   Object.entries(APPS).forEach(([id,a])=>list.push({t:a.appName||a.title, s:"Application", kind:"app", icon:a.icon, act:()=>openApp(id)}));
   PROJECTS.forEach(p=>list.push({t:p.name, s:p.tagline, kind:p.status==="live"?"live project":"project", icon:projIcon(p), act:()=>openApp("project:"+p.slug)}));
+  GAMES.forEach(g=>list.push({t:g.name, s:g.tagline, kind:"game", icon:g.icon, act:()=>openApp("game:"+g.id)}));
   list.push({t:"Toggle theme", s:"Auto / Light / Dark", kind:"action", icon:I.sun, act:cycleTheme});
   list.push({t:"Change wallpaper", s:"Cycle palette", kind:"action", icon:I.control, act:cycleWall});
   list.push({t:"Lock screen", s:"Sleep mattOS", kind:"action", icon:I.moon, act:lockScreen});
@@ -1961,6 +2068,7 @@ function deskIconList(){
     {label:"Projects", icon:APPICON.folder, open:()=>{ finderLoc="projects"; openApp("finder"); setTimeout(()=>refreshFinderAll(),20); }},
     {label:"About Me", icon:APPICON.about, open:()=>openApp("about")},
     ...projs,
+    ...(ARCADE?[{label:"Arcade", icon:APPICON.arcade, open:()=>openApp("arcade")}]:[]),
     {label:"README.txt", icon:APPICON.note, open:()=>openApp("readme")}
   ];
 }
@@ -2017,10 +2125,10 @@ function initTerminal(body,id){
     p("","<pre>"+logo+"</pre>");
   }
   const cmds={
-    help(){ p("","<pre>Available commands:\n  <b>about</b>      who is Matt\n  <b>projects</b>   list projects   ·  <b>open</b> &lt;name&gt;\n  <b>skills</b>     resident tools  ·  <b>experience</b>\n  <b>contact</b>    ways to reach me\n  <b>neofetch</b>   system info     ·  <b>theme</b> &lt;auto|light|dark&gt;\n  <b>wallpaper</b>  next palette    ·  <b>ls</b>, <b>whoami</b>, <b>date</b>, <b>echo</b>\n  <b>sudo</b>       restricted      ·  <b>clear</b>, <b>exit</b></pre>"); },
+    help(){ p("","<pre>Available commands:\n  <b>about</b>      who is Matt\n  <b>projects</b>   list projects   ·  <b>open</b> &lt;name&gt;\n  <b>skills</b>     resident tools  ·  <b>experience</b>\n  <b>contact</b>    ways to reach me\n  <b>arcade</b>     list games      ·  <b>play</b> &lt;game&gt;\n  <b>neofetch</b>   system info     ·  <b>theme</b> &lt;auto|light|dark&gt;\n  <b>wallpaper</b>  next palette    ·  <b>ls</b>, <b>whoami</b>, <b>date</b>, <b>echo</b>\n  <b>sudo</b>       restricted      ·  <b>clear</b>, <b>exit</b></pre>"); },
     about(){ p("",`<b>${esc(PROFILE.name)}</b>: ${esc(PROFILE.title)}.\n${PROFILE.bio[0].replace(/<\/?b>/g,"")}`.replace(/\n/g,"<br>")); },
     whoami(){ p("","matt"); },
-    ls(){ p("","<pre>"+PROJECTS.map(x=>x.slug+(x.kind==="app"?".app":"/")+(x.status==="live"?"  <span class='ok'>[live]</span>":"")).join("\n")+"\nAbout Me   README.txt   Contact</pre>"); },
+    ls(){ p("","<pre>"+PROJECTS.map(x=>x.slug+(x.kind==="app"?".app":"/")+(x.status==="live"?"  <span class='ok'>[live]</span>":"")).join("\n")+(ARCADE?"\narcade/    <span class='acc'>["+GAMES.length+" games]</span>":"")+"\nAbout Me   README.txt   Contact</pre>"); },
     projects(){ this.ls(); },
     skills(){ p("","<pre>"+SKILLS.map(s=>s.name.padEnd(34,' ')+" "+"█".repeat(Math.round(s.pct/6)).padEnd(17,'░')+" "+s.pct+"%").join("\n")+"</pre>"); },
     experience(){ EXPERIENCE.forEach(j=>p("",`<b>${esc(j.what)}</b> · <span class="acc">${esc(j.where)}</span>\n<span class="u">${esc(j.when)}</span>`.replace(/\n/g,"<br>"))); },
@@ -2035,6 +2143,23 @@ function initTerminal(body,id){
       if(pr){ if(pr.status==="live"&&pr.url!=="#"){ p("ok","launching "+pr.name+" → "+pr.url); setTimeout(()=>location.href=pr.url,500); } else { openApp("project:"+pr.slug); p("ok","opened "+pr.name); } return; }
       if(APPS[q]){ openApp(q); p("ok","opened "+q); return; }
       p("err","not found: "+q); },
+    arcade(a){
+      if(!ARCADE){ p("err","arcade: games unavailable (games.js didn't load)"); return; }
+      if(a && a.length) return this.play(a);
+      p("","<pre>"+GAMES.map(g=>{
+        const b=ARCADE.best(g.id);
+        return "  <b>"+g.id.padEnd(10,' ')+"</b> "+g.tagline.padEnd(38,' ')+(b?"<span class='ok'>best "+b+"</span>":"");
+      }).join("\n")+"\n\nplay &lt;game&gt; to start, or <b>open arcade</b> for the launcher.</pre>");
+    },
+    games(a){ this.arcade(a); },
+    play(a){
+      if(!ARCADE){ p("err","play: games unavailable"); return; }
+      const q=(a.join(" ")||"").toLowerCase();
+      if(!q){ p("err","usage: play &lt;"+GAMES.map(g=>g.id).join("|")+"&gt;"); return; }
+      const g=GAMES.find(x=>x.id.includes(q)||x.name.toLowerCase().includes(q));
+      if(!g){ p("err","no such game: "+esc(q)+", try <b>arcade</b>"); return; }
+      openApp("game:"+g.id); p("ok","starting "+g.name+"… good luck.");
+    },
     sudo(){ p("err","Permission denied: you don't have sudo access on mattOS."); },
     clear(){ out.innerHTML=""; },
     exit(){ closeWin(id); },
@@ -2179,6 +2304,7 @@ APPS.secrets = {
         <li><b>Konami code</b>: <span class="kbd">↑ ↑ ↓ ↓ ← → ← → B A</span> for party mode.</li>
         <li><b>Screensaver</b>: leave the desktop idle for a minute and watch the logo bounce.</li>
         <li><b>Terminal</b> secrets: try <span class="kbd">matrix</span>, <span class="kbd">coffee</span>, <span class="kbd">42</span>, <span class="kbd">hire</span>, <span class="kbd">credits</span>, <span class="kbd">party</span>, <span class="kbd">sl</span>, and <span class="kbd">sudo</span>.</li>
+        <li><b>Arcade</b>: <span class="kbd">play snake</span> from the Terminal starts a game without touching the mouse. Chomper's side tunnel wraps around.</li>
         <li><b>Menu-bar tray</b>: click the battery and Wi-Fi icons.</li>
         <li><b>About This Machine</b>: click my avatar for a random fact.</li>
         <li><b>Trash</b>: click it a few times.</li>
@@ -2273,6 +2399,7 @@ setTimeout(()=>{
     ? "Tap the Projects folder to explore, or tap the search icon up top. Everything here is interactive."
     : "Double-click the Projects folder, or press ⌘K to search. Everything here is interactive.";
   setTimeout(()=>toast("Welcome to mattOS", msg, I.apple), 900);
+  if(ARCADE) setTimeout(()=>toast("Arcade", "Five games are in the Dock: Snake, Chomper, Flap, Bricks and Twenty48. Made for this desktop.", APPICON.arcade), 6200);
 }, REDUCE?400:2100);
 </script>
 </body>

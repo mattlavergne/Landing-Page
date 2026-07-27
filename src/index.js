@@ -17,7 +17,10 @@
 //      the origin, so the iframe loads it same-origin and relative asset URLs
 //      resolve correctly.
 //
-//   3. Everything else -> the portfolio landing page (public/index.html) and
+//   3. Pretty URLs for pages we host ourselves (see PAGES): /arcade serves
+//      public/arcade.html, which already looks like part of mattOS.
+//
+//   4. Everything else -> the portfolio landing page (public/index.html) and
 //      its static assets, served via the ASSETS binding.
 //
 // ── Add another framed project ─────────────────────────────────────────────
@@ -35,6 +38,13 @@ const APPS = {
     // The map is published to GitHub Pages; proxy it under /trafficmap/_app/*.
     proxy: "https://mattlavergne.github.io/Lafayette-911-Traffic",
   },
+};
+
+// Pretty URLs for pages that already live in public/ and already wear the
+// mattOS look, so they are served directly instead of being framed in a
+// window (no nested chrome, no second wallpaper to animate on a phone).
+const PAGES = {
+  "/arcade": "/arcade.html",
 };
 
 // If pathname is "<appPath>/_app[/...]" for a proxied app, return the app and
@@ -85,6 +95,16 @@ export default {
     // 2) A framed app's pretty URL -> the mattOS app-window shell.
     const key = appKeyFor(path);
     if (key) return renderAppFrame(env, url, key, APPS[key]);
+
+    // 2b) A pretty URL for a page we serve ourselves (e.g. /arcade).
+    const page = PAGES[path.length > 1 ? path.replace(/\/+$/, "") : path];
+    if (page) {
+      const res = await env.ASSETS.fetch(new URL(page, url));
+      return new Response(res.body, {
+        status: res.status,
+        headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-cache" },
+      });
+    }
 
     // The shell template must never be served raw (its placeholders would be
     // unfilled JavaScript); send stray requests for it back to the desktop.
