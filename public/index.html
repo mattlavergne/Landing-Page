@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Matt Lavergne · mattOS · Automation & Digital Services</title>
-<meta name="description" content="The portfolio of Matt Lavergne, rendered as a fully interactive desktop operating system. Explore projects in the Finder, meet Matt in About, open a live traffic map, and play the built-in arcade: Snake, Chomper, Flap, Bricks and Twenty48.">
+<meta name="description" content="The portfolio of Matt Lavergne, rendered as a fully interactive desktop operating system. Explore projects in the Finder, meet Matt in About, open a live traffic map, and play the built-in arcade: nine browser games including Snake, Chomper, Stacks, Invaders and Sweeper.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#eef1f7" id="metaTheme">
 <!-- Favicon + app icons: the mattOS "M" mark -->
@@ -731,7 +731,7 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
 <div class="sr-only">
   <h1>Matt Lavergne: Automation Specialist &amp; Digital Services Coordinator, Lafayette, Louisiana</h1>
   <p>Matthew Lavergne is a Digital Services Coordinator at the University of Louisiana at Lafayette Foundation, where he designs enterprise Power Automate solutions, REST API integrations, and custom connector architecture that replace manual processes with scalable systems across Microsoft 365. His flagship is a 47-flow Power Automate solution automating gift processing, donor operations, events, and onboarding. This portfolio is presented as an interactive desktop operating system, "mattOS". Projects include a live Lafayette 911 traffic incident map at mattlavergne.com/trafficmap, a map background generator, a VBA PDF bookmark router, a social-to-CRM bulk import, and WiFi trilateration motion detection.</p>
-  <p>The desktop also ships an arcade of five original browser games, playable on desktop and mobile: Snake, Chomper (a Pac-Man style maze chase), Flap, Bricks and Twenty48. They are at <a href="/arcade">mattlavergne.com/arcade</a>.</p>
+  <p>The desktop also ships an arcade of nine original browser games, playable on desktop and mobile: Snake, Chomper (a Pac-Man style maze chase), Flap (a Flappy Bird style game), Bricks (Breakout), Twenty48 (2048), Stacks (a Tetris style block puzzle), Invaders (Space Invaders), Hopper (a Frogger style crossing game) and Sweeper (Minesweeper). The arcade is at <a href="/arcade">mattlavergne.com/arcade</a> and each game has its own address, such as <a href="/arcade/snake">mattlavergne.com/arcade/snake</a>.</p>
   <p>Contact: contact@mattlavergne.com · LinkedIn /in/matthew-a-lavergne · GitHub github.com/mattlavergne · <a href="/trafficmap">Live traffic map</a> · <a href="/arcade">Arcade</a></p>
 </div>
 <noscript>
@@ -740,7 +740,7 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
     <p>Automation Specialist &amp; Digital Services Coordinator in Lafayette, Louisiana. This site is an interactive desktop that needs JavaScript. Here are the essentials:</p>
     <ul>
       <li><a href="/trafficmap">Lafayette Traffic: live 911 incident map</a></li>
-      <li><a href="/arcade">The arcade: five browser games (Snake, Chomper, Flap, Bricks, Twenty48)</a></li>
+      <li><a href="/arcade">The arcade: nine browser games (Snake, Chomper, Flap, Bricks, Twenty48, Stacks, Invaders, Hopper, Sweeper)</a></li>
       <li>Email: <a href="mailto:contact@mattlavergne.com">contact@mattlavergne.com</a></li>
       <li><a href="https://www.linkedin.com/in/matthew-a-lavergne/">LinkedIn</a> · <a href="https://github.com/mattlavergne">GitHub</a></li>
     </ul>
@@ -809,8 +809,10 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
   <div class="skip">click to skip</div>
 </div>
 
-<!-- The Arcade's games, shared with the standalone page at /arcade. -->
-<script src="/games.js"></script>
+<!-- The Arcade.  engine.js is the machinery, catalog.js lists the games,
+     and each game's own file is fetched only when someone opens it. -->
+<script src="/games/engine.js"></script>
+<script src="/games/catalog.js"></script>
 <script>
 "use strict";
 /* ══════════════════════════════════════════════════════════════════
@@ -1006,6 +1008,31 @@ const ARCADE = window.MATTGAMES || null;
 const GAMES = ARCADE ? ARCADE.list : [];
 if (ARCADE) APPICON.arcade = ARCADE.icons.arcade;
 
+/* ── Deep links ───────────────────────────────────────────────────────
+   The Arcade and every game have a real URL — /arcade and /arcade/snake —
+   exactly like /trafficmap does.  Opening a window pushes its URL with
+   the History API, so moving around the desktop never reloads anything,
+   and the Worker serves this same desktop for those paths, so a shared
+   link or a refresh lands you in the same place with the window already
+   open.  Back and forward walk the windows you opened. */
+const ROUTES = {};                       // path -> app id
+if(ARCADE){
+  ROUTES["/arcade"] = "arcade";
+  GAMES.forEach(g=>{ ROUTES["/arcade/"+g.id] = "game:"+g.id; });
+}
+const ROUTE_PATH = {};                   // app id -> path
+Object.keys(ROUTES).forEach(p=>{ ROUTE_PATH[ROUTES[p]] = p; });
+const routeOf = id => ROUTE_PATH[id] || null;
+function appForPath(path){
+  const p = path.length>1 ? path.replace(/\/+$/,"") : path;
+  return ROUTES[p] || null;
+}
+function syncURL(id, push){
+  const path = routeOf(id) || "/";
+  if(location.pathname === path) return;
+  try{ history[push?"pushState":"replaceState"]({mattos:id||null}, "", path); }catch(e){}
+}
+
 /* ─────────────────────────── THEME ─────────────────────────── */
 const mqDark = window.matchMedia("(prefers-color-scheme: dark)");
 let themeMode = localStorage.getItem("mattos-theme") || "auto";
@@ -1077,6 +1104,10 @@ function focusWin(id){
   wins.forEach((w,k)=>w.node.classList.toggle("active", k===id));
   const w=wins.get(id); if(w){ w.node.style.zIndex=(++zTop); }
   updateMenubarApp();
+  // the address bar follows whatever window is in front, without adding
+  // a history entry (only opening something does that)
+  if(routeOf(id)) syncURL(id,false);
+  else if(appForPath(location.pathname)) syncURL(null,false);
 }
 function bringToFront(id){ const w=wins.get(id); if(w) w.node.style.zIndex=(++zTop); focusWin(id); }
 
@@ -1215,16 +1246,37 @@ function restoreWin(id){
   requestAnimationFrame(()=>{ node.style.transform=""; node.style.opacity=""; });
   w.min=false; bringToFront(id); refreshDock();
 }
-function closeWin(id){
+function closeWin(id, opts){
   const w=wins.get(id); if(!w) return;
+  if(w.app.unmount) w.app.unmount(w.node, id);
   w.node.classList.add("closing");
+  // if this window owned the URL, hand it back to the next routed window
+  if(!(opts && opts.keepURL) && routeOf(id) && location.pathname===routeOf(id)){
+    let next=null, top=-1;
+    wins.forEach((o,k)=>{ if(k!==id && routeOf(k) && !o.min){ const z=+o.node.style.zIndex||0; if(z>top){top=z; next=k;} } });
+    syncURL(next, false);
+  }
   setTimeout(()=>{ w.node.remove(); wins.delete(id); if(activeId===id){activeId=null; updateMenubarApp();} refreshDock(); },160);
 }
 
+/* Back / forward: a game is a page, so leaving its URL closes its window. */
+addEventListener("popstate", ()=>{
+  const target = appForPath(location.pathname);
+  Object.keys(ROUTES).forEach(p=>{
+    const id = ROUTES[p];
+    if(id!==target && wins.has(id)) closeWin(id, {keepURL:true});
+  });
+  if(!target) return;
+  if(wins.has(target)){ const w=wins.get(target); w.min?restoreWin(target):bringToFront(target); }
+  else openApp(target, {fromRoute:true});
+});
+
 /* open or focus an app window */
 function openApp(id, opts){
+  opts = opts || {};
   const app = resolveApp(id, opts);
   if(!app) return;
+  if(routeOf(id) && !opts.fromRoute) syncURL(id, true);
   const w=wins.get(id);
   if(w){ if(w.min) restoreWin(id); else bringToFront(id); return; }
   makeWindow(id, app);
@@ -1485,7 +1537,7 @@ APPS.readme = {
         <li>Press <span class="kbd">⌘K</span> / <span class="kbd">Ctrl K</span> for Spotlight.</li>
         <li>On a desktop, drag windows by their title bar and resize from the corner.</li>
         <li>Try the <b>Terminal</b>: type <span class="kbd">help</span>.</li>
-        <li>Open the <b>Arcade</b> for five games: Snake, Chomper, Flap, Bricks and Twenty48.</li>
+        <li>Open the <b>Arcade</b> for nine games: Snake, Chomper, Flap, Bricks, Twenty48, Stacks, Invaders, Hopper and Sweeper.</li>
         <li>Right-click the desktop for more. Toggle light/dark in the menu bar.</li>
       </ul>
       <p style="margin-top:14px">The <b>Traffic Map</b> is live. Open it from the Finder, Dock, or desktop.</p>
@@ -1496,7 +1548,7 @@ APPS.readme = {
 /* ── Arcade: a launcher window, plus one window per game ── */
 if(ARCADE){
   APPS.arcade = {
-    title:"Arcade", icon:APPICON.arcade, w:520, h:470,
+    title:"Arcade", icon:APPICON.arcade, w:560, h:580,
     body(){
       const cards = GAMES.map(g=>{
         const best = ARCADE.best(g.id);
@@ -1511,12 +1563,12 @@ if(ARCADE){
       }).join("");
       return `<div class="arcade">
         <div class="ahead"><h2>Arcade</h2></div>
-        <div class="asub">${GAMES.length} games, written from scratch for this desktop. Each one opens in its own window,
-          plays with a keyboard or a touchscreen, and remembers your high score on this device.</div>
+        <div class="asub">${GAMES.length} games, written from scratch for this desktop. Each one opens in its own window
+          at its own address, plays with a keyboard or a touchscreen, and remembers your high score on this device.</div>
         <div class="agrid">${cards}</div>
         <div class="afoot">Keyboard: arrows or WASD, <span class="kbd">Space</span> to act,
           <span class="kbd">P</span> pause, <span class="kbd">R</span> restart. On a phone: swipe, or use the pad under the game.<br>
-          Prefer a full page? <a data-arcade-page>Open the arcade at /arcade</a>.</div>
+          Every game has its own address, so <span class="kbd">mattlavergne.com/arcade/snake</span> opens straight into it.</div>
       </div>`;
     },
     mount(body){
@@ -1524,9 +1576,9 @@ if(ARCADE){
         const go = ()=>openApp("game:"+c.dataset.game);
         c.addEventListener("click",go);
         c.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); go(); } });
+        // fetch the game's code while the pointer is still on its way
+        c.addEventListener("pointerenter",()=>ARCADE.preload(c.dataset.game));
       });
-      const link=body.querySelector("[data-arcade-page]");
-      if(link) link.addEventListener("click",()=>{ location.href="/arcade"; });
     }
   };
 }
@@ -1535,10 +1587,13 @@ function gameApp(meta){
   return {
     title:meta.name, appName:"Arcade", icon:meta.icon, w:meta.w, h:meta.h,
     body(){ const d=el("div","game-host"); d.style.cssText="flex:1;min-height:0;display:flex;flex-direction:column"; return d; },
-    mount(body){
+    mount(body,id,node){
       body.classList.add("game");
-      ARCADE.mount(meta.id, body.querySelector(".game-host"));
-    }
+      // mount() returns immediately; the game appears as soon as its file
+      // lands (usually the same frame it is cached, a blink otherwise)
+      node._game = ARCADE.mount(meta.id, body.querySelector(".game-host"));
+    },
+    unmount(node){ if(node._game){ node._game.destroy(); node._game=null; } }
   };
 }
 
@@ -2200,14 +2255,16 @@ function initTerminal(body,id){
 /* ═══════════════════════ BOOT ═══════════════════════ */
 const BOOT_T=Date.now();
 const POST=["initializing GlassWM…","mounting /projects…","loading liquid-glass material…","starting Dock…","calibrating trilateration…","ready."];
-function runBoot(first){
+function runBoot(first, fast){
   const boot=$("#boot"); boot.classList.remove("done"); boot.style.display="flex";
   // re-trigger CSS animations
   boot.querySelectorAll(".bootbar i,.logo path.stroke").forEach(n=>{ n.style.animation="none"; void n.offsetWidth; n.style.animation=""; });
   const postEl=$("#bootPost");
   if(REDUCE){ postEl.textContent="ready."; setTimeout(finishBoot,300); return; }
+  // arriving straight at /arcade/<game>: warm boot, get out of the way
+  const lines = fast ? POST.slice(-2) : POST;
   let i=0; postEl.textContent="";
-  const iv=setInterval(()=>{ postEl.textContent=POST[i]||"ready."; i++; if(i>POST.length){ clearInterval(iv); finishBoot(); } },300);
+  const iv=setInterval(()=>{ postEl.textContent=lines[i]||"ready."; i++; if(i>lines.length){ clearInterval(iv); finishBoot(); } }, fast?140:300);
   boot._iv=iv;
 }
 function finishBoot(){
@@ -2304,7 +2361,7 @@ APPS.secrets = {
         <li><b>Konami code</b>: <span class="kbd">↑ ↑ ↓ ↓ ← → ← → B A</span> for party mode.</li>
         <li><b>Screensaver</b>: leave the desktop idle for a minute and watch the logo bounce.</li>
         <li><b>Terminal</b> secrets: try <span class="kbd">matrix</span>, <span class="kbd">coffee</span>, <span class="kbd">42</span>, <span class="kbd">hire</span>, <span class="kbd">credits</span>, <span class="kbd">party</span>, <span class="kbd">sl</span>, and <span class="kbd">sudo</span>.</li>
-        <li><b>Arcade</b>: <span class="kbd">play snake</span> from the Terminal starts a game without touching the mouse. Chomper's side tunnel wraps around.</li>
+        <li><b>Arcade</b>: <span class="kbd">play snake</span> from the Terminal starts a game without touching the mouse. Every game has its own URL, like <span class="kbd">/arcade/chomper</span>, and Chomper's side tunnel wraps around.</li>
         <li><b>Menu-bar tray</b>: click the battery and Wi-Fi icons.</li>
         <li><b>About This Machine</b>: click my avatar for a random fact.</li>
         <li><b>Trash</b>: click it a few times.</li>
@@ -2390,17 +2447,24 @@ buildControl();
 buildDock();
 tickClock();
 if(secretsUnlocked) addSecretsIcon();
-runBoot(true);
+/* Did someone link straight to a game?  Then boot fast and open it. */
+const bootRoute = appForPath(location.pathname);
+runBoot(true, !!bootRoute);
 
-// open the Finder to Projects shortly after boot, and greet
-setTimeout(()=>{
-  if(window.innerWidth>720){ openApp("finder"); }
-  const msg = COARSE
-    ? "Tap the Projects folder to explore, or tap the search icon up top. Everything here is interactive."
-    : "Double-click the Projects folder, or press ⌘K to search. Everything here is interactive.";
-  setTimeout(()=>toast("Welcome to mattOS", msg, I.apple), 900);
-  if(ARCADE) setTimeout(()=>toast("Arcade", "Five games are in the Dock: Snake, Chomper, Flap, Bricks and Twenty48. Made for this desktop.", APPICON.arcade), 6200);
-}, REDUCE?400:2100);
+if(bootRoute){
+  openApp(bootRoute, {fromRoute:true});
+} else {
+  // open the Finder to Projects shortly after boot, and greet
+  setTimeout(()=>{
+    if(window.innerWidth>720){ openApp("finder"); }
+    const msg = COARSE
+      ? "Tap the Projects folder to explore, or tap the search icon up top. Everything here is interactive."
+      : "Double-click the Projects folder, or press ⌘K to search. Everything here is interactive.";
+    setTimeout(()=>toast("Welcome to mattOS", msg, I.apple), 900);
+    if(ARCADE) setTimeout(()=>toast("Arcade",
+      GAMES.length+" games live in the Dock, each at its own address like mattlavergne.com/arcade/snake.", APPICON.arcade), 6200);
+  }, REDUCE?400:2100);
+}
 </script>
 </body>
 </html>
