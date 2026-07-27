@@ -468,8 +468,83 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
 .arcade .afoot{margin-top:16px;padding-top:13px;border-top:1px solid var(--hairline);
   font-size:12px;color:var(--text-3);line-height:1.7}
 .arcade .afoot a{color:var(--accent);font-weight:600;cursor:pointer}
+/* an app window while its file is still in flight */
+.app-wait{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;
+  font-size:13px;font-weight:600;color:var(--text-3);text-align:center;padding:24px}
+.app-wait.err b{font-size:14px;color:var(--text);display:block;margin-bottom:4px}
+.app-wait .ag-spin{width:22px;height:22px;border-radius:50%;border:2.5px solid var(--chip);
+  border-top-color:var(--accent);animation:ag-spin .7s linear infinite}
+@keyframes ag-spin{to{transform:rotate(360deg)}}
+
 /* a game window is all game: no padding, the engine fills it */
 .win-body.game{overflow:hidden;display:flex;flex-direction:column}
+
+/* ═══════════════════ LAUNCHPAD ═══════════════════ */
+#launchpad{position:fixed;inset:0;z-index:9400;display:none;flex-direction:column;align-items:center;
+  padding:calc(var(--menubar-h) + 26px) 20px 110px;
+  background:rgba(10,14,26,.45);backdrop-filter:blur(26px) saturate(1.4);-webkit-backdrop-filter:blur(26px) saturate(1.4)}
+#launchpad.on{display:flex;animation:lp-in .2s cubic-bezier(.34,1.2,.64,1)}
+@keyframes lp-in{from{opacity:0;transform:scale(1.06)}to{opacity:1;transform:none}}
+.lp-search{width:min(420px,86vw);display:flex;align-items:center;gap:10px;padding:9px 16px;border-radius:999px;
+  background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);margin-bottom:26px;flex:none}
+.lp-search svg{width:17px;height:17px;color:rgba(255,255,255,.7)}
+.lp-search input{all:unset;flex:1;color:#fff;font-size:14.5px}
+.lp-search input::placeholder{color:rgba(255,255,255,.55)}
+.lp-grid{width:min(1000px,94vw);display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));
+  gap:24px 12px;overflow:auto;padding:4px;flex:1;align-content:start}
+.lp-app{display:flex;flex-direction:column;align-items:center;gap:9px;cursor:pointer;padding:6px 2px;border-radius:14px}
+.lp-app:hover{background:rgba(255,255,255,.10)}
+.lp-app:active{transform:scale(.94)}
+.lp-app .lpi{width:62px;height:62px;filter:drop-shadow(0 8px 16px rgba(0,0,0,.4))}
+.lp-app .lpi svg{width:62px;height:62px;display:block}
+.lp-app .lpn{font-size:12px;font-weight:600;color:#fff;text-align:center;line-height:1.25;
+  text-shadow:0 1px 4px rgba(0,0,0,.6);overflow-wrap:anywhere}
+.lp-app .lpk{font-size:9.5px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em}
+.lp-empty{grid-column:1/-1;text-align:center;color:rgba(255,255,255,.6);font-size:13px;padding:40px}
+
+/* ═══════════════════ MISSION CONTROL ═══════════════════ */
+#windowLayer.mc .win{transition:transform .3s cubic-bezier(.3,1,.4,1),opacity .2s ease;cursor:pointer}
+#windowLayer.mc .win .win-body{pointer-events:none}
+#windowLayer.mc .win.active{box-shadow:var(--shadow),var(--edge),0 0 0 3px var(--accent)}
+#mcHint{position:fixed;left:50%;transform:translateX(-50%);bottom:86px;z-index:9300;display:none;
+  padding:8px 16px;border-radius:999px;font-size:12.5px;font-weight:600;color:#fff;
+  background:rgba(10,14,26,.6);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+#mcHint.on{display:block}
+#mcScrim{position:fixed;inset:0;z-index:60;display:none;background:rgba(8,12,22,.35);
+  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+#mcScrim.on{display:block}
+
+/* ═══════════════════ FORCE QUIT ═══════════════════ */
+.fq{padding:14px 16px 16px}
+.fq h2{font-size:14px;font-weight:700;margin-bottom:3px}
+.fq .sub{font-size:12px;color:var(--text-3);margin-bottom:12px;line-height:1.5}
+.fq-list{border:1px solid var(--hairline);border-radius:12px;overflow:hidden;background:var(--chip)}
+.fq-row{display:flex;align-items:center;gap:10px;padding:9px 12px;font-size:13px;cursor:default;
+  border-bottom:1px solid var(--hairline)}
+.fq-row:last-child{border-bottom:0}
+.fq-row.sel{background:var(--accent);color:#fff}
+.fq-row .fi{width:20px;height:20px;flex:none}
+.fq-row .fi svg{width:20px;height:20px;display:block}
+.fq-row .fn{flex:1;font-weight:600}
+.fq-row .fs{font-size:11px;color:var(--text-3);font-family:var(--mono)}
+.fq-row.sel .fs{color:rgba(255,255,255,.8)}
+.fq-row .fs.hung{color:var(--bad)}
+.fq .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+
+/* ═══════════════════ WEATHER / SNOW / GRAVITY EGGS ═══════════════════ */
+#snow{position:fixed;inset:0;z-index:9840;pointer-events:none;display:none;overflow:hidden}
+#snow.on{display:block}
+.flake{position:absolute;top:-14px;color:#fff;opacity:.85;text-shadow:0 0 6px rgba(255,255,255,.6);will-change:transform}
+.win.falling{transition:none!important}
+#panic{position:fixed;inset:0;z-index:9990;display:none;background:#1e40af;color:#fff;
+  font-family:var(--mono);font-size:13px;line-height:1.7;padding:8vh 8vw;overflow:hidden;white-space:pre-wrap}
+#panic.on{display:block;animation:fade .12s ease}
+#panic b{font-size:20px;display:block;margin-bottom:18px}
+#panic .cursor{display:inline-block;width:9px;height:15px;background:#fff;animation:blink 1s steps(1) infinite;vertical-align:-2px}
+@keyframes blink{50%{opacity:0}}
+#hackerLine{position:fixed;left:0;right:0;bottom:0;z-index:9860;display:none;padding:10px 14px;
+  font-family:var(--mono);font-size:11px;color:#4ade80;background:rgba(0,0,0,.72);white-space:pre;overflow:hidden}
+#hackerLine.on{display:block}
 
 /* ── README note ── */
 .note{padding:22px 24px;font-size:13.5px;line-height:1.7;color:var(--text-2)}
@@ -790,6 +865,21 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
   </div>
 </div>
 
+<div id="mcScrim" aria-hidden="true"></div>
+<div id="mcHint" aria-hidden="true">Mission Control · click a window, or press Esc</div>
+
+<div id="launchpad" role="dialog" aria-label="Launchpad">
+  <div class="lp-search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+    <input id="lpInput" type="text" placeholder="Search apps and games…" autocomplete="off" spellcheck="false" aria-label="Search apps">
+  </div>
+  <div class="lp-grid" id="lpGrid"></div>
+</div>
+
+<div id="snow" aria-hidden="true"></div>
+<div id="panic" aria-hidden="true"></div>
+<div id="hackerLine" aria-hidden="true"></div>
+
 <div id="confetti" aria-hidden="true"></div>
 
 <div id="screensaver" aria-hidden="true">
@@ -813,6 +903,8 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
      and each game's own file is fetched only when someone opens it. -->
 <script src="/games/engine.js"></script>
 <script src="/games/catalog.js"></script>
+<!-- The bundled apps: metadata + loader here, one file per app, fetched on open. -->
+<script src="/apps/registry.js"></script>
 <script>
 "use strict";
 /* ══════════════════════════════════════════════════════════════════
@@ -1006,7 +1098,18 @@ const projIcon = p => APPICON[p.icon] || APPICON.folder;
    degrades gracefully: no Arcade icons, no Arcade app, nothing broken. */
 const ARCADE = window.MATTGAMES || null;
 const GAMES = ARCADE ? ARCADE.list : [];
+/* Two games are not in the catalog listing until they are unlocked.
+   Their URLs still work — that's the reward for knowing about them. */
+function gameVisible(g){
+  if(!g.hidden) return true;
+  const e = window.MATTOS && window.MATTOS.eggs;
+  return !!(e && e.hasGame(g.id));
+}
+const openGames = ()=>GAMES.filter(gameVisible);
 if (ARCADE) APPICON.arcade = ARCADE.icons.arcade;
+APPICON.launchpad = squircle(["#c084fc","#4f46e5"],
+  `<rect x="24" y="24" width="21" height="21" rx="6" fill="#fff"/><rect x="55" y="24" width="21" height="21" rx="6" fill="#fff" opacity=".72"/>
+   <rect x="24" y="55" width="21" height="21" rx="6" fill="#fff" opacity=".72"/><rect x="55" y="55" width="21" height="21" rx="6" fill="#fff"/>`,"lp");
 
 /* ── Deep links ───────────────────────────────────────────────────────
    The Arcade and every game have a real URL — /arcade and /arcade/snake —
@@ -1015,11 +1118,16 @@ if (ARCADE) APPICON.arcade = ARCADE.icons.arcade;
    and the Worker serves this same desktop for those paths, so a shared
    link or a refresh lands you in the same place with the window already
    open.  Back and forward walk the windows you opened. */
+/* the bundled applications (Calculator, Notes, Clock, …) live in /apps/ */
+const APPSTORE = window.MATTAPPS || null;
+const EXTRA_APPS = APPSTORE ? APPSTORE.list : [];
+
 const ROUTES = {};                       // path -> app id
 if(ARCADE){
   ROUTES["/arcade"] = "arcade";
   GAMES.forEach(g=>{ ROUTES["/arcade/"+g.id] = "game:"+g.id; });
 }
+EXTRA_APPS.forEach(a=>{ ROUTES["/apps/"+a.id] = "app:"+a.id; });
 const ROUTE_PATH = {};                   // app id -> path
 Object.keys(ROUTES).forEach(p=>{ ROUTE_PATH[ROUTES[p]] = p; });
 const routeOf = id => ROUTE_PATH[id] || null;
@@ -1031,6 +1139,19 @@ function syncURL(id, push){
   const path = routeOf(id) || "/";
   if(location.pathname === path) return;
   try{ history[push?"pushState":"replaceState"]({mattos:id||null}, "", path); }catch(e){}
+}
+
+/* fetch a script once, on demand (the shell, mostly) */
+const _scripts={};
+function loadScript(src){
+  if(_scripts[src]) return _scripts[src];
+  _scripts[src]=new Promise((res,rej)=>{
+    const el=document.createElement("script");
+    el.src=src; el.async=true;
+    el.onload=()=>res(); el.onerror=()=>{ delete _scripts[src]; rej(new Error("could not load "+src)); };
+    document.head.appendChild(el);
+  });
+  return _scripts[src];
 }
 
 /* ─────────────────────────── THEME ─────────────────────────── */
@@ -1293,6 +1414,10 @@ function resolveApp(id){
     const meta=GAMES.find(g=>g.id===id.split(":")[1]);
     return meta?gameApp(meta):null;
   }
+  if(id.startsWith("app:")){
+    const meta=EXTRA_APPS.find(a=>a.id===id.split(":")[1]);
+    return meta?bundledApp(meta):null;
+  }
   return APPS[id];
 }
 
@@ -1550,7 +1675,7 @@ if(ARCADE){
   APPS.arcade = {
     title:"Arcade", icon:APPICON.arcade, w:560, h:580,
     body(){
-      const cards = GAMES.map(g=>{
+      const cards = openGames().map(g=>{
         const best = ARCADE.best(g.id);
         return `<div class="gcard" data-game="${esc(g.id)}" role="button" tabindex="0" aria-label="Play ${esc(g.name)}">
           <span class="gi">${g.icon}</span>
@@ -1594,6 +1719,27 @@ function gameApp(meta){
       node._game = ARCADE.mount(meta.id, body.querySelector(".game-host"));
     },
     unmount(node){ if(node._game){ node._game.destroy(); node._game=null; } }
+  };
+}
+
+/* A window for a bundled app.  The frame opens instantly with a spinner
+   and the app fills it in as soon as /apps/<id>.js lands. */
+function bundledApp(meta){
+  return {
+    title:meta.title, icon:meta.icon, w:meta.w, h:meta.h,
+    body(){ return `<div class="app-wait"><span class="ag-spin"></span><span>Opening ${esc(meta.title)}…</span></div>`; },
+    mount(body,id,node){
+      APPSTORE.load(meta.id).then(def=>{
+        if(!node.isConnected) return;
+        body.innerHTML = typeof def.body==="function" ? def.body() : "";
+        node._appDef = def;
+        if(def.mount) def.mount(body,id,node);
+      }).catch(()=>{
+        body.innerHTML = `<div class="app-wait err"><b>${esc(meta.title)} didn't load.</b>
+          <span>Check your connection, then try opening it again.</span></div>`;
+      });
+    },
+    unmount(node){ if(node._appDef && node._appDef.unmount) node._appDef.unmount(node); node._appDef=null; }
   };
 }
 
@@ -1651,9 +1797,18 @@ const FINDER_LOCS = {
     ...(ARCADE?[{name:"Arcade", icon:APPICON.arcade, meta:"Folder", open:()=>{finderLoc="arcade"; refreshFinderAll();}}]:[]),
     {name:"README.txt", icon:APPICON.note, meta:"Document", open:()=>openApp("readme")}
   ]},
-  arcade:{label:"Arcade", items:()=>GAMES.map(g=>({
+  arcade:{label:"Arcade", items:()=>openGames().map(g=>({
     name:g.name, icon:g.icon, meta:"Game", open:()=>openApp("game:"+g.id)
   }))},
+  apps:{label:"Applications", items:()=>[
+    {name:"Finder", icon:APPICON.finder, meta:"App", open:()=>{}},
+    {name:"Activity Monitor", icon:APPICON.activity, meta:"App", open:()=>openApp("activity")},
+    {name:"Career", icon:APPICON.career, meta:"App", open:()=>openApp("career")},
+    {name:"Mail", icon:APPICON.contact, meta:"App", open:()=>openApp("contact")},
+    {name:"Terminal", icon:APPICON.terminal, meta:"App", open:()=>openApp("terminal")},
+    ...(ARCADE?[{name:"Arcade", icon:APPICON.arcade, meta:"App", open:()=>openApp("arcade")}]:[]),
+    ...EXTRA_APPS.map(a=>({name:a.title, icon:a.icon, meta:"App", open:()=>openApp("app:"+a.id)}))
+  ]},
   about:{label:"About Me", items:()=>[{aboutcard:true}]}
 };
 function renderFinder(){
@@ -1662,6 +1817,7 @@ function renderFinder(){
       <div class="fs-group">Favorites</div>
       <div class="fs-item" data-loc="projects">${I.folderMini}<span>Projects</span></div>
       <div class="fs-item" data-loc="desktop">${I.window}<span>Desktop</span></div>
+      <div class="fs-item" data-loc="apps">${I.grid}<span>Applications</span></div>
       ${ARCADE?`<div class="fs-item" data-loc="arcade">${I.gamepad}<span>Arcade</span></div>`:""}
       <div class="fs-item" data-loc="about">${I.starMini}<span>About Me</span></div>
       <div class="fs-group" style="margin-top:8px">Apps</div>
@@ -1761,6 +1917,7 @@ function pinnedProjects(){ return PROJECTS.filter(p=>p.pinned); }
 function dockList(){
   const core=[
     {id:"finder", label:"Finder", icon:APPICON.finder},
+    {id:"__launchpad", label:"Launchpad", icon:APPICON.launchpad, launchpad:true},
     {id:"about", label:"About This Machine", icon:APPICON.about},
     {id:"activity", label:"Activity Monitor", icon:APPICON.activity},
     {id:"career", label:"Career", icon:APPICON.career},
@@ -1768,6 +1925,7 @@ function dockList(){
     {id:"terminal", label:"Terminal", icon:APPICON.terminal},
   ];
   if(ARCADE) core.push({id:"arcade", label:"Arcade", icon:APPICON.arcade});
+  EXTRA_APPS.filter(a=>a.dock).forEach(a=>core.push({id:"app:"+a.id, label:a.title, icon:a.icon}));
   const projs=pinnedProjects().map(p=>({id:"project:"+p.slug, label:p.name, icon:projIcon(p)}));
   const list=[...core];
   if(projs.length){ list.push({sep:true}, ...projs); }
@@ -1783,7 +1941,14 @@ function buildDock(){
     item.innerHTML=`<span class="di">${d.icon}</span><span class="run"></span><span class="tip">${esc(d.label)}</span>`;
     item.addEventListener("click",()=>{
       if(d.trash){ trashClick(); return; }
+      if(d.launchpad){ toggleLaunchpad(); return; }
       openApp(d.id);
+    });
+    // right-click a Dock tile for its menu (and a couple of jokes)
+    item.addEventListener("contextmenu",e=>{ e.preventDefault(); e.stopPropagation(); dockMenu(d, e.clientX, e.clientY); });
+    item.addEventListener("pointerenter",()=>{
+      if(d.id && d.id.startsWith("game:") && ARCADE) ARCADE.preload(d.id.slice(5));
+      if(d.id && d.id.startsWith("app:") && APPSTORE) APPSTORE.preload(d.id.slice(4));
     });
     dock.appendChild(item);
   });
@@ -1856,6 +2021,8 @@ function menuItems(kind){
     {label:"System Settings…", icon:I.gear, action:toggleControl},
     {label:"Change Wallpaper", icon:I.control, action:cycleWall},
     {divider:true},
+    {label:"Force Quit…", sc:"⌘⌥⎋", icon:I.close, action:()=>openApp("forcequit")},
+    {divider:true},
     {label:"Sleep", icon:I.moon, action:lockScreen},
     {label:"Restart…", icon:I.restart, action:()=>runBoot(false)},
   ];
@@ -1873,6 +2040,9 @@ function menuItems(kind){
     {label:"Traffic Map", icon:APPICON.globe, action:()=>openApp("project:trafficmap")},
     ...(ARCADE?[{label:"Arcade", icon:APPICON.arcade, action:()=>openApp("arcade")}]:[]),
     {label:"Terminal", icon:APPICON.terminal, action:()=>openApp("terminal")},
+    {divider:true},
+    {label:"Launchpad", sc:"F4", icon:APPICON.launchpad, action:openLaunchpad},
+    {label:"Mission Control", sc:"F3", icon:I.grid, action:()=>missionControl()},
     {divider:true},
     {label:"Spotlight…", sc:"⌘K", icon:I.search, action:openSpotlight},
   ];
@@ -2004,7 +2174,11 @@ function spotIndex(){
   const list=[];
   Object.entries(APPS).forEach(([id,a])=>list.push({t:a.appName||a.title, s:"Application", kind:"app", icon:a.icon, act:()=>openApp(id)}));
   PROJECTS.forEach(p=>list.push({t:p.name, s:p.tagline, kind:p.status==="live"?"live project":"project", icon:projIcon(p), act:()=>openApp("project:"+p.slug)}));
-  GAMES.forEach(g=>list.push({t:g.name, s:g.tagline, kind:"game", icon:g.icon, act:()=>openApp("game:"+g.id)}));
+  openGames().forEach(g=>list.push({t:g.name, s:g.tagline, kind:"game", icon:g.icon, act:()=>openApp("game:"+g.id)}));
+  EXTRA_APPS.forEach(a=>list.push({t:a.title, s:a.tagline, kind:"application", icon:a.icon, act:()=>openApp("app:"+a.id)}));
+  list.push({t:"Launchpad", s:"Every app on one screen", kind:"action", icon:APPICON.launchpad, act:openLaunchpad});
+  list.push({t:"Mission Control", s:"Spread out the windows", kind:"action", icon:I.grid, act:()=>missionControl()});
+  list.push({t:"Force Quit…", s:"When something misbehaves", kind:"action", icon:I.close, act:()=>openApp("forcequit")});
   list.push({t:"Toggle theme", s:"Auto / Light / Dark", kind:"action", icon:I.sun, act:cycleTheme});
   list.push({t:"Change wallpaper", s:"Cycle palette", kind:"action", icon:I.control, act:cycleWall});
   list.push({t:"Lock screen", s:"Sleep mattOS", kind:"action", icon:I.moon, act:lockScreen});
@@ -2050,6 +2224,8 @@ function buildContext(x,y){
   const items=[
     {label:"New Finder Window", icon:APPICON.folder, action:()=>{ if(wins.has("finder"))closeWin("finder"); setTimeout(()=>openApp("finder"),10); }},
     {label:"Open Terminal", icon:I.term, action:()=>openApp("terminal")},
+    {label:"Launchpad", icon:APPICON.launchpad, action:openLaunchpad},
+    {label:"Mission Control", icon:I.grid, action:()=>missionControl()},
     {divider:true},
     {label:"Change Wallpaper", icon:I.control, action:cycleWall},
     {label:"Clean Up Icons", icon:I.grid, action:()=>{ document.querySelectorAll(".desk-icon.sel").forEach(i=>i.classList.remove("sel")); toast("Desktop","Icons tidied.",I.grid); }},
@@ -2073,7 +2249,12 @@ function toast(title, msg, icon){
   const t=el("div","toast");
   t.innerHTML=`<span class="tgrab"></span><button class="tclose" aria-label="Dismiss">${I.close}</button>
     <span class="tico">${icon||I.info}</span><div class="tbody"><div class="tt">${esc(title)}</div><div class="tm">${msg}</div></div>`;
-  $("#notify").appendChild(t);
+  const stack=$("#notify");
+  // A burst of achievements shouldn't bury the desktop, so drop the oldest
+  // banners immediately.  (dismissToast animates out over 260ms, which is
+  // too slow to use as a loop condition.)
+  while(stack.children.length>=4) stack.removeChild(stack.firstElementChild);
+  stack.appendChild(t);
   let timer=setTimeout(()=>dismissToast(t), 5000);
   const stopTimer=()=>clearTimeout(timer);
   t.querySelector(".tclose").addEventListener("click",e=>{ e.stopPropagation(); stopTimer(); dismissToast(t); });
@@ -2162,8 +2343,10 @@ function buildDesktop(){
 function initTerminal(body,id){
   const out=$("#termOut",body), input=$("#termIn",body);
   const history=[]; let hi=-1;
+  let PROMPT="matt@mattOS ~ %";     // /shell.js changes this when you become root
+  let mode=null;                    // a program that owns the input (the adventure)
   const p=(cls,html)=>{ const d=el("div",cls,html); out.appendChild(d); out.scrollTop=out.scrollHeight; };
-  const echo=cmd=>p("cmdline",`<span class="prompt">matt@mattOS ~ %</span> ${esc(cmd)}`);
+  const echo=cmd=>p("cmdline",`<span class="prompt">${esc(PROMPT)}</span> ${esc(cmd)}`);
   function neofetch(){
     const dark=document.documentElement.getAttribute("data-theme")==="dark";
     const logo=
@@ -2180,7 +2363,7 @@ function initTerminal(body,id){
     p("","<pre>"+logo+"</pre>");
   }
   const cmds={
-    help(){ p("","<pre>Available commands:\n  <b>about</b>      who is Matt\n  <b>projects</b>   list projects   ·  <b>open</b> &lt;name&gt;\n  <b>skills</b>     resident tools  ·  <b>experience</b>\n  <b>contact</b>    ways to reach me\n  <b>arcade</b>     list games      ·  <b>play</b> &lt;game&gt;\n  <b>neofetch</b>   system info     ·  <b>theme</b> &lt;auto|light|dark&gt;\n  <b>wallpaper</b>  next palette    ·  <b>ls</b>, <b>whoami</b>, <b>date</b>, <b>echo</b>\n  <b>sudo</b>       restricted      ·  <b>clear</b>, <b>exit</b></pre>"); },
+    help(){ p("","<pre>Available commands:\n  <b>about</b>      who is Matt\n  <b>projects</b>   list projects   ·  <b>open</b> &lt;name&gt;\n  <b>skills</b>     resident tools  ·  <b>experience</b>\n  <b>contact</b>    ways to reach me\n  <b>arcade</b>     list games      ·  <b>play</b> &lt;game&gt;\n  <b>neofetch</b>   system info     ·  <b>theme</b> &lt;auto|light|dark&gt;\n  <b>wallpaper</b>  next palette    ·  <b>ls</b>, <b>whoami</b>, <b>date</b>, <b>echo</b>\n  <b>sudo</b>       restricted      ·  <b>clear</b>, <b>exit</b>\n\nNot everything is in this list.</pre>"); },
     about(){ p("",`<b>${esc(PROFILE.name)}</b>: ${esc(PROFILE.title)}.\n${PROFILE.bio[0].replace(/<\/?b>/g,"")}`.replace(/\n/g,"<br>")); },
     whoami(){ p("","matt"); },
     ls(){ p("","<pre>"+PROJECTS.map(x=>x.slug+(x.kind==="app"?".app":"/")+(x.status==="live"?"  <span class='ok'>[live]</span>":"")).join("\n")+(ARCADE?"\narcade/    <span class='acc'>["+GAMES.length+" games]</span>":"")+"\nAbout Me   README.txt   Contact</pre>"); },
@@ -2197,20 +2380,25 @@ function initTerminal(body,id){
       const pr=PROJECTS.find(x=>x.slug.includes(q)||x.name.toLowerCase().includes(q));
       if(pr){ if(pr.status==="live"&&pr.url!=="#"){ p("ok","launching "+pr.name+" → "+pr.url); setTimeout(()=>location.href=pr.url,500); } else { openApp("project:"+pr.slug); p("ok","opened "+pr.name); } return; }
       if(APPS[q]){ openApp(q); p("ok","opened "+q); return; }
+      const bundled=EXTRA_APPS.find(a=>a.id.includes(q)||a.title.toLowerCase().includes(q));
+      if(bundled){ openApp("app:"+bundled.id); p("ok","opened "+bundled.title); return; }
+      const gm=GAMES.find(g=>g.id.includes(q)||g.name.toLowerCase().includes(q));
+      if(gm){ openApp("game:"+gm.id); p("ok","opened "+gm.name); return; }
       p("err","not found: "+q); },
     arcade(a){
       if(!ARCADE){ p("err","arcade: games unavailable (games.js didn't load)"); return; }
       if(a && a.length) return this.play(a);
-      p("","<pre>"+GAMES.map(g=>{
+      p("","<pre>"+openGames().map(g=>{
         const b=ARCADE.best(g.id);
         return "  <b>"+g.id.padEnd(10,' ')+"</b> "+g.tagline.padEnd(38,' ')+(b?"<span class='ok'>best "+b+"</span>":"");
-      }).join("\n")+"\n\nplay &lt;game&gt; to start, or <b>open arcade</b> for the launcher.</pre>");
+      }).join("\n")+"\n\nplay &lt;game&gt; to start, or <b>open arcade</b> for the launcher.\n"+
+      (GAMES.length>openGames().length?"<span class='u'>("+(GAMES.length-openGames().length)+" title"+(GAMES.length-openGames().length===1?"":"s")+" not listed)</span>":"")+"</pre>");
     },
     games(a){ this.arcade(a); },
     play(a){
       if(!ARCADE){ p("err","play: games unavailable"); return; }
       const q=(a.join(" ")||"").toLowerCase();
-      if(!q){ p("err","usage: play &lt;"+GAMES.map(g=>g.id).join("|")+"&gt;"); return; }
+      if(!q){ p("err","usage: play &lt;"+openGames().map(g=>g.id).join("|")+"&gt;"); return; }
       const g=GAMES.find(x=>x.id.includes(q)||x.name.toLowerCase().includes(q));
       if(!g){ p("err","no such game: "+esc(q)+", try <b>arcade</b>"); return; }
       openApp("game:"+g.id); p("ok","starting "+g.name+"… good luck.");
@@ -2233,8 +2421,30 @@ function initTerminal(body,id){
     sl(){ p("","<pre>      ====        ________\n  _D _|  |_______/        \\__I_I_____===__|_______|\n   |(_)---  |   H\\________/ |   |        =|___ ___|\n   /     |  |   H  |  |     |   |         ||_| |_||\n  |      |  |   H  |__--------------------| [___] |\n  | ________|___H__/__|_____/[][]~\\_______|       |\n  |/ |   |-----------I_____I [][] []  D   |=======|_\n(sl: you probably meant ls)</pre>"); }
   };
   function wireLinks(){ out.querySelectorAll("a[data-x]").forEach(a=>a.addEventListener("click",()=>{ const u=a.dataset.x; if(u.startsWith("mailto"))location.href=u; else window.open(u,"_blank"); })); }
+
+  /* Everything past the basics — a filesystem, a dozen more commands and
+     a text adventure — lives in /shell.js and loads with the Terminal. */
+  const ctx={
+    p, echo, out, input, id, esc, cmds, wireLinks,
+    get os(){ return window.MATTOS; },
+    setPrompt(s){ PROMPT=s; const e=$(".inl .prompt",body); if(e) e.textContent=s; },
+    setMode(fn){ mode=fn; },
+    clear(){ out.innerHTML=""; },
+    close(){ closeWin(id); },
+    open(app){ openApp(app); }
+  };
+  function attachShell(){
+    if(!window.MATTSH) return;
+    cmds.__baseHelp = cmds.help;           // the extended help calls back into it
+    Object.assign(cmds, window.MATTSH.commands(ctx));
+  }
+  if(window.MATTSH) attachShell();
+  else loadScript("/shell.js").then(attachShell).catch(()=>{});
+
   function run(raw){
-    const line=raw.trim(); echo(raw);
+    const line=raw.trim();
+    if(mode){ echo(raw); if(!line) return; if(mode(line)==="exit") mode=null; return; }
+    echo(raw);
     if(!line) return;
     history.push(line); hi=history.length;
     const [c,...rest]=line.split(/\s+/);
@@ -2251,6 +2461,226 @@ function initTerminal(body,id){
   p("u",`mattsh 1.0. Type <b>help</b> to get started, or <b>neofetch</b>.`);
   setTimeout(()=>input.focus(),60);
 }
+
+
+/* ═══════════════════════ LAUNCHPAD ═══════════════════════
+   Every app and game on one screen, searchable, like macOS. */
+function launchItems(){
+  const core = [
+    {id:"finder", name:"Finder", icon:APPICON.finder, kind:"app"},
+    {id:"about", name:"About This Machine", icon:APPICON.about, kind:"app"},
+    {id:"activity", name:"Activity Monitor", icon:APPICON.activity, kind:"app"},
+    {id:"career", name:"Career", icon:APPICON.career, kind:"app"},
+    {id:"contact", name:"Mail", icon:APPICON.contact, kind:"app"},
+    {id:"terminal", name:"Terminal", icon:APPICON.terminal, kind:"app"},
+    {id:"readme", name:"README.txt", icon:APPICON.note, kind:"doc"}
+  ];
+  const bundled = EXTRA_APPS.map(a=>({id:"app:"+a.id, name:a.title, icon:a.icon, kind:"app", sub:a.tagline}));
+  const arc = ARCADE ? [{id:"arcade", name:"Arcade", icon:APPICON.arcade, kind:"app"}] : [];
+  const games = openGames().map(g=>({id:"game:"+g.id, name:g.name, icon:g.icon, kind:"game", sub:g.tagline}));
+  const projs = PROJECTS.filter(p=>p.pinned).map(p=>({id:"project:"+p.slug, name:p.name, icon:projIcon(p), kind:"project"}));
+  return [...core, ...bundled, ...arc, ...games, ...projs];
+}
+function paintLaunchpad(q){
+  const grid=$("#lpGrid");
+  const items=launchItems().filter(i=>!q || (i.name+" "+(i.sub||"")+" "+i.kind).toLowerCase().includes(q.toLowerCase()));
+  if(!items.length){ grid.innerHTML=`<div class="lp-empty">Nothing matches “${esc(q)}”.</div>`; return; }
+  grid.innerHTML=items.map((i,n)=>`<div class="lp-app" data-open="${esc(i.id)}" data-i="${n}" tabindex="0">
+      <span class="lpi">${i.icon}</span><span class="lpn">${esc(i.name)}</span>
+      ${i.kind==="game"?'<span class="lpk">game</span>':""}</div>`).join("");
+  grid.querySelectorAll(".lp-app").forEach(el=>{
+    const go=()=>{ closeLaunchpad(); openApp(el.dataset.open); };
+    el.addEventListener("click",go);
+    el.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); go(); } });
+    el.addEventListener("pointerenter",()=>{
+      const id=el.dataset.open;
+      if(id.startsWith("game:")&&ARCADE) ARCADE.preload(id.slice(5));
+      if(id.startsWith("app:")&&APPSTORE) APPSTORE.preload(id.slice(4));
+    });
+  });
+}
+function openLaunchpad(){
+  closeMenus(); $("#control").classList.remove("on");
+  paintLaunchpad("");
+  $("#launchpad").classList.add("on");
+  const inp=$("#lpInput"); inp.value="";
+  setTimeout(()=>inp.focus(),40);
+  MATTOS.egg("launchpad");
+}
+function closeLaunchpad(){ $("#launchpad").classList.remove("on"); }
+function toggleLaunchpad(){ $("#launchpad").classList.contains("on")?closeLaunchpad():openLaunchpad(); }
+$("#lpInput").addEventListener("input",e=>paintLaunchpad(e.target.value));
+$("#lpInput").addEventListener("keydown",e=>{
+  if(e.key==="Escape"){ closeLaunchpad(); return; }
+  if(e.key==="Enter"){ const first=$("#lpGrid .lp-app"); if(first){ closeLaunchpad(); openApp(first.dataset.open); } }
+});
+$("#launchpad").addEventListener("click",e=>{ if(e.target===$("#launchpad")) closeLaunchpad(); });
+
+/* ═══════════════════════ MISSION CONTROL ═══════════════════════
+   Spread every open window across the desktop; click one to focus. */
+let mcOn=false;
+function missionControl(force){
+  const open=[...wins.entries()].filter(([k,w])=>!w.min);
+  if(mcOn || force===false){ exitMissionControl(); return; }
+  if(!open.length){ toast("Mission Control","No windows are open. Open something first.", I.window); return; }
+  mcOn=true;
+  layer.classList.add("mc");
+  $("#mcScrim").classList.add("on");
+  $("#mcHint").classList.add("on");
+  const dr=desktopRect();
+  const cols=Math.ceil(Math.sqrt(open.length));
+  const rows=Math.ceil(open.length/cols);
+  const cw=(dr.right-dr.left)/cols, ch=(dr.bottom-dr.top)/rows;
+  open.forEach(([id,w],i)=>{
+    const n=w.node, r=n.getBoundingClientRect();
+    const cx=dr.left+(i%cols)*cw+cw/2, cy=dr.top+Math.floor(i/cols)*ch+ch/2;
+    const scale=Math.min((cw-28)/r.width,(ch-28)/r.height,1);
+    w._mcPrev=n.style.transform;
+    n.style.zIndex=String(200+i);
+    n.style.transform=`translate(${cx-(r.left+r.width/2)}px,${cy-(r.top+r.height/2)}px) scale(${scale.toFixed(3)})`;
+    n._mcClick=e=>{ e.stopPropagation(); exitMissionControl(); bringToFront(id); };
+    n.addEventListener("click",n._mcClick,true);
+  });
+  MATTOS.egg("mission-control");
+}
+function exitMissionControl(){
+  if(!mcOn) return;
+  mcOn=false;
+  layer.classList.remove("mc");
+  $("#mcScrim").classList.remove("on");
+  $("#mcHint").classList.remove("on");
+  wins.forEach(w=>{
+    w.node.style.transform=w._mcPrev||"";
+    if(w.node._mcClick){ w.node.removeEventListener("click",w.node._mcClick,true); w.node._mcClick=null; }
+  });
+}
+$("#mcScrim").addEventListener("click",exitMissionControl);
+$("#mcHint").addEventListener("click",exitMissionControl);
+
+/* ═══════════════════════ FORCE QUIT ═══════════════════════ */
+const SYS_PROCS=[
+  {name:"Finder", note:"not responding", hung:true, sys:true},
+  {name:"GlassWM", note:"88 MB", sys:true},
+  {name:"Dock", note:"12 MB", sys:true},
+  {name:"WindowServer", note:"41 MB", sys:true},
+  {name:"kernel_task", note:"do not", sys:true}
+];
+APPS.forcequit = {
+  title:"Force Quit Applications", appName:"Finder", icon:APPICON.activity, w:400, h:380,
+  body(){
+    const live=[...wins.entries()].filter(([k])=>k!=="forcequit")
+      .map(([k,w])=>`<div class="fq-row" data-id="${esc(k)}"><span class="fi">${w.app.icon||I.window}</span>
+        <span class="fn">${esc(w.app.appName||w.app.title)}</span><span class="fs">${w.min?"minimized":"running"}</span></div>`).join("");
+    const sys=SYS_PROCS.map(p=>`<div class="fq-row" data-sys="${esc(p.name)}"><span class="fi">${I.window}</span>
+      <span class="fn">${esc(p.name)}</span><span class="fs${p.hung?" hung":""}">${esc(p.note)}</span></div>`).join("");
+    return `<div class="fq">
+      <h2>Force Quit Applications</h2>
+      <div class="sub">If an app isn't responding, select it and click Force Quit. (⌘⌥Esc anywhere.)</div>
+      <div class="fq-list">${live||""}${sys}</div>
+      <div class="actions"><button class="btn" id="fqCancel">Cancel</button>
+        <button class="btn primary" id="fqGo">Force Quit</button></div>
+    </div>`;
+  },
+  mount(body,id){
+    let sel=null;
+    body.querySelectorAll(".fq-row").forEach(r=>r.addEventListener("click",()=>{
+      body.querySelectorAll(".fq-row").forEach(x=>x.classList.remove("sel"));
+      r.classList.add("sel"); sel=r;
+    }));
+    $("#fqCancel",body).addEventListener("click",()=>closeWin(id));
+    $("#fqGo",body).addEventListener("click",()=>{
+      if(!sel){ toast("Force Quit","Select something first.", I.info); return; }
+      if(sel.dataset.id){ closeWin(sel.dataset.id); closeWin(id); toast("Force Quit","Quit "+sel.querySelector(".fn").textContent+".", I.close); return; }
+      const name=sel.dataset.sys;
+      MATTOS.egg("force-quit");
+      if(name==="kernel_task"){ closeWin(id); kernelPanic("You forced the kernel to quit. Bold."); return; }
+      if(name==="Finder"){
+        closeWin(id);
+        if(wins.has("finder")) closeWin("finder");
+        toast("Finder","Relaunching the Finder…", APPICON.finder);
+        setTimeout(()=>openApp("finder"),900);
+        return;
+      }
+      if(name==="Dock"){
+        closeWin(id);
+        const dock=$("#dock");
+        dock.style.transition="transform .4s ease,opacity .4s ease";
+        dock.style.transform="translateX(-50%) translateY(140%)"; dock.style.opacity="0";
+        toast("Dock","The Dock has quit. It'll be back.", I.window);
+        setTimeout(()=>{ dock.style.transform=""; dock.style.opacity=""; },2600);
+        return;
+      }
+      toast("Force Quit","mattOS declines to quit "+name+".", I.info);
+    });
+  }
+};
+
+/* right-click a Dock tile */
+function dockMenu(d,x,y){
+  const open=d.id&&wins.has(d.id);
+  const items=[];
+  if(d.launchpad) items.push({label:"Open Launchpad", icon:APPICON.launchpad, action:openLaunchpad});
+  else if(d.trash) items.push({label:"Open Trash", icon:I.trash, action:trashClick},
+                              {label:"Empty Trash", icon:I.trash, action:()=>{ toast("Trash","It was already empty. It's always empty.", I.trash); MATTOS.egg("empty-trash"); }});
+  else{
+    items.push({label:open?"Show":"Open", icon:d.icon, action:()=>openApp(d.id)});
+    if(open) items.push({label:"Quit", sc:"⌘W", action:()=>closeWin(d.id)});
+  }
+  items.push({divider:true});
+  items.push({label:"Options", disabled:true});
+  items.push({label:"Keep in Dock  ✓", action:()=>toast("Dock","It's staying. It likes it here.", I.window)});
+  items.push({label:"Remove from Dock", action:()=>toast("Dock","Nice try.", I.window)});
+  const m=$("#ctxmenu");
+  m.className="menu"; m.classList.add("on");
+  m.innerHTML=items.map(it=>it.divider?`<div class="divider"></div>`
+    :`<button ${it.disabled?"disabled":""}><span class="mi">${it.icon||""}</span><span>${esc(it.label)}</span>${it.sc?`<span class="sc">${it.sc}</span>`:""}</button>`).join("");
+  document.body.appendChild(m);
+  m.style.left=Math.min(x-20,window.innerWidth-230)+"px";
+  m.style.top=Math.max(10,y-m.offsetHeight-14)+"px";
+  const btns=[...m.querySelectorAll("button")]; let vi=0;
+  items.forEach(it=>{ if(it.divider)return; const b=btns[vi++]; if(!it.disabled) b.addEventListener("click",()=>{ closeContext(); it.action&&it.action(); }); });
+  MATTOS.egg("dock-menu");
+}
+
+/* ═══════════════════════ KERNEL PANIC ═══════════════════════ */
+function kernelPanic(reason){
+  const el=$("#panic");
+  el.innerHTML=`<b>panic(cpu 0 caller 0x0f1acc): ${esc(reason||"you asked for this")}</b>
+Backtrace (CPU 0), Frame : Return Address
+0xffffff80: mattOS.kernel.GlassWM.compositor + 0x1a4
+0xffffff88: mattOS.kernel.Dock.magnify + 0x0c2
+0xffffff90: mattOS.userland.portfolio.charm + 0x8f0
+0xffffff98: mattOS.userland.arcade.chomper.ghostAI + 0x042
+0xffffffa0: <span class="acc">you_are_here</span>
+
+BSD process name corresponding to current thread: curiosity
+Mac OS version: mattOS 4.8 “Liquid”
+
+System uptime in nanoseconds: ${(Date.now()-BOOT_T)*1e6}
+
+Rebooting in a moment. Nothing was actually harmed.<span class="cursor"></span>`;
+  el.classList.add("on");
+  MATTOS.egg("kernel-panic");
+  setTimeout(()=>{ el.classList.remove("on"); runBoot(false); },5200);
+}
+
+/* ═══════════════════════ THE BRIDGE ═══════════════════════
+   A small, stable surface that /eggs.js and the bundled apps use, so
+   they never have to reach into the desktop's internals. */
+const MATTOS = window.MATTOS = {
+  toast, openApp, closeWin, focusWin, bringToFront, minimizeWin, restoreWin,
+  wins, get activeId(){ return activeId; },
+  confetti: n=>confettiBurst(n), rainbow: ms=>rainbowWallpaper(ms), party: ()=>partyMode(),
+  setTheme, setWall, cycleWall, PALETTES, get palette(){ return palName; },
+  openLaunchpad, missionControl, kernelPanic,
+  icons: I, appIcons: APPICON, profile: PROFILE, projects: PROJECTS, skills: SKILLS,
+  experience: EXPERIENCE, education: EDUCATION,
+  el, esc, $, clamp, COARSE, REDUCE,
+  desktopRect, get bootTime(){ return BOOT_T; },
+  games: GAMES, apps: EXTRA_APPS,
+  /* replaced by /eggs.js the moment it loads; harmless until then */
+  egg(){}, eggs:null
+};
 
 /* ═══════════════════════ BOOT ═══════════════════════ */
 const BOOT_T=Date.now();
@@ -2286,7 +2716,10 @@ document.addEventListener("click",e=>{
 $("#desktop").addEventListener("contextmenu",e=>{ e.preventDefault(); closeMenus(); buildContext(e.clientX,e.clientY); });
 document.addEventListener("keydown",e=>{
   if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){ e.preventDefault(); spot.classList.contains("on")?closeSpotlight():openSpotlight(); }
-  else if(e.key==="Escape"){ closeMenus(); closeContext(); $("#control").classList.remove("on"); $("#calendar").classList.remove("on"); if(spot.classList.contains("on"))closeSpotlight(); if($("#lock").classList.contains("on"))unlock(); }
+  else if(e.key==="F4"||((e.metaKey||e.ctrlKey)&&e.shiftKey&&e.key.toLowerCase()==="a")){ e.preventDefault(); toggleLaunchpad(); }
+  else if(e.key==="F3"){ e.preventDefault(); missionControl(); }
+  else if(e.key==="Escape"&&(e.metaKey||e.ctrlKey)&&e.altKey){ e.preventDefault(); openApp("forcequit"); }
+  else if(e.key==="Escape"){ closeMenus(); closeContext(); closeLaunchpad(); exitMissionControl(); $("#control").classList.remove("on"); $("#calendar").classList.remove("on"); if(spot.classList.contains("on"))closeSpotlight(); if($("#lock").classList.contains("on"))unlock(); }
   else if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="w"&&activeId){ e.preventDefault(); closeWin(activeId); }
   else if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="m"&&activeId){ e.preventDefault(); minimizeWin(activeId); }
   else if($("#lock").classList.contains("on")){ unlock(); }
@@ -2466,5 +2899,9 @@ if(bootRoute){
   }, REDUCE?400:2100);
 }
 </script>
+
+<!-- Everything hidden in mattOS: the achievement registry and the eggs
+     themselves.  Loaded last so it can wire into a desktop that exists. -->
+<script src="/eggs.js"></script>
 </body>
 </html>

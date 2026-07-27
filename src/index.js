@@ -17,8 +17,9 @@
 //      the origin, so the iframe loads it same-origin and relative asset URLs
 //      resolve correctly.
 //
-//   3. Arcade URLs: /arcade and /arcade/<game> are real URLs served by the
-//      desktop itself, which opens the matching window (see DESKTOP_PATHS).
+//   3. Desktop URLs: /arcade, /arcade/<game>, /apps and /apps/<app> are real
+//      URLs served by the desktop itself, which opens the matching window
+//      (see DESKTOP_PATHS).
 //
 //   4. Everything else -> the portfolio landing page (public/index.html) and
 //      its static assets, served via the ASSETS binding.
@@ -40,13 +41,18 @@ const APPS = {
   },
 };
 
-// Pretty URLs the desktop owns.  The arcade is not a separate site: it is
-// part of mattOS, so /arcade and /arcade/<game> serve the desktop itself and
-// it deep-links to the right window client-side (see ROUTES in
-// public/index.html).  That keeps the transition between "pages" seamless —
-// clicking a game inside the desktop just pushes its URL, no reload — while
-// a shared link or a refresh still lands in exactly the same place.
-const DESKTOP_PATHS = /^\/arcade(\/|$)/;
+// Pretty URLs the desktop owns.  The arcade and the bundled apps are not
+// separate sites: they are part of mattOS, so /arcade, /arcade/<game>,
+// /apps and /apps/<app> serve the desktop itself and it deep-links to the
+// right window client-side (see ROUTES in public/index.html).  That keeps
+// the transition between "pages" seamless — opening a window inside the
+// desktop just pushes its URL, no reload — while a shared link or a refresh
+// still lands in exactly the same place.
+//
+// The pattern deliberately has no dot in the last segment, so the real
+// assets under /apps/ (registry.js, calculator.js, …) are still served as
+// files rather than swallowed by the desktop.
+const DESKTOP_PATHS = /^\/(arcade|apps)(\/[a-z0-9-]+)?\/?$/i;
 
 // If pathname is "<appPath>/_app[/...]" for a proxied app, return the app and
 // the remaining origin path (always starting with "/").
@@ -97,7 +103,7 @@ export default {
     const key = appKeyFor(path);
     if (key) return renderAppFrame(env, url, key, APPS[key]);
 
-    // 2b) An arcade URL -> the desktop, which opens that game's window.
+    // 2b) An arcade or app URL -> the desktop, which opens that window.
     if (DESKTOP_PATHS.test(path)) return env.ASSETS.fetch(new URL("/index.html", url));
 
     // The shell template must never be served raw (its placeholders would be
