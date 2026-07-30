@@ -14,6 +14,10 @@ jobs:
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
+          # The action's default wrangler is old enough to predate
+          # run_worker_first under [assets] and a 2025 compatibility date,
+          # both of which wrangler.toml uses.
+          wranglerVersion: "4"
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy
