@@ -89,6 +89,15 @@ The Worker owns `mattlavergne.com/*`:
   shared link or a refresh boots straight into that window.
 - everything else → `public/index.html` (the portfolio) and its static assets.
 
+`/food` is the one path this Worker does **not** serve. It belongs to a
+separate Worker ([What-To-Eat](https://github.com/mattlavergne/What-To-Eat), a
+weekly meal log backed by a D1 database), which claims the narrower routes
+`mattlavergne.com/food` and `mattlavergne.com/food/*`. Cloudflare matches the
+most specific route, so those win over this Worker's `mattlavergne.com/*` and
+no code here has to know about it — the entry in `PROJECTS` is just a link.
+Deleting that one object hides the app from the Finder and Spotlight without
+taking the site down.
+
 ## Framed apps (windowed projects)
 
 Any project can open at its own pretty URL while *looking* like an app running
