@@ -39,6 +39,16 @@ const APPS = {
     // The map is published to GitHub Pages; proxy it under /trafficmap/_app/*.
     proxy: "https://mattlavergne.github.io/Lafayette-911-Traffic",
   },
+  "/music": {
+    title: "ASTRA Studio",
+    subtitle: "Beat production · sequencing · mixing · export",
+    address: "mattlavergne.com/music",
+    accent: "#d5f782",
+    // ASTRA's production-ready static app lives in dist/ on GitHub Pages.
+    // Proxy the dist directory directly so all relative CSS, module and worker
+    // URLs stay under /music/_app/* and resolve through this Worker.
+    proxy: "https://mattlavergne.github.io/ASTRA/dist",
+  },
 };
 
 // Pretty URLs the desktop owns.  The arcade and the bundled apps are not
