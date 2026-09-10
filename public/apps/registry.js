@@ -10,7 +10,7 @@
      MATTAPPS.get(id)         → one app's metadata
      MATTAPPS.load(id)        → Promise: fetch /apps/<id>.js once
      MATTAPPS.define(id, def)  → an app file registers itself
-     MATTAPPS.preload(id)     → warm the cache (used on hover)
+     MATTAPPS.preload(id)      → warm the cache (used on hover)
 
    An app definition is { body(), mount(body, id, node), unmount(node) }
    exactly like the apps written inline in index.html, so the window
@@ -60,6 +60,12 @@ const ICONS = {
   music: squircle(["#fb7185", "#be123c"],
     `<path d="M42 68V34l30-7v34" fill="none" stroke="#fff" stroke-width="5" stroke-linejoin="round"/>
      <circle cx="36" cy="68" r="8" fill="#fff"/><circle cx="66" cy="61" r="8" fill="#fff"/>`, "mu"),
+  astra: squircle(["#27321f", "#11150f"],
+    `<rect x="28" y="53" width="7" height="19" rx="2" fill="#d5f782"/>
+     <rect x="39" y="39" width="7" height="33" rx="2" fill="#d5f782"/>
+     <rect x="50" y="27" width="7" height="45" rx="2" fill="#d5f782"/>
+     <rect x="61" y="45" width="7" height="27" rx="2" fill="#d5f782"/>
+     <path d="M25 78h50" stroke="rgba(213,247,130,.52)" stroke-width="3" stroke-linecap="round"/>`, "as"),
   achievements: squircle(["#fbbf24", "#b45309"],
     `<path d="M35 22h30v18a15 15 0 0 1-30 0z" fill="#fff"/>
      <path d="M35 26H26v6a10 10 0 0 0 10 10M65 26h9v6a10 10 0 0 1-10 10" fill="none" stroke="#fff" stroke-width="4"/>
@@ -78,6 +84,7 @@ const LIST = [
   { id: "weather", title: "Weather", tagline: "Live conditions in Lafayette", icon: ICONS.weather, w: 400, h: 500 },
   { id: "sketch", title: "Sketch", tagline: "Draw something", icon: ICONS.sketch, w: 560, h: 480 },
   { id: "music", title: "Music", tagline: "Four chiptunes, synthesized live", icon: ICONS.music, w: 460, h: 430 },
+  { id: "astra", title: "ASTRA Studio", tagline: "Make beats, arrange, mix and export", icon: ICONS.astra, w: 520, h: 360, dock: true },
   { id: "achievements", title: "Achievements", tagline: "Everything hidden in mattOS", icon: ICONS.achievements, w: 520, h: 560 }
 ];
 
