@@ -49,6 +49,14 @@ const APPS = {
     // URLs stay under /music/_app/* and resolve through this Worker.
     proxy: "https://mattlavergne.github.io/ASTRA/dist",
   },
+  "/apple": {
+    title: "The Apple",
+    subtitle: "Snake, flipped · you're the apple",
+    address: "mattlavergne.com/apple",
+    accent: "#e8392f",
+    // The game is a static site on GitHub Pages (mattlavergne/apple).
+    proxy: "https://mattlavergne.github.io/apple",
+  },
 };
 
 // Pretty URLs the desktop owns.  The arcade and the bundled apps are not
