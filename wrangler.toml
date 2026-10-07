@@ -16,6 +16,16 @@ binding = "ASSETS"
 # serves the landing page for everything else via env.ASSETS.
 run_worker_first = true
 
+# Cloud saves for The Apple (/apple/api, src/apple-api.js). One-time setup:
+#   1. Cloudflare dashboard -> Storage & Databases -> D1 -> Create database,
+#      name it "apple-saves" (or run: npx wrangler d1 create apple-saves).
+#   2. Paste its Database ID below and uncomment the four lines.
+# Until then the API answers "sync not configured" and everything else works.
+# [[d1_databases]]
+# binding = "APPLE_DB"
+# database_name = "apple-saves"
+# database_id = "PASTE-DATABASE-ID-HERE"
+
 [[routes]]
 pattern = "mattlavergne.com/*"
 zone_name = "mattlavergne.com"
