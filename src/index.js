@@ -105,12 +105,12 @@ function appKeyFor(pathname) {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
 
     // 0) The Apple's cloud-save API (see src/apple-api.js).
-    if (path.startsWith("/apple/api/")) return handleAppleApi(request, env);
+    if (path.startsWith("/apple/api/")) return handleAppleApi(request, env, ctx);
 
     // 1) Proxied embed content for a framed app's iframe.
     const target = embedTarget(path);
