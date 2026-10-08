@@ -15,6 +15,9 @@ const CODE = /^[A-HJ-NP-Z2-9]{12}$/; // no 0/O/1/I, so codes are easy to read al
 const MAX_BYTES = 64 * 1024;
 
 // The game runs on this domain (framed, under /apple/_app/) and on GitHub Pages.
+// The store app's pages come from capacitor://localhost (iOS) and
+// https://localhost (Android); both have the hostname localhost, so the
+// localhost rule below must keep allowing any scheme.
 function allowedOrigin(origin) {
   if (!origin) return null;
   try {
