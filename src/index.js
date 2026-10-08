@@ -30,6 +30,8 @@
 // is already reachable on this domain (a static asset, another route, …).
 // That's it — the shell, window chrome, and controls come for free.
 
+import { handleAppleApi } from "./apple-api.js";
+
 const APPS = {
   "/trafficmap": {
     title: "Traffic Map",
@@ -96,6 +98,9 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const path = url.pathname;
+
+    // 0) The Apple's cloud-save API (see src/apple-api.js).
+    if (path.startsWith("/apple/api/")) return handleAppleApi(request, env);
 
     // 1) Proxied embed content for a framed app's iframe.
     const target = embedTarget(path);
