@@ -1,0 +1,75 @@
+name: Sync GitHub projects
+
+# Once a day, look for public repos that aren't on the landing page yet and
+# open a pull request that drafts an entry for each in public/projects.js.
+# Nothing goes live until that PR is merged (which deploys the site).
+#
+# One-time setup: Settings → Actions → General → Workflow permissions →
+# tick "Allow GitHub Actions to create and approve pull requests".
+# Run it now from the Actions tab → Sync GitHub projects → Run workflow.
+on:
+  schedule:
+    - cron: "17 13 * * *"     # daily, ~8am Central
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-projects
+  cancel-in-progress: false
+
+env:
+  BRANCH: automation/sync-projects
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # If the last batch is still waiting for review, leave it alone:
+      # rewriting the branch would throw away any edits made on it.
+      - name: Check for an open sync PR
+        id: open
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          n=$(gh pr list --head "$BRANCH" --state open --json number --jq length)
+          echo "count=$n" >> "$GITHUB_OUTPUT"
+          if [ "$n" != "0" ]; then
+            echo "A sync PR is already open; review or close it first." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Draft entries for new repos
+        if: steps.open.outputs.count == '0'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_OWNER: ${{ github.repository_owner }}
+          SYNC_SUMMARY: ${{ runner.temp }}/pr-body.md
+        run: node scripts/sync-projects.mjs --write
+
+      - name: Open a pull request
+        if: steps.open.outputs.count == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet; then
+            echo "No new repos." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C "$BRANCH"
+          git commit -am "Draft landing-page entries for new GitHub repos"
+          git push --force origin "$BRANCH"
+          cat "$RUNNER_TEMP/pr-body.md" >> "$GITHUB_STEP_SUMMARY"
+          gh pr create --head "$BRANCH" \
+            --title "Add new GitHub projects to the landing page" \
+            --body-file "$RUNNER_TEMP/pr-body.md" \
+          || echo "::warning::Pushed $BRANCH but could not open the PR. Enable 'Allow GitHub Actions to create and approve pull requests' in Settings → Actions → General, or open it by hand."

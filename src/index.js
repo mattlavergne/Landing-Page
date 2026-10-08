@@ -28,6 +28,8 @@
 // Add one entry to APPS.  The key is the pretty URL.  Point it at either a
 // `proxy` origin (reverse-proxied under <path>/_app/*) or an `embed` URL that
 // is already reachable on this domain (a static asset, another route, …).
+// Use both when the proxied site's page isn't its index.html: `proxy` serves it,
+// `embed: "<path>/_app/page.html"` points the window at the right file.
 // That's it — the shell, window chrome, and controls come for free.
 
 import { handleAppleApi } from "./apple-api.js";
@@ -58,6 +60,14 @@ const APPS = {
     accent: "#e8392f",
     // The game is a static site on GitHub Pages (mattlavergne/apple).
     proxy: "https://mattlavergne.github.io/apple",
+  },
+  "/cartogram": {
+    title: "Cartogram",
+    subtitle: "Map artwork · wallpaper builder",
+    address: "mattlavergne.com/cartogram",
+    accent: "#f6c453",
+    // Static site on GitHub Pages (mattlavergne/Map-Background-Builder).
+    proxy: "https://mattlavergne.github.io/Map-Background-Builder",
   },
 };
 
