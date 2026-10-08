@@ -235,35 +235,6 @@ const LIST = [
     launch:"Play the game"
   },
 
-  /* ── Work Tools ─────────────────────────────────────────────── */
-  {
-    slug:"fees", name:"GiveCampus Fee Calculator", category:"tools", status:"live", url:"/fees",
-    repo:"mattlavergne/GiveCampus-Fee-Calculator",
-    icon:"fees", modified:"Live",
-    tagline:"What to charge so the department nets its number",
-    tags:["Live","Fundraising","HTML"],
-    desc:"Enter what a department needs to net and it works backwards to the amount to charge the donor, covering the GiveCampus card fee (2.9% + $0.30) and the Foundation's 5% admin fee, with the breakdown shown line by line.",
-    launch:"Open the calculator"
-  },
-  {
-    slug:"checklist", name:"Correspondence Checklist", category:"tools", status:"live", url:"/checklist",
-    repo:"mattlavergne/Correspondence-Checklist",
-    icon:"checklist", modified:"Live",
-    tagline:"CRM correspondence uploads, step by step",
-    tags:["Live","CRM","SQL","Process"],
-    desc:"An interactive checklist for loading communication activities into the CRM: setting up the activity, logging the send, prepping the SQL and CSV files, and verifying row counts. Written so anyone can run the upload while a coworker is out; progress is saved as you go.",
-    launch:"Open the checklist"
-  },
-  {
-    slug:"fbscraper", name:"Facebook Web Scraper", category:"tools", status:"code", url:"#",
-    repo:"mattlavergne/Facebook-Web-Scraper",
-    icon:"scraper", modified:"Browser script",
-    tagline:"Post engagement, exported to CSV",
-    tags:["JavaScript","Browser","CSV","Tampermonkey"],
-    desc:"A browser script that collects the people who liked, commented on, or shared a Facebook post and exports them to CSV from a floating panel. Runs from the console or as a Tampermonkey userscript, with configurable pacing to stay under rate limits.",
-    launch:null
-  },
-
   /* ── Automation ─────────────────────────────────────────────── */
   {
     slug:"flow47", name:"47-Flow Automation Engine", category:"automation", status:"production", url:"#",
@@ -315,7 +286,10 @@ const LIST = [
 /* GitHub repos the sync bot should never suggest (name only, any case).
    Forks, archived repos and empty repos are skipped automatically. */
 const IGNORE = [
-  "Landing-Page"
+  "Landing-Page",
+  "GiveCampus-Fee-Calculator",
+  "Correspondence-Checklist",
+  "Facebook-Web-Scraper"
 ];
 
 global.MATTPROJECTS = { categories: CATEGORIES, list: LIST, icons: ICONS, ignore: IGNORE };

@@ -133,8 +133,7 @@ const APPS = {
 };
 ```
 
-Framed today: `/trafficmap`, `/music` (ASTRA Studio), `/apple`, `/cartogram`,
-`/fees` (GiveCampus Fee Calculator) and `/checklist` (Correspondence Checklist).
+Framed today: `/trafficmap`, `/music` (ASTRA Studio), `/apple` and `/cartogram`.
 
 To add another framed project, add one entry. The key is the pretty URL. Point
 it at **either**:
@@ -144,10 +143,9 @@ it at **either**:
 - `embed: "/some/path"` — a URL already reachable on this domain (a static
   asset, another route). No proxying is done.
 
-Set **both** when the proxied site's page isn't its `index.html`: `/fees` proxies
-the GiveCampus repo's Pages site and sets
-`embed: "/fees/_app/GiveCampus_Fee_Calculator.html"` so the window opens on the
-right file.
+Set **both** when the proxied site's page isn't its `index.html` (say, a repo
+whose Pages site is a single `tool.html`): `proxy` serves the site and
+`embed: "/tool/_app/tool.html"` opens the window on the right file.
 
 The shell, window chrome, and controls come for free. Nothing else to wire up.
 
