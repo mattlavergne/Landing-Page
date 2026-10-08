@@ -254,6 +254,9 @@ html[data-theme="dark"] .desk-icon:hover{background:rgba(148,163,184,.14)}
   padding:3px 9px;border-radius:999px;background:var(--chip);color:var(--text-2)}
 .pill.live{background:color-mix(in srgb,var(--good) 16%,transparent);color:var(--good)}
 .pill.live .dot{width:6px;height:6px;border-radius:50%;background:var(--good)}
+.pill svg{width:12px;height:12px;flex:none}
+.pill.lock{background:color-mix(in srgb,#f59e0b 18%,transparent);color:#b45309}
+html[data-theme="dark"] .pill.lock{color:#fbbf24}
 .btn{all:unset;display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;
   padding:9px 16px;border-radius:11px;background:var(--chip);color:var(--text);
   border:1px solid var(--panel-border);box-shadow:var(--edge);transition:transform .1s ease,background .12s ease}
@@ -301,8 +304,20 @@ html[data-theme="dark"] .desk-icon:hover{background:rgba(148,163,184,.14)}
 .f-file .fi svg{width:56px;height:56px;display:block}
 .f-file .fi .badge{position:absolute;right:-3px;top:-3px;width:16px;height:16px;border-radius:50%;
   background:var(--good);border:2px solid var(--panel-solid);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.f-file .fi .badge.lock{width:20px;height:20px;right:-5px;top:-5px;background:#f59e0b;color:#fff;
+  display:flex;align-items:center;justify-content:center}
+.f-file .fi .badge.lock svg{width:11px;height:11px;stroke-width:2.6}
 .f-file .fn{font-size:12px;font-weight:600;line-height:1.25;color:var(--text)}
 .f-file .fmeta{font-size:10.5px;color:var(--text-3)}
+/* category headings inside the grouped Projects view */
+.f-sec{grid-column:1/-1;display:flex;align-items:baseline;gap:8px;padding:12px 6px 4px;
+  border-bottom:1px solid var(--hairline);margin-bottom:2px;min-width:0}
+.f-sec:first-child{padding-top:0}
+.f-sec svg{width:14px;height:14px;flex:none;color:var(--accent);align-self:center}
+.f-sec b{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap}
+.f-sec span{font-size:11.5px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fs-item .fs-n{margin-left:auto;font-style:normal;font-size:11px;color:var(--text-3);font-variant-numeric:tabular-nums}
+.fs-item span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* list view */
 .f-list{display:flex;flex-direction:column}
 .f-list .lrow{display:grid;grid-template-columns:1fr 88px 130px;gap:10px;align-items:center;
@@ -314,7 +329,11 @@ html[data-theme="dark"] .desk-icon:hover{background:rgba(148,163,184,.14)}
 .f-list .lname{display:flex;align-items:center;gap:10px;min-width:0}
 .f-list .lname svg{width:22px;height:22px;flex:none}
 .f-list .lname .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
-.f-list .lk{color:var(--text-3);font-size:12px}
+.f-list .lk{color:var(--text-3);font-size:12px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.f-list .lsec{display:flex;align-items:center;gap:8px;padding:14px 10px 6px;font-size:11px;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;color:var(--text-2)}
+.f-list .lsec svg{width:13px;height:13px;color:var(--accent)}
+.f-list .lsec em{font-style:normal;font-weight:600;color:var(--text-3)}
 .finder-statusbar{height:26px;flex:none;border-top:1px solid var(--hairline);display:flex;align-items:center;
   justify-content:center;font-size:11.5px;color:var(--text-3)}
 
@@ -421,6 +440,7 @@ input,textarea{user-select:text;-webkit-user-select:text}
 .pd .hero{padding:26px 26px 22px;display:flex;gap:18px;align-items:center;border-bottom:1px solid var(--hairline)}
 .pd .hero .picon{width:66px;height:66px;flex:none;filter:drop-shadow(0 8px 14px rgba(15,23,42,.24))}
 .pd .hero .picon svg{width:66px;height:66px}
+.pd .hero .pcat{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--text-3);margin-bottom:3px}
 .pd .hero h1{font-size:21px;font-weight:800;letter-spacing:-.01em;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .pd .hero .tags{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
 .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;padding:3px 8px;border-radius:7px;
@@ -631,6 +651,8 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
   .desk-icon .di-label{font-size:11px;line-height:1.2;max-width:100%;overflow-wrap:anywhere}
   /* Finder: a two-column grid fits a phone better than one giant column */
   .finder-side{width:118px}
+  .fs-item .fs-n,.fs-item svg{display:none}   /* room for the names */
+  .f-sec span{display:none}
   .f-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .f-file .fi,.f-file .fi svg{width:46px;height:46px}
   .f-file .fn{font-size:11.5px}
@@ -805,7 +827,7 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
 <!-- Static, crawlable summary (also the no-JS fallback) -->
 <div class="sr-only">
   <h1>Matt Lavergne: Automation Specialist &amp; Digital Services Coordinator, Lafayette, Louisiana</h1>
-  <p>Matthew Lavergne is a Digital Services Coordinator at the University of Louisiana at Lafayette Foundation, where he designs enterprise Power Automate solutions, REST API integrations, and custom connector architecture that replace manual processes with scalable systems across Microsoft 365. His flagship is a 47-flow Power Automate solution automating gift processing, donor operations, events, and onboarding. This portfolio is presented as an interactive desktop operating system, "mattOS". Projects include a live Lafayette 911 traffic incident map at mattlavergne.com/trafficmap, a map background generator, a VBA PDF bookmark router, a social-to-CRM bulk import, and WiFi trilateration motion detection.</p>
+  <p>Matthew Lavergne is a Digital Services Coordinator at the University of Louisiana at Lafayette Foundation, where he designs enterprise Power Automate solutions, REST API integrations, and custom connector architecture that replace manual processes with scalable systems across Microsoft 365. His flagship is a 47-flow Power Automate solution automating gift processing, donor operations, events, and onboarding. This portfolio is presented as an interactive desktop operating system, "mattOS". Projects include a live Lafayette 911 traffic incident map at <a href="/trafficmap">mattlavergne.com/trafficmap</a>, ASTRA Studio, a browser music production studio at <a href="/music">/music</a>, Cartogram, a map artwork wallpaper builder at <a href="/cartogram">/cartogram</a>, GhostTrace, a passive OSINT lookup console at <a href="/osint/">/osint</a>, The Apple, a reverse Snake game at <a href="/apple">/apple</a>, a GiveCampus donor fee calculator, a CRM correspondence upload checklist, a Facebook engagement scraper, Trade, a systematic trading research system, a VBA PDF bookmark router, a social-to-CRM bulk import, and WiFi trilateration motion detection.</p>
   <p>The desktop also ships an arcade of nine original browser games, playable on desktop and mobile: Snake, Chomper (a Pac-Man style maze chase), Flap (a Flappy Bird style game), Bricks (Breakout), Twenty48 (2048), Stacks (a Tetris style block puzzle), Invaders (Space Invaders), Hopper (a Frogger style crossing game) and Sweeper (Minesweeper). The arcade is at <a href="/arcade">mattlavergne.com/arcade</a> and each game has its own address, such as <a href="/arcade/snake">mattlavergne.com/arcade/snake</a>.</p>
   <p>Contact: contact@mattlavergne.com · LinkedIn /in/matthew-a-lavergne · GitHub github.com/mattlavergne · <a href="/trafficmap">Live traffic map</a> · <a href="/arcade">Arcade</a></p>
 </div>
@@ -815,6 +837,10 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
     <p>Automation Specialist &amp; Digital Services Coordinator in Lafayette, Louisiana. This site is an interactive desktop that needs JavaScript. Here are the essentials:</p>
     <ul>
       <li><a href="/trafficmap">Lafayette Traffic: live 911 incident map</a></li>
+      <li><a href="/music">ASTRA Studio: make music in the browser</a></li>
+      <li><a href="/cartogram">Cartogram: turn any place into a wallpaper</a></li>
+      <li><a href="/osint/">GhostTrace: passive OSINT lookups</a></li>
+      <li><a href="/apple">The Apple: Snake, flipped</a></li>
       <li><a href="/arcade">The arcade: nine browser games (Snake, Chomper, Flap, Bricks, Twenty48, Stacks, Invaders, Hopper, Sweeper)</a></li>
       <li>Email: <a href="mailto:contact@mattlavergne.com">contact@mattlavergne.com</a></li>
       <li><a href="https://www.linkedin.com/in/matthew-a-lavergne/">LinkedIn</a> · <a href="https://github.com/mattlavergne">GitHub</a></li>
@@ -905,6 +931,8 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
 <script src="/games/catalog.js"></script>
 <!-- The bundled apps: metadata + loader here, one file per app, fetched on open. -->
 <script src="/apps/registry.js"></script>
+<!-- Every project: the list, its categories and icons. -->
+<script src="/projects.js"></script>
 <script>
 "use strict";
 /* ══════════════════════════════════════════════════════════════════
@@ -921,8 +949,9 @@ const esc = s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
 /* ─────────────────────────── PROFILE + CONTENT ───────────────────────────
-   Edit these to change what the OS shows.  PROJECTS is the important one:
-   each entry becomes a file in the Finder and an entry in Spotlight. */
+   Edit these to change what the OS shows.  The projects themselves are in
+   /projects.js: each entry becomes a file in the Finder and an entry in
+   Spotlight. */
 const PROFILE = {
   name:"Matt Lavergne",
   first:"Matt",
@@ -975,72 +1004,12 @@ const EDUCATION = [
   {degree:"B.S., Informatics", school:"University of Louisiana at Lafayette", when:"Completed · 12/2023"}
 ];
 
-const PROJECTS = [
-  {
-    slug:"trafficmap", name:"Traffic Map", kind:"app", status:"live", url:"/trafficmap", pinned:true,
-    icon:"globe", modified:"Live", size:"-",
-    tagline:"Live Lafayette 911 incident map",
-    tags:["Live","Mapping","Real-time","Python","Leaflet"],
-    desc:"A real-time map and analytics dashboard for Lafayette Parish 911 traffic incidents: accidents, hazards, and road conditions with live weather context. Built in Python, published on a schedule, and built with the same liquid-glass interface as this site.",
-    launch:"Open the live map"
-  },
-  {
-    slug:"apple", name:"The Apple", kind:"app", status:"live", url:"/apple", pinned:true,
-    icon:"sparkle", modified:"Live", size:"-",
-    tagline:"Snake, flipped: you're the apple",
-    tags:["Live","Game","Canvas","Vanilla JS"],
-    desc:"A reverse game of Snake. You play the apple and lure hungry snakes into walls, thorns, each other and their own tails. Snakes get smarter every level (greedy, then pathfinding, then trap-avoiding), and you fight back with dashes, brambles, hidden rot and decoys. Endless levels, boss snakes, per-run power-ups and an Orchard shop for upgrades and skins. Hand-drawn on a canvas with synthesized sound, no libraries.",
-    launch:"Play the game"
-  },
-  {
-    slug:"whattoeat", name:"What To Eat", kind:"app", status:"live", url:"/food",
-    icon:"note", modified:"Live", size:"-",
-    tagline:"A weekly meal log that ranks itself",
-    tags:["Live","Cloudflare Workers","D1","Cron"],
-    desc:"A private weekly meal tracker: one dinner a week, rated out of 10 by both of us, which gradually builds a ranked master list to scan when neither of us can decide what to cook. A Cloudflare Worker with a D1 database, so the data follows us between phones instead of living in one browser. It emails a reminder every Sunday with a one-tap link to log the week. Same liquid-glass interface as the rest of the site.",
-    launch:"Open the app"
-  },
-  {
-    slug:"flow47", name:"47-Flow Automation Engine", kind:"app", status:"production", url:"#",
-    icon:"flow", modified:"In production", size:"-",
-    tagline:"The system that runs a foundation",
-    tags:["Power Automate","M365","REST API","Child flows"],
-    desc:"The flagship: a 47-flow Power Automate solution integrating Teamwork, SharePoint, Microsoft Forms, and M365 to automate gift processing, donor operations, event management, and staff onboarding/offboarding. Custom REST API connectors, child-flow architecture, and environment-variable management eliminate hard-coded dependencies across all 47 flows, so it stays maintainable as it grows.",
-    launch:null
-  },
-  {
-    slug:"pdfrouter", name:"PDF Bookmark Router", kind:"app", status:"production", url:"#",
-    icon:"note", modified:"In production", size:"-",
-    tagline:"1,000+ pages, split and delivered",
-    tags:["VBA","Automation","Documents"],
-    desc:"A VBA script that splits a 1,000+ page PDF along its bookmarks and auto-routes each section to the right recipient, replacing a manual, hours-long distribution process with a one-click run.",
-    launch:null
-  },
-  {
-    slug:"crmimport", name:"Social → CRM Import", kind:"app", status:"production", url:"#",
-    icon:"flow", modified:"In production", size:"-",
-    tagline:"Retire the copy-paste",
-    tags:["REST API","CRM","Data integrity"],
-    desc:"A bulk import pipeline that captures social-media interactions straight into the CRM, retiring manual data entry and keeping donor engagement records clean and current.",
-    launch:null
-  },
-  {
-    slug:"mapbg", name:"Map Background Generator", kind:"app", status:"soon", url:"#",
-    icon:"sparkle", modified:"In progress", size:"-",
-    tagline:"Generative map-art wallpapers",
-    tags:["Generative","Canvas","WebGL","Design"],
-    desc:"A tool that turns real map data into high-resolution generative wallpapers, with tunable palettes, projections, and density. Currently under construction; it will appear in the Finder when it's ready.",
-    launch:null
-  },
-  {
-    slug:"trilateration", name:"WiFi Trilateration", kind:"case", status:"soon", url:"#",
-    icon:"wave", modified:"Experiment", size:"-",
-    tagline:"Physics-based motion detection",
-    tags:["Raspberry Pi","Python","IoT","RSSI"],
-    desc:"Motion detection using RSSI trilateration on a Raspberry Pi: no cameras, just radio physics. Maps the location of a disturbance in a room in real time. Write-up coming soon.",
-    launch:null
-  }
-];
+/* Projects live in /projects.js (list, categories, icons), so adding one
+   never means touching this file.  If it fails to load, the desktop
+   simply shows no projects. */
+const PROJECTS = (window.MATTPROJECTS && window.MATTPROJECTS.list) || [];
+const CATEGORIES = (window.MATTPROJECTS && window.MATTPROJECTS.categories) || [];
+const PROJICON = (window.MATTPROJECTS && window.MATTPROJECTS.icons) || {};
 
 /* ─────────────────────────── ICONS ─────────────────────────── */
 const I = {}; // stroke line-icons (16px viewBox 24)
@@ -1080,6 +1049,7 @@ I.pin = line(`<path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11z"/><circ
 I.launch = line(`<path d="M7 17 17 7M9 7h8v8"/>`);
 I.send = line(`<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/>`);
 I.trash = line(`<path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/>`);
+I.lock = line(`<rect x="4.5" y="11" width="15" height="10" rx="2.5"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/>`);
 I.gamepad = line(`<path d="M7 12h4M9 10v4"/><circle cx="15.5" cy="11" r=".8" fill="currentColor"/><circle cx="17.5" cy="13.5" r=".8" fill="currentColor"/><path d="M8.5 6h7a5.5 5.5 0 0 1 5.4 4.5l.7 4a3.2 3.2 0 0 1-5.9 2.2L15 15H9l-.7 1.7a3.2 3.2 0 0 1-5.9-2.2l.7-4A5.5 5.5 0 0 1 8.5 6z"/>`);
 
 /* colorful "app" tile icons (macOS squircle style) */
@@ -1106,7 +1076,15 @@ const APPICON = {
   note: squircle(["#fde68a","#f59e0b"], `<rect x="28" y="26" width="44" height="52" rx="5" fill="#fff"/><path d="M36 40h28M36 50h28M36 60h18" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/>`,"nt"),
   trash: `<svg viewBox="0 0 100 100"><rect x="6" y="6" width="88" height="88" rx="24" fill="rgba(255,255,255,.16)" stroke="rgba(255,255,255,.3)"/><path d="M32 38h36M42 38v-5a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v5M36 38l2 32a4 4 0 0 0 4 4h16a4 4 0 0 0 4-4l2-32" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>`
 };
-const projIcon = p => APPICON[p.icon] || APPICON.folder;
+const projIcon = p => PROJICON[p.icon] || APPICON[p.icon] || APPICON.folder;
+/* where a project's launch button goes, and whether that leaves the site */
+const projURL = p => p.url && p.url!=="#" ? p.url : null;
+const isExternal = u => /^https?:\/\//i.test(u||"");
+function launchProject(p){
+  const u=projURL(p); if(!u) return false;
+  if(isExternal(u)) window.open(u,"_blank","noopener"); else location.href=u;
+  return true;
+}
 
 /* ── Arcade ──────────────────────────────────────────────────────────
    The games live in /games.js so the desktop and the standalone page
@@ -1764,24 +1742,38 @@ function projectApp(p){
   return {
     title:p.name, icon:projIcon(p), w:520, h:440,
     body(){
-      const live = p.status==="live";
+      const url = projURL(p);
+      const live = p.status==="live" && !!url;
       const prod = p.status==="production";
+      const code = p.status==="code";
+      const ext = isExternal(url);
+      const src = p.repo && !p.repoPrivate ? "https://github.com/"+p.repo : null;
+      const cat = CATEGORIES.find(c=>c.id===p.category);
       const tags = p.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join("");
-      const badge = live? `<span class="pill live"><span class="dot"></span>Live</span>`
+      const badge = p.locked && live? `<span class="pill lock">${I.lock}Private</span>`
+        : live? `<span class="pill live"><span class="dot"></span>Live</span>`
         : prod? `<span class="pill" style="background:color-mix(in srgb,var(--accent) 15%,transparent);color:var(--accent)"><span class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--accent)"></span>In production</span>`
+        : code? `<span class="pill">${I.github}Open source</span>`
         : `<span class="pill">${esc(p.modified)}</span>`;
       const check = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
-      const actions = live && p.url && p.url!=="#"
-        ? `<a class="btn primary" href="${esc(p.url)}">${I.launch}<span>${esc(p.launch||"Open")}</span></a>
-           <button class="btn" data-copy="${esc(location.origin+p.url)}">${I.folderMini}<span>Copy link</span></button>`
+      const away = ' target="_blank" rel="noopener"';
+      const srcBtn = src ? `<a class="btn" href="${esc(src)}"${away}>${I.github}<span>View source</span></a>` : "";
+      const actions = live
+        ? `<a class="btn primary" href="${esc(url)}"${ext?away:""}>${p.locked?I.lock:I.launch}<span>${esc(p.launch||"Open")}</span></a>
+           ${srcBtn}
+           <button class="btn" data-copy="${esc(ext?url:location.origin+url)}">${I.folderMini}<span>Copy link</span></button>
+           ${p.locked?'<span class="muted" style="font-size:12px;align-self:center">Sign-in required: a personal tool, not a public demo.</span>':""}`
+        : code && src
+          ? `<a class="btn primary" href="${esc(src)}"${away}>${I.github}<span>View on GitHub</span></a>`
         : prod
           ? `<span class="pill live" style="padding:8px 13px;font-size:12.5px">${check}Shipped &amp; running in production</span>
              <span class="muted" style="font-size:12px;align-self:center">Internal system, no public link</span>`
-          : `<button class="btn" disabled>${I.clock}<span>Coming soon</span></button>`;
+          : `<button class="btn" disabled>${I.clock}<span>Coming soon</span></button>${srcBtn}`;
       return `<div class="pd">
         <div class="hero">
           <div class="picon">${projIcon(p)}</div>
           <div>
+            ${cat?`<div class="pcat">${esc(cat.name)}</div>`:""}
             <h1>${esc(p.name)} ${badge}</h1>
             <div class="muted" style="font-size:13px;margin-top:2px">${esc(p.tagline)}</div>
             <div class="tags">${tags}</div>
@@ -1805,8 +1797,26 @@ function projectApp(p){
 /* ─────────────────────────── FINDER ─────────────────────────── */
 let finderView = localStorage.getItem("mattos-finderview")||"grid";
 let finderLoc = "projects";
+/* Projects are shown grouped by category (see CATEGORIES in /projects.js),
+   live ones first within each group.  The Games group also carries a
+   shortcut to the Arcade folder.  Uncategorised projects land in "Other". */
+const projRank = p => p.status==="live"?0 : p.status==="production"?1 : p.status==="code"?2 : 3;
+const arcadeShortcut = ()=>({name:"Arcade", icon:APPICON.arcade, meta:openGames().length+" games",
+  open:()=>{ finderLoc="arcade"; refreshFinderAll(); }});
+function categoryItems(id){
+  const items=PROJECTS.filter(p=>(p.category||"other")===id)
+    .sort((a,b)=>projRank(a)-projRank(b)).map(p=>({project:p}));
+  if(id==="games" && ARCADE) items.push(arcadeShortcut());
+  return items;
+}
+function projectSections(){
+  const known=new Set(CATEGORIES.map(c=>c.id));
+  const cats=[...CATEGORIES];
+  if(PROJECTS.some(p=>!known.has(p.category))) cats.push({id:"other", name:"Other", icon:"folderMini"});
+  return cats.map(c=>({cat:c, items:categoryItems(c.id)})).filter(x=>x.items.length);
+}
 const FINDER_LOCS = {
-  projects:{label:"Projects", items:()=>PROJECTS.map(p=>({project:p}))},
+  projects:{label:"Projects", items:()=>projectSections().flatMap(x=>[{section:x.cat, n:x.items.length}, ...x.items])},
   desktop:{label:"Desktop", items:()=>[
     {name:"Projects", icon:APPICON.folder, meta:"Folder", open:()=>{finderLoc="projects"; refreshFinderAll();}},
     {name:"About Me", icon:APPICON.about, meta:"App", open:()=>openApp("about")},
@@ -1827,6 +1837,7 @@ const FINDER_LOCS = {
   ]},
   about:{label:"About Me", items:()=>[{aboutcard:true}]}
 };
+CATEGORIES.forEach(c=>{ FINDER_LOCS["cat:"+c.id]={label:c.name, items:()=>categoryItems(c.id)}; });
 function renderFinder(){
   return `<div class="finder">
     <div class="finder-side">
@@ -1836,6 +1847,8 @@ function renderFinder(){
       <div class="fs-item" data-loc="apps">${I.grid}<span>Applications</span></div>
       ${ARCADE?`<div class="fs-item" data-loc="arcade">${I.gamepad}<span>Arcade</span></div>`:""}
       <div class="fs-item" data-loc="about">${I.starMini}<span>About Me</span></div>
+      ${CATEGORIES.length?`<div class="fs-group" style="margin-top:8px">Projects</div>`:""}
+      ${projectSections().filter(x=>x.cat.id!=="other").map(x=>`<div class="fs-item" data-loc="cat:${esc(x.cat.id)}">${I[x.cat.icon]||I.folderMini}<span>${esc(x.cat.name)}</span><em class="fs-n">${x.items.length}</em></div>`).join("")}
       <div class="fs-group" style="margin-top:8px">Apps</div>
       <div class="fs-item" data-app="terminal">${I.term}<span>Terminal</span></div>
       <div class="fs-item" data-app="activity">${I.grid}<span>Activity Monitor</span></div>
@@ -1868,9 +1881,12 @@ function finderItemsHTML(){
   }
   if(finderView==="list"){
     const rows = items.map((it,i)=>{
+      if(it.section) return `<div class="lsec">${I[it.section.icon]||I.folderMini}<span>${esc(it.section.name)}</span><em>${it.n}</em></div>`;
       if(it.project){ const p=it.project;
-        return `<div class="lrow" data-i="${i}"><div class="lname">${projIcon(p)}<span class="t">${esc(p.name)}${p.kind==="app"?".app":""}</span></div>
-          <div class="lk">${p.status==="live"?'<span class="pill live" style="font-size:10px"><span class="dot"></span>Live</span>':esc(p.modified)}</div>
+        const st = p.locked&&p.status==="live" ? `<span class="pill lock" style="font-size:10px">${I.lock}Private</span>`
+          : p.status==="live" ? '<span class="pill live" style="font-size:10px"><span class="dot"></span>Live</span>' : esc(p.modified);
+        return `<div class="lrow" data-i="${i}"><div class="lname">${projIcon(p)}<span class="t">${esc(p.name)}</span></div>
+          <div class="lk">${st}</div>
           <div class="lk">${esc(p.tagline)}</div></div>`;
       }
       return `<div class="lrow" data-i="${i}"><div class="lname"><span style="width:22px;height:22px">${it.icon}</span><span class="t">${esc(it.name)}</span></div><div class="lk">${esc(it.meta||"")}</div><div class="lk"></div></div>`;
@@ -1878,10 +1894,11 @@ function finderItemsHTML(){
     return `<div class="f-list"><div class="lrow head"><div>Name</div><div>Status</div><div>Kind</div></div>${rows}</div>`;
   }
   const cells = items.map((it,i)=>{
+    if(it.section) return `<div class="f-sec">${I[it.section.icon]||I.folderMini}<b>${esc(it.section.name)}</b><span>${esc(it.section.blurb||"")}</span></div>`;
     if(it.project){ const p=it.project;
-      const badge = p.status==="live"?`<span class="badge"></span>`:"";
+      const badge = p.status!=="live" ? "" : p.locked ? `<span class="badge lock" title="Sign-in required">${I.lock}</span>` : `<span class="badge"></span>`;
       return `<div class="f-file" data-i="${i}"><div class="fi">${projIcon(p)}${badge}</div>
-        <div class="fn">${esc(p.name)}${p.kind==="app"?".app":""}</div><div class="fmeta">${esc(p.modified)}</div></div>`;
+        <div class="fn">${esc(p.name)}</div><div class="fmeta">${esc(p.modified)}</div></div>`;
     }
     return `<div class="f-file" data-i="${i}"><div class="fi">${it.icon}</div><div class="fn">${esc(it.name)}</div><div class="fmeta">${esc(it.meta||"")}</div></div>`;
   }).join("");
@@ -1902,7 +1919,7 @@ function wireFinder(body){
     body.querySelectorAll(".ft-view button").forEach(x=>x.classList.toggle("on",x.dataset.view===finderView));
     pathEl.innerHTML = `${I.folderMini}<b>${esc(FINDER_LOCS[finderLoc].label)}</b>`;
     bodyEl.innerHTML = finderItemsHTML();
-    const n=FINDER_LOCS[finderLoc].items().length;
+    const n=FINDER_LOCS[finderLoc].items().filter(x=>!x.section).length;
     statusEl.textContent = finderLoc==="about"?"About Me":`${n} item${n!==1?"s":""}`;
     // wire files
     bodyEl.querySelectorAll(".f-file,.lrow:not(.head)").forEach(cell=>{
@@ -2053,7 +2070,7 @@ function menuItems(kind){
   if(kind==="go") return [
     {label:"Projects", icon:APPICON.folder, action:()=>{ finderLoc="projects"; openApp("finder"); setTimeout(refreshFinderAll,20); }},
     {label:"About This Machine", icon:APPICON.about, action:()=>openApp("about")},
-    {label:"Traffic Map", icon:APPICON.globe, action:()=>openApp("project:trafficmap")},
+    {label:"Traffic Map", icon:PROJICON.map||APPICON.globe, action:()=>openApp("project:trafficmap")},
     ...(ARCADE?[{label:"Arcade", icon:APPICON.arcade, action:()=>openApp("arcade")}]:[]),
     {label:"Terminal", icon:APPICON.terminal, action:()=>openApp("terminal")},
     {divider:true},
@@ -2200,7 +2217,7 @@ function spotIndex(){
   list.push({t:"Lock screen", s:"Sleep mattOS", kind:"action", icon:I.moon, act:lockScreen});
   list.push({t:"Restart", s:"Replay the boot sequence", kind:"action", icon:I.restart, act:()=>runBoot(false)});
   list.push({t:"Email Matt", s:"Compose a message", kind:"action", icon:APPICON.contact, act:()=>openApp("contact")});
-  list.push({t:"Open Traffic Map", s:"mattlavergne.com/trafficmap", kind:"live", icon:APPICON.globe, act:()=>location.href="/trafficmap"});
+  list.push({t:"Open Traffic Map", s:"mattlavergne.com/trafficmap", kind:"live", icon:PROJICON.map||APPICON.globe, act:()=>location.href="/trafficmap"});
   return list;
 }
 function openSpotlight(){
@@ -2382,7 +2399,7 @@ function initTerminal(body,id){
     help(){ p("","<pre>Available commands:\n  <b>about</b>      who is Matt\n  <b>projects</b>   list projects   ·  <b>open</b> &lt;name&gt;\n  <b>skills</b>     resident tools  ·  <b>experience</b>\n  <b>contact</b>    ways to reach me\n  <b>arcade</b>     list games      ·  <b>play</b> &lt;game&gt;\n  <b>neofetch</b>   system info     ·  <b>theme</b> &lt;auto|light|dark&gt;\n  <b>wallpaper</b>  next palette    ·  <b>ls</b>, <b>whoami</b>, <b>date</b>, <b>echo</b>\n  <b>sudo</b>       restricted      ·  <b>clear</b>, <b>exit</b>\n\nNot everything is in this list.</pre>"); },
     about(){ p("",`<b>${esc(PROFILE.name)}</b>: ${esc(PROFILE.title)}.\n${PROFILE.bio[0].replace(/<\/?b>/g,"")}`.replace(/\n/g,"<br>")); },
     whoami(){ p("","matt"); },
-    ls(){ p("","<pre>"+PROJECTS.map(x=>x.slug+(x.kind==="app"?".app":"/")+(x.status==="live"?"  <span class='ok'>[live]</span>":"")).join("\n")+(ARCADE?"\narcade/    <span class='acc'>["+GAMES.length+" games]</span>":"")+"\nAbout Me   README.txt   Contact</pre>"); },
+    ls(){ p("","<pre>"+PROJECTS.map(x=>x.slug+(projURL(x)?".app":"/")+(x.status==="live"?"  <span class='ok'>[live]</span>":"")).join("\n")+(ARCADE?"\narcade/    <span class='acc'>["+GAMES.length+" games]</span>":"")+"\nAbout Me   README.txt   Contact</pre>"); },
     projects(){ this.ls(); },
     skills(){ p("","<pre>"+SKILLS.map(s=>s.name.padEnd(34,' ')+" "+"█".repeat(Math.round(s.pct/6)).padEnd(17,'░')+" "+s.pct+"%").join("\n")+"</pre>"); },
     experience(){ EXPERIENCE.forEach(j=>p("",`<b>${esc(j.what)}</b> · <span class="acc">${esc(j.where)}</span>\n<span class="u">${esc(j.when)}</span>`.replace(/\n/g,"<br>"))); },
@@ -2393,10 +2410,17 @@ function initTerminal(body,id){
     theme(a){ const m=(a[0]||"").toLowerCase(); if(["auto","light","dark"].includes(m)){ setTheme(m); p("ok","theme → "+m); } else p("err","usage: theme auto|light|dark"); },
     wallpaper(){ cycleWall(); p("ok","wallpaper → "+palName); },
     open(a){ const q=(a.join(" ")||"").toLowerCase(); if(!q){ p("err","usage: open <project|app>"); return; }
-      const pr=PROJECTS.find(x=>x.slug.includes(q)||x.name.toLowerCase().includes(q));
-      if(pr){ if(pr.status==="live"&&pr.url!=="#"){ p("ok","launching "+pr.name+" → "+pr.url); setTimeout(()=>location.href=pr.url,500); } else { openApp("project:"+pr.slug); p("ok","opened "+pr.name); } return; }
+      // exact names win; on a partial match a bundled app beats a project,
+      // so `open calc` is still the Calculator, not the fee calculator
+      const bundled=EXTRA_APPS.find(a=>a.id===q||a.title.toLowerCase()===q)
+        || EXTRA_APPS.find(a=>a.id.includes(q)||a.title.toLowerCase().includes(q));
+      const pr=PROJECTS.find(x=>x.slug===q||x.name.toLowerCase()===q)
+        || (!APPS[q] && !bundled && PROJECTS.find(x=>x.slug.includes(q)||x.name.toLowerCase().includes(q)));
+      if(pr){ const u=projURL(pr);
+        if(pr.status==="live"&&u){ p("ok","launching "+pr.name+" → "+u);
+          if(isExternal(u)) launchProject(pr); else setTimeout(()=>launchProject(pr),500); }
+        else { openApp("project:"+pr.slug); p("ok","opened "+pr.name); } return; }
       if(APPS[q]){ openApp(q); p("ok","opened "+q); return; }
-      const bundled=EXTRA_APPS.find(a=>a.id.includes(q)||a.title.toLowerCase().includes(q));
       if(bundled){ openApp("app:"+bundled.id); p("ok","opened "+bundled.title); return; }
       const gm=GAMES.find(g=>g.id.includes(q)||g.name.toLowerCase().includes(q));
       if(gm){ openApp("game:"+gm.id); p("ok","opened "+gm.name); return; }

@@ -4,8 +4,9 @@ The landing page for **mattlavergne.com**, built as **mattOS** — a fully
 interactive desktop operating system rendered in the browser. Visitors boot
 into a liquid-glass desktop with a menu bar, a magnifying dock, draggable
 windows, Spotlight search, a working Terminal, and a Finder that houses the
-portfolio's projects (the live [Traffic Map](https://mattlavergne.com/trafficmap),
-a map background generator, and more).
+portfolio's projects, grouped into Web Apps, Games, Work Tools, Automation and
+Research (the live [Traffic Map](https://mattlavergne.com/trafficmap),
+ASTRA Studio, Cartogram, GhostTrace, and more).
 
 The design language — translucent glass panels, inset edge highlights, a
 refractive sheen, heavy backdrop blur, the blue accent, and auto/light/dark
@@ -19,7 +20,9 @@ static asset, and `/trafficmap` is reverse-proxied to a separate project.
 
 | Path | What it is |
 | --- | --- |
-| `public/index.html` | The whole OS, one self-contained file (all CSS/JS inline, no build, no CDN). **The file you normally edit.** |
+| `public/index.html` | The whole OS, one self-contained file (all CSS/JS inline, no build, no CDN). |
+| `public/projects.js` | **Every project**: the list, the Finder's categories, and the project icons. **The file you edit to add a project.** |
+| `scripts/sync-projects.mjs` | Drafts `projects.js` entries for GitHub repos that aren't on the site yet (see [Adding projects](#add-or-edit-a-project)). |
 | `public/app.html` | The **app-window shell**: renders one project as a browser-style window on the mattOS desktop. One shell serves every framed project. |
 | `public/games/engine.js` | The **Arcade engine**: the stage every game runs on, plus the registry and the on-demand loader. Machinery only. |
 | `public/games/catalog.js` | The list of games (name, icon, sizes, controls). Metadata only, so the desktop can show the arcade without downloading any game. |
@@ -31,6 +34,7 @@ static asset, and `/trafficmap` is reverse-proxied to a separate project.
 | `src/index.js` | The Cloudflare Worker: serves framed apps, proxies their embedded content, and serves the landing page for everything else. |
 | `wrangler.toml` | Worker + static-assets + routes config. |
 | `.github/workflows/deploy.yml` | Deploys to Cloudflare on every push to `main`. |
+| `.github/workflows/sync-projects.yml` | Daily: opens a PR drafting entries for new GitHub repos. |
 
 ## What's in the OS
 
@@ -89,14 +93,18 @@ The Worker owns `mattlavergne.com/*`:
   shared link or a refresh boots straight into that window.
 - everything else → `public/index.html` (the portfolio) and its static assets.
 
-`/food` is the one path this Worker does **not** serve. It belongs to a
+`/food` and `/osint` are the paths this Worker does **not** serve. It belongs to a
 separate Worker ([What-To-Eat](https://github.com/mattlavergne/What-To-Eat), a
 weekly meal log backed by a D1 database), which claims the narrower routes
 `mattlavergne.com/food` and `mattlavergne.com/food/*`. Cloudflare matches the
 most specific route, so those win over this Worker's `mattlavergne.com/*` and
 no code here has to know about it — the entry in `PROJECTS` is just a link.
 Deleting that one object hides the app from the Finder and Spotlight without
-taking the site down.
+taking the site down. [GhostTrace](https://github.com/mattlavergne/OSINT)
+works the same way on `mattlavergne.com/osint*`, and the private
+[chat](https://github.com/mattlavergne/LLM) is a separate Worker on its own
+hostname, `chat.mattlavergne.com`, behind Cloudflare Access; the landing page
+only links to it.
 
 ## Framed apps (windowed projects)
 
@@ -125,6 +133,9 @@ const APPS = {
 };
 ```
 
+Framed today: `/trafficmap`, `/music` (ASTRA Studio), `/apple`, `/cartogram`,
+`/fees` (GiveCampus Fee Calculator) and `/checklist` (Correspondence Checklist).
+
 To add another framed project, add one entry. The key is the pretty URL. Point
 it at **either**:
 
@@ -132,6 +143,11 @@ it at **either**:
   origin (use this for a separate site, like a GitHub Pages project), **or**
 - `embed: "/some/path"` — a URL already reachable on this domain (a static
   asset, another route). No proxying is done.
+
+Set **both** when the proxied site's page isn't its `index.html`: `/fees` proxies
+the GiveCampus repo's Pages site and sets
+`embed: "/fees/_app/GiveCampus_Fee_Calculator.html"` so the window opens on the
+right file.
 
 The shell, window chrome, and controls come for free. Nothing else to wire up.
 
@@ -155,37 +171,92 @@ one) with the routes in `wrangler.toml`, so it takes over the domain in place.
 
 ## Add or edit a project
 
-**One list drives the whole OS.** Every project comes from the `PROJECTS`
-array near the top of the `<script>` in `public/index.html`. Add one object
-and it shows up **consistently everywhere** — the Finder, Spotlight search, and
-its own project window. Set `pinned: true` and it *also* gets an icon on the
-**Desktop** and in the **Dock**. Nothing is hard-coded per-project anymore.
+**One file drives every project:** `public/projects.js`. Each entry shows up
+in the Finder (under its category), Spotlight, its own project window, and the
+Terminal (`open <slug>`). Set `pinned: true` and it *also* gets an icon on the
+**Desktop** and in the **Dock**.
 
-Copy an existing entry:
+### Automatically (new GitHub repos)
+
+The **Sync GitHub projects** workflow runs every morning. If you've made a
+public repo that isn't on the site, it opens a pull request drafting an entry
+for it:
+
+- **name / tagline**: the README's `# Title` (`Cartogram — Map Builder` gives
+  name *Cartogram*), else the repo name; the tagline is the repo's description,
+  else the title's subtitle, else the README's first sentence
+- **desc**: the README's first paragraph
+- **link**: the repo's **Website** field if set (a `mattlavergne.com/...`
+  address becomes a relative link), else its GitHub Pages site, else a
+  "View on GitHub" button
+- **category + icon**: guessed from keywords (game, map, chat, calculator,
+  trading, scraper, …)
+
+Review the wording in the PR, fix anything it guessed wrong, merge. Merging
+deploys. Forks, archived repos, empty repos and private repos are skipped;
+add a repo's name to `IGNORE` at the bottom of `projects.js` to stop it being
+suggested.
+
+Two habits make the drafts much better: give each repo a one-line
+**description** and, if it's hosted, fill in its **Website** field (both in
+the repo's *About* box on GitHub).
+
+**One-time setup:** Settings → Actions → General → Workflow permissions →
+tick **Allow GitHub Actions to create and approve pull requests**. To run it
+right away: Actions → *Sync GitHub projects* → *Run workflow*.
+
+You can also run it yourself:
+
+```bash
+node scripts/sync-projects.mjs                       # what would it add?
+node scripts/sync-projects.mjs --write               # add the drafts
+GITHUB_TOKEN=… node scripts/sync-projects.mjs --write mattlavergne/SomePrivateRepo
+```
+
+Naming a repo is the only way a private one gets drafted (it needs a token
+that can read it), so nothing private appears without you asking.
+
+### By hand
+
+Copy an existing entry in `public/projects.js`:
 
 ```js
 {
-  slug:"newthing",                 // unique id (used for the window + deep-link)
-  name:"My New Thing",             // display name
-  kind:"app",                      // "app" → shows a .app suffix; "case" → case study
-  status:"live",                   // "live" → Live badge · "production" → In-production
-                                   //   badge (no public link) · anything else → "soon"
+  slug:"newthing",                 // unique id (window id + `open newthing` in the Terminal)
+  name:"My New Thing",
+  category:"apps",                 // apps · games · tools · automation · research
+  status:"live",                   // "live" → Live badge + launch button
+                                   // "production" → In-production badge, no public link
+                                   // "code" → Open-source badge + "View on GitHub"
+                                   // anything else → Coming soon
   url:"/newthing",                 // "/path", "https://…", or "#"
-  pinned:true,                     // OPTIONAL — also show on the Desktop + Dock
-  icon:"sparkle",                  // one of: globe, sparkle, wave, flow, folder, note
-  modified:"Live",                 // small caption under the icon
-  size:"—",
+  locked:true,                     // OPTIONAL — needs a sign-in (lock badge, "Private")
+  repo:"mattlavergne/NewThing",    // OPTIONAL — adds "View source"; the sync bot skips listed repos
+  repoPrivate:true,                // OPTIONAL — private repo: no source button
+  pinned:true,                     // OPTIONAL — also on the Desktop + Dock
+  icon:"map",                      // a key of ICONS in projects.js
+  modified:"Live",                 // caption under the icon
   tagline:"One-line summary",
   tags:["Python","IoT"],
   desc:"A sentence or two shown in the project window.",
-  launch:"Open the live app"       // button label when live (null → default)
+  launch:"Open the live app"       // button label (null → "Open")
 }
 ```
 
-Save, commit, push. The project appears everywhere automatically. Pin your best
-one or two so the Desktop/Dock stay uncluttered; leave the rest to live in the
-Finder. To change the bio, skills, or experience, edit the `PROFILE`, `SKILLS`,
-`EXPERIENCE`, and `EDUCATION` objects right above `PROJECTS`.
+**Icons** (all in `projects.js`, each a hint at what the project does):
+`map` (live maps), `mapart` (map artwork), `studio` (music), `recon` (lookups),
+`chat`, `food`, `apple`, `game`, `fees` (calculators), `checklist`, `scraper`,
+`pdf`, `crm`, `flow` (automation), `chart` (trading/data), `wave` (radio/IoT),
+`code` and `tool` (generic), plus the desktop's `globe`, `sparkle`, `note` and
+`folder`. A new icon is one more `squircle(...)` entry in `ICONS`.
+
+**Categories** are the `CATEGORIES` list in the same file; their order is the
+Finder's order. External links (`https://…`) open in a new tab; links on this
+domain open in place, like the rest of the site.
+
+Pin your best one or two so the Desktop/Dock stay uncluttered. To change the
+bio, skills, or experience, edit `PROFILE`, `SKILLS`, `EXPERIENCE`, and
+`EDUCATION` near the top of the `<script>` in `public/index.html`.
 
 ## The Arcade
 

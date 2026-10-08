@@ -28,6 +28,7 @@
 // Add one entry to APPS.  The key is the pretty URL.  Point it at either a
 // `proxy` origin (reverse-proxied under <path>/_app/*) or an `embed` URL that
 // is already reachable on this domain (a static asset, another route, …).
+// Use both when the proxied site's page isn't its index.html (see /fees).
 // That's it — the shell, window chrome, and controls come for free.
 
 const APPS = {
@@ -56,6 +57,32 @@ const APPS = {
     accent: "#e8392f",
     // The game is a static site on GitHub Pages (mattlavergne/apple).
     proxy: "https://mattlavergne.github.io/apple",
+  },
+  "/cartogram": {
+    title: "Cartogram",
+    subtitle: "Map artwork · wallpaper builder",
+    address: "mattlavergne.com/cartogram",
+    accent: "#f6c453",
+    // Static site on GitHub Pages (mattlavergne/Map-Background-Builder).
+    proxy: "https://mattlavergne.github.io/Map-Background-Builder",
+  },
+  "/fees": {
+    title: "GiveCampus Fee Calculator",
+    subtitle: "What to charge so the department nets its number",
+    address: "mattlavergne.com/fees",
+    accent: "#059669",
+    // A single HTML file on GitHub Pages, not an index.html, so the iframe
+    // starts at the file itself (`embed`) while `proxy` still serves it.
+    proxy: "https://mattlavergne.github.io/GiveCampus-Fee-Calculator",
+    embed: "/fees/_app/GiveCampus_Fee_Calculator.html",
+  },
+  "/checklist": {
+    title: "Correspondence Checklist",
+    subtitle: "CRM correspondence uploads, step by step",
+    address: "mattlavergne.com/checklist",
+    accent: "#2563eb",
+    proxy: "https://mattlavergne.github.io/Correspondence-Checklist",
+    embed: "/checklist/_app/corr_upload_checklist.html",
   },
 };
 
