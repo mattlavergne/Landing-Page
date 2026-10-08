@@ -1,15 +1,18 @@
 // Cloud saves for The Apple (mattlavergne.com/apple).
 //
-//   GET /apple/api/save/<CODE>[?have=<rev>]
+// Served at /api/apple/... (public, used by the app) and at the older
+// /apple/api/... (under /apple, which Cloudflare Access locks to the developer).
+//
+//   GET /api/apple/save/<CODE>[?have=<rev>]
 //     -> { data, updatedAt, rev }, or { unchanged: true, rev } when the caller
 //        already has revision <rev>, or 404 when nothing is saved yet
-//   PUT /apple/api/save/<CODE>  <- { data, updatedAt, baseRev }
+//   PUT /api/apple/save/<CODE>  <- { data, updatedAt, baseRev }
 //     -> { ok: true, rev, updatedAt }
 //     -> 409 { conflict: true, reason, data, updatedAt, rev } when another
 //        device saved first (baseRev is not the latest revision) or the new
 //        save has less progress than the stored one. The game merges the
 //        returned save into its own and tries again.
-//   DELETE /apple/api/save/<CODE>
+//   DELETE /api/apple/save/<CODE>
 //     -> { ok: true }: the save and its history are gone. The code is
 //        remembered as deleted for a while, and GET/PUT answer 410, so other
 //        devices still using it turn sync off instead of uploading it again.
@@ -157,7 +160,7 @@ const isDeleted = async (db, code) =>
 export async function handleAppleApi(request, env, ctx) {
   if (request.method === 'OPTIONS') return respond(request, 204, null);
   const url = new URL(request.url);
-  const m = url.pathname.match(/^\/apple\/api\/save\/([^/]+)\/?$/);
+  const m = url.pathname.match(/^\/(?:api\/apple|apple\/api)\/save\/([^/]+)\/?$/);
   if (!m) return respond(request, 404, { error: 'not found' });
   const code = m[1].toUpperCase();
   if (!CODE.test(code)) return respond(request, 400, { error: 'bad sync code' });
