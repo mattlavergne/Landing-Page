@@ -55,13 +55,19 @@ const APPS = {
   },
   "/apple": {
     title: "The Apple",
-    subtitle: "Snake, flipped · you're the apple",
-    address: "mattlavergne.com/apple",
-    accent: "#e8392f",
-    // The game is a static site on GitHub Pages (mattlavergne/apple). /apple
-    // is the developer's test copy, locked with Cloudflare Access; players use
-    // the App Store app.
+    // The developer's private test copy of the game (players use the App
+    // Store app), locked with Cloudflare Access. It opens full-screen at
+    // /apple/test/, not in a desktop window. The old /apple/_app/ address
+    // still works, but an offline helper (service worker) an earlier version
+    // left in browsers there couldn't load pages through the sign-in and
+    // showed a blank page; /apple/test/ is out of its reach, and the game
+    // removes the old helper when it opens.
+    direct: true,
+    mount: "/apple/test",
+    // From GitHub Pages, or straight from the repo when it's private: set the
+    // Worker secret GITHUB_TOKEN (read-only access to this repo's contents).
     proxy: "https://mattlavergne.github.io/apple",
+    repo: "mattlavergne/apple",
   },
   "/cartogram": {
     title: "Cartogram",
@@ -86,15 +92,17 @@ const APPS = {
 // files rather than swallowed by the desktop.
 const DESKTOP_PATHS = /^\/(arcade|apps)(\/[a-z0-9-]+)?\/?$/i;
 
-// If pathname is "<appPath>/_app[/...]" for a proxied app, return the app and
-// the remaining origin path (always starting with "/").
+// If pathname is "<appPath>/_app[/...]" (or the app's own `mount` path) for a
+// proxied app, return the app and the remaining origin path (always starting
+// with "/").
 function embedTarget(pathname) {
   for (const [appPath, app] of Object.entries(APPS)) {
     if (!app.proxy) continue;
-    const base = appPath + "/_app";
-    if (pathname === base || pathname.startsWith(base + "/")) {
-      const rest = pathname.slice(base.length);
-      return { app, rest: rest === "" ? "/" : rest };
+    for (const base of [app.mount, appPath + "/_app"]) {
+      if (base && (pathname === base || pathname.startsWith(base + "/"))) {
+        const rest = pathname.slice(base.length);
+        return { app, rest: rest === "" ? "/" : rest };
+      }
     }
   }
   return null;
@@ -116,11 +124,19 @@ export default {
     //    the cloud-save API (src/apple-api.js) at /api/apple, and the privacy
     //    policy the App Store listing and AdMob link to at /privacy/apple.
     if (path.startsWith("/api/apple/") || path.startsWith("/apple/api/")) return handleAppleApi(request, env, ctx);
-    if (path === "/privacy/apple" || path === "/privacy/apple/") return applePrivacy();
+    if (path === "/privacy/apple" || path === "/privacy/apple/") return applePrivacy(env, url);
 
     // 1) Proxied embed content for a framed app's iframe.
     const target = embedTarget(path);
     if (target) {
+      const fromRepo = !!(target.app.repo && env.GITHUB_TOKEN);
+      // Which source is in use, to check before making the repo private.
+      if (target.rest === "/__source") {
+        return new Response(fromRepo ? "The repo, with the GitHub token (it can be private).\n" : "GitHub Pages (the repo must stay public).\n", {
+          headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" },
+        });
+      }
+      if (fromRepo) return repoFile(env, ctx, target.app.repo, target.rest);
       const originUrl = target.app.proxy + target.rest + url.search;
       const originResponse = await fetch(originUrl, {
         cf: { cacheTtl: 300, cacheEverything: true },
@@ -140,6 +156,7 @@ export default {
 
     // 2) A framed app's pretty URL -> the mattOS app-window shell.
     const key = appKeyFor(path);
+    if (key && APPS[key].direct) return Response.redirect(url.origin + (APPS[key].mount || key + "/_app") + "/", 302);
     if (key) return renderAppFrame(env, url, key, APPS[key]);
 
     // 2b) An arcade or app URL -> the desktop, which opens that window.
@@ -159,19 +176,67 @@ export default {
   },
 };
 
-// The Apple's privacy policy, straight from the game's repo (privacy.html is
-// self-contained: no fonts or images to load from elsewhere).
-async function applePrivacy() {
-  const res = await fetch(APPS["/apple"].proxy + "/privacy.html", {
-    cf: { cacheTtl: 300, cacheEverything: true },
-  });
-  if (!res.ok) return new Response("Privacy policy temporarily unavailable.", { status: 502 });
+// The Apple's privacy policy: a copy of the game's privacy.html kept here, so
+// the address the App Store and AdMob link to never depends on the game repo
+// (private or not) or a token. Update both copies together; the game's
+// tools/test-site.mjs checks they match.
+async function applePrivacy(env, url) {
+  // public/privacy/apple.html. Static assets drop ".html" from addresses by
+  // default, so ask for it without, then with, the extension.
+  let res = await env.ASSETS.fetch(new URL("/privacy/apple", url));
+  if (!res.ok) res = await env.ASSETS.fetch(new URL("/privacy/apple.html", url));
+  if (!res.ok) return new Response("The privacy policy is temporarily unavailable.", { status: 502 });
   return new Response(res.body, {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
       "Cache-Control": "public, max-age=300",
     },
   });
+}
+
+// A file from a GitHub repo through the API, for a project whose repo is
+// private (GitHub Pages only serves public repos on the free plan). Cached at
+// the edge for a minute, so a merge shows up quickly without using up the
+// token's hourly limit.
+const REPO_TYPES = {
+  html: "text/html; charset=utf-8", js: "text/javascript; charset=utf-8", css: "text/css; charset=utf-8",
+  json: "application/json", webmanifest: "application/manifest+json", txt: "text/plain; charset=utf-8",
+  svg: "image/svg+xml", png: "image/png", jpg: "image/jpeg", woff2: "font/woff2",
+};
+async function repoFile(env, ctx, repo, rest) {
+  const file = (rest.endsWith("/") ? rest + "index.html" : rest).replace(/^\/+/, "");
+  if (!file || file.split("/").some(s => s === ".." || s.startsWith("."))) return new Response("Not found", { status: 404 });
+  const cacheKey = new Request(`https://mattlavergne.com/__repo-cache/${repo}/${file}`);
+  const cached = await caches.default.match(cacheKey);
+  if (cached) {
+    const headers = new Headers(cached.headers);
+    headers.set("Cache-Control", "no-cache");
+    return new Response(cached.body, { headers });
+  }
+  const gh = await fetch(`https://api.github.com/repos/${repo}/contents/${file.split("/").map(encodeURIComponent).join("/")}`, {
+    headers: {
+      Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+      Accept: "application/vnd.github.raw+json",
+      "User-Agent": "mattlavergne.com",
+      "X-GitHub-Api-Version": "2022-11-28",
+    },
+  });
+  if (!gh.ok) {
+    return new Response(gh.status === 404 ? "Not found" : `Couldn't read ${repo} from GitHub (${gh.status}). Is the GITHUB_TOKEN secret still valid?`, {
+      status: gh.status === 404 ? 404 : 502,
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    });
+  }
+  const res = new Response(gh.body, {
+    headers: {
+      "Content-Type": REPO_TYPES[file.split(".").pop().toLowerCase()] || "application/octet-stream",
+      "Cache-Control": "no-cache",
+    },
+  });
+  const forCache = res.clone();
+  const stored = new Response(forCache.body, { headers: { ...Object.fromEntries(forCache.headers), "Cache-Control": "max-age=60" } });
+  ctx.waitUntil(caches.default.put(cacheKey, stored));
+  return res;
 }
 
 // Render public/app.html with this app's config injected. The shell reads
