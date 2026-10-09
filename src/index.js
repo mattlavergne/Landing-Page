@@ -58,7 +58,9 @@ const APPS = {
     subtitle: "Snake, flipped · you're the apple",
     address: "mattlavergne.com/apple",
     accent: "#e8392f",
-    // The game is a static site on GitHub Pages (mattlavergne/apple).
+    // The game is a static site on GitHub Pages (mattlavergne/apple). /apple
+    // is the developer's test copy, locked with Cloudflare Access; players use
+    // the App Store app.
     proxy: "https://mattlavergne.github.io/apple",
   },
   "/cartogram": {
@@ -109,8 +111,12 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
-    // 0) The Apple's cloud-save API (see src/apple-api.js).
-    if (path.startsWith("/apple/api/")) return handleAppleApi(request, env, ctx);
+    // 0) The Apple. /apple itself is a private test site (Cloudflare Access
+    //    in front of it), so the parts the public app needs live outside it:
+    //    the cloud-save API (src/apple-api.js) at /api/apple, and the privacy
+    //    policy the App Store listing and AdMob link to at /privacy/apple.
+    if (path.startsWith("/api/apple/") || path.startsWith("/apple/api/")) return handleAppleApi(request, env, ctx);
+    if (path === "/privacy/apple" || path === "/privacy/apple/") return applePrivacy();
 
     // 1) Proxied embed content for a framed app's iframe.
     const target = embedTarget(path);
@@ -152,6 +158,21 @@ export default {
     return env.ASSETS.fetch(new URL("/index.html", url));
   },
 };
+
+// The Apple's privacy policy, straight from the game's repo (privacy.html is
+// self-contained: no fonts or images to load from elsewhere).
+async function applePrivacy() {
+  const res = await fetch(APPS["/apple"].proxy + "/privacy.html", {
+    cf: { cacheTtl: 300, cacheEverything: true },
+  });
+  if (!res.ok) return new Response("Privacy policy temporarily unavailable.", { status: 502 });
+  return new Response(res.body, {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "public, max-age=300",
+    },
+  });
+}
 
 // Render public/app.html with this app's config injected. The shell reads
 // window.__APP__ to populate the title, address bar, accent, and iframe.

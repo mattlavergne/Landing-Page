@@ -226,13 +226,13 @@ const LIST = [
 
   /* ── Games ──────────────────────────────────────────────────── */
   {
-    slug:"apple", name:"The Apple", category:"games", status:"live", url:"/apple", pinned:true,
+    slug:"apple", name:"The Apple", category:"games", status:"live", url:"/apple", pinned:true, locked:true,
     repo:"mattlavergne/apple",
-    icon:"apple", modified:"Live",
-    tagline:"Snake, flipped: you're the apple",
-    tags:["Live","Game","Canvas","Vanilla JS"],
+    icon:"apple", modified:"In testing",
+    tagline:"Snake, flipped: you're the apple. Coming to the App Store",
+    tags:["iOS app","Game","Canvas","Vanilla JS"],
     desc:"A reverse game of Snake. You play the apple and lure hungry snakes into walls, thorns, each other and their own tails. Snakes get smarter as you go (greedy, then pathfinding, then trap-avoiding), and you fight back with dashes, brambles, hidden rot and decoys. A 100-level Adventure across ten worlds, an Endless mode, boss snakes, per-run power-ups and an Orchard shop for upgrades and skins. Hand-drawn on a canvas with synthesized sound, no libraries.",
-    launch:"Play the game"
+    launch:"Open the test build"
   },
 
   /* ── Automation ─────────────────────────────────────────────── */
