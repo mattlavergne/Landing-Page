@@ -33,6 +33,7 @@
 // That's it — the shell, window chrome, and controls come for free.
 
 import { handleAppleApi } from "./apple-api.js";
+import { appleFix } from "./apple-fix.js";
 
 const APPS = {
   "/trafficmap": {
@@ -125,6 +126,8 @@ export default {
     //    policy the App Store listing and AdMob link to at /privacy/apple.
     if (path.startsWith("/api/apple/") || path.startsWith("/apple/api/")) return handleAppleApi(request, env, ctx);
     if (path === "/privacy/apple" || path === "/privacy/apple/") return applePrivacy(env, url);
+    // A repair page for the test site, public so a sign-in problem can't block it.
+    if (path === "/fix/apple" || path === "/fix/apple/") return appleFix();
 
     // 1) Proxied embed content for a framed app's iframe.
     const target = embedTarget(path);
