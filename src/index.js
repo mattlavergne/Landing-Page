@@ -139,7 +139,7 @@ export default {
           headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" },
         });
       }
-      if (fromRepo) return repoFile(env, ctx, target.app.repo, target.rest);
+      if (fromRepo) return repoFile(request, env, ctx, target.app.repo, target.rest);
       const originUrl = target.app.proxy + target.rest + url.search;
       const originResponse = await fetch(originUrl, {
         cf: { cacheTtl: 300, cacheEverything: true },
@@ -198,31 +198,58 @@ async function applePrivacy(env, url) {
 }
 
 // A file from a GitHub repo through the API, for a project whose repo is
-// private (GitHub Pages only serves public repos on the free plan). Cached at
-// the edge for a minute, so a merge shows up quickly without using up the
-// token's hourly limit.
+// private (GitHub Pages only serves public repos on the free plan).
+// Files are cached at the edge under the commit they came from, and the
+// latest commit on the default branch is looked up at most every 20 seconds,
+// so a merge shows up within seconds while repeat loads (a reload from the
+// test tools) come from Cloudflare instead of GitHub. The browser gets an
+// ETag per file and commit, so an unchanged file is a tiny 304. If the commit
+// can't be looked up, files are fetched as before and cached for a minute.
 const REPO_TYPES = {
   html: "text/html; charset=utf-8", js: "text/javascript; charset=utf-8", css: "text/css; charset=utf-8",
   json: "application/json", webmanifest: "application/manifest+json", txt: "text/plain; charset=utf-8",
   svg: "image/svg+xml", png: "image/png", jpg: "image/jpeg", woff2: "font/woff2",
 };
-async function repoFile(env, ctx, repo, rest) {
+const ghHeaders = (env, accept) => ({
+  Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+  Accept: accept,
+  "User-Agent": "mattlavergne.com",
+  "X-GitHub-Api-Version": "2022-11-28",
+});
+// The latest commit on the repo's default branch (cached 20 s), or null.
+async function repoHead(env, ctx, repo) {
+  const key = new Request(`https://mattlavergne.com/__repo-head/${repo}`);
+  const cached = await caches.default.match(key);
+  if (cached) return (await cached.text()).trim();
+  try {
+    const r = await fetch(`https://api.github.com/repos/${repo}/commits/HEAD`, { headers: ghHeaders(env, "application/vnd.github.sha") });
+    const sha = r.ok ? (await r.text()).trim() : "";
+    if (!/^[0-9a-f]{40}$/.test(sha)) return null;
+    ctx.waitUntil(caches.default.put(key, new Response(sha, { headers: { "Cache-Control": "max-age=20" } })));
+    return sha;
+  } catch {
+    return null;
+  }
+}
+async function repoFile(request, env, ctx, repo, rest) {
   const file = (rest.endsWith("/") ? rest + "index.html" : rest).replace(/^\/+/, "");
   if (!file || file.split("/").some(s => s === ".." || s.startsWith("."))) return new Response("Not found", { status: 404 });
-  const cacheKey = new Request(`https://mattlavergne.com/__repo-cache/${repo}/${file}`);
+  const sha = await repoHead(env, ctx, repo);
+  const etag = sha ? `"${sha.slice(0, 16)}"` : null;
+  if (etag && request.headers.get("If-None-Match") === etag) {
+    return new Response(null, { status: 304, headers: { ETag: etag, "Cache-Control": "no-cache" } });
+  }
+  const cacheKey = new Request(`https://mattlavergne.com/__repo-cache/${repo}/${sha || "latest"}/${file}`);
   const cached = await caches.default.match(cacheKey);
   if (cached) {
     const headers = new Headers(cached.headers);
     headers.set("Cache-Control", "no-cache");
+    if (etag) headers.set("ETag", etag);
     return new Response(cached.body, { headers });
   }
-  const gh = await fetch(`https://api.github.com/repos/${repo}/contents/${file.split("/").map(encodeURIComponent).join("/")}`, {
-    headers: {
-      Authorization: `Bearer ${env.GITHUB_TOKEN}`,
-      Accept: "application/vnd.github.raw+json",
-      "User-Agent": "mattlavergne.com",
-      "X-GitHub-Api-Version": "2022-11-28",
-    },
+  const ref = sha ? `?ref=${sha}` : "";
+  const gh = await fetch(`https://api.github.com/repos/${repo}/contents/${file.split("/").map(encodeURIComponent).join("/")}${ref}`, {
+    headers: ghHeaders(env, "application/vnd.github.raw+json"),
   });
   if (!gh.ok) {
     return new Response(gh.status === 404 ? "Not found" : `Couldn't read ${repo} from GitHub (${gh.status}). Is the GITHUB_TOKEN secret still valid?`, {
@@ -234,10 +261,12 @@ async function repoFile(env, ctx, repo, rest) {
     headers: {
       "Content-Type": REPO_TYPES[file.split(".").pop().toLowerCase()] || "application/octet-stream",
       "Cache-Control": "no-cache",
+      ...(etag ? { ETag: etag } : {}),
     },
   });
   const forCache = res.clone();
-  const stored = new Response(forCache.body, { headers: { ...Object.fromEntries(forCache.headers), "Cache-Control": "max-age=60" } });
+  // Under a commit the file never changes: keep it a day. Without one, a minute.
+  const stored = new Response(forCache.body, { headers: { ...Object.fromEntries(forCache.headers), "Cache-Control": sha ? "max-age=86400" : "max-age=60" } });
   ctx.waitUntil(caches.default.put(cacheKey, stored));
   return res;
 }
