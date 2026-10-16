@@ -43,8 +43,11 @@ const DETAILS = {
   daily_start: oneOf('1', '2', '3+'),
   daily_finish: lvl,
   share: oneOf('adventure', 'daily', 'endless'),
-  paywall: oneOf('map', 'level', 'next', 'endless'),
+  paywall: oneOf('map', 'level', 'next', 'continue', 'endless'),
   purchase: oneOf('bought', 'restored', 'pending', 'cancelled', 'failed'),
+  tutorial: oneOf('move', 'lead', 'bramble', 'rot'),
+  retry: oneOf('0-5', '5-15', '15-30', '30+'),
+  review_prompt: oneOf(''),
 };
 export const STAT_EVENTS = Object.keys(DETAILS);
 
@@ -209,6 +212,14 @@ export async function appleStatsPage(request, env, now = Date.now()) {
     for (const r of rs) { seen += r.n; if (seen >= players / 2) { median = r.score; break; } }
     return [`#${num}${num === today ? ' (today, UTC)' : ''}`, fmt(players), fmt(rs[0]?.score), fmt(median)];
   });
+  const ever = async (event, detail) => (await db.prepare('SELECT COALESCE(SUM(n), 0) AS n FROM apple_stats WHERE event = ? AND detail = ?').bind(event, detail).first()).n;
+  const installs = await ever('first_launch', '');
+  const funnelSteps = [['Installed', installs], ['Moved (lesson 1)', await ever('tutorial', 'move')], ['First crash (lesson 2)', await ever('tutorial', 'lead')],
+    ['Reached level 2', await ever('level_reached', '2')], ['Dropped a bramble (lesson 3)', await ever('tutorial', 'bramble')],
+    ['Reached level 3', await ever('level_reached', '3')], ['Used Hidden Rot (lesson 4)', await ever('tutorial', 'rot')], ['Reached level 5', await ever('level_reached', '5')]];
+  const funnel = funnelSteps.map(([label, n]) => [label, fmt(n), pct(n, installs)]);
+  const retries = ['0-5', '5-15', '15-30', '30+'].map(b => [b, fmt(sum(r => r.event === 'retry' && r.detail === b))]);
+  const losses = sum(r => r.event === 'level_fail' || r.event === 'daily_finish'); // every Daily Run ends in a loss
   const loyalty = ['1', '2', '3', '4-7', '8-14', '15-30', '31+'].map(b => [b, fmt(sum(r => r.event === 'active_day' && r.detail === b && r.day >= dayKey(now - 6 * DAY)))]);
 
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -234,7 +245,10 @@ th:first-child, td:first-child { text-align: left; } th { font-weight: 600; }
 <div class="wrap">${table(['Level', 'Reached', 'Clears', 'Eaten', 'Clear rate'], levelRows)}</div>
 <h2>Daily Run ranking</h2><p>Devices that compared each Daily, the top score and the median.</p>
 <div class="wrap">${table(['Daily', 'Players', 'Top', 'Median'], dailyRows)}</div>
+<h2>First minutes</h2><p>New installs, then how many finished each tutorial lesson and reached levels 2 and 3 (all time). The tutorial's goal: most installs reach level 3.</p>
+<div class="wrap">${table(['Step', 'Devices', 'Of installs'], funnel)}</div>
 <div class="cols">
+<div><h2>Trying again</h2><p>After losing an Adventure level or a Daily Run, how soon players tried it again (last 30 days), out of ${fmt(losses)} losses.</p>${table(['Seconds', 'Retries'], retries)}</div>
 <div><h2>Coming back</h2><p>Devices active in the last 7 days, by how many days they've played.</p>${table(['Days played', 'Devices'], loyalty)}</div>
 <div><h2>Unlock screen from</h2>${table(['From', 'Views'], by('paywall'))}</div>
 <div><h2>Purchases</h2>${table(['Result', 'Count'], by('purchase'))}</div>
