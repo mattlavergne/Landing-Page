@@ -33,6 +33,7 @@
 // That's it — the shell, window chrome, and controls come for free.
 
 import { handleAppleApi } from "./apple-api.js";
+import { handleAppleStats, appleStatsPage } from "./apple-stats.js";
 import { appleFix } from "./apple-fix.js";
 
 const APPS = {
@@ -124,6 +125,10 @@ export default {
     //    in front of it), so the parts the public app needs live outside it:
     //    the cloud-save API (src/apple-api.js) at /api/apple, and the privacy
     //    policy the App Store listing and AdMob link to at /privacy/apple.
+    // Anonymous play stats and the Daily Run ranking (src/apple-stats.js),
+    // and their summary page, which is under the locked /apple.
+    if (/^\/api\/apple\/(stats|daily)\/?$/.test(path)) return handleAppleStats(request, env, ctx);
+    if (path === "/apple/stats" || path === "/apple/stats/") return appleStatsPage(request, env);
     if (path.startsWith("/api/apple/") || path.startsWith("/apple/api/")) return handleAppleApi(request, env, ctx);
     if (path === "/privacy/apple" || path === "/privacy/apple/") return applePrivacy(env, url);
     // A repair page for the test site, public so a sign-in problem can't block it.

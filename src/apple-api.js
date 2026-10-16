@@ -55,12 +55,12 @@ function allowedOrigin(origin) {
   return null;
 }
 
-function respond(request, status, body) {
+export function respond(request, status, body) {
   const headers = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' };
   const origin = allowedOrigin(request.headers.get('Origin'));
   if (origin) {
     headers['Access-Control-Allow-Origin'] = origin;
-    headers['Access-Control-Allow-Methods'] = 'GET, PUT, DELETE, OPTIONS';
+    headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
     headers['Access-Control-Allow-Headers'] = 'Content-Type';
     headers['Access-Control-Max-Age'] = '86400';
     headers.Vary = 'Origin';
