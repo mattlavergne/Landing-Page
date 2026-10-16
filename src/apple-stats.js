@@ -45,7 +45,7 @@ const DETAILS = {
   share: oneOf('adventure', 'daily', 'endless'),
   paywall: oneOf('map', 'level', 'next', 'continue', 'endless'),
   purchase: oneOf('bought', 'restored', 'pending', 'cancelled', 'failed'),
-  tutorial: oneOf('move', 'lead', 'bramble', 'rot'),
+  tutorial: oneOf('move', 'lead', 'bramble', 'dash', 'rot'),
   retry: oneOf('0-5', '5-15', '15-30', '30+'),
   review_prompt: oneOf(''),
 };
@@ -216,7 +216,8 @@ export async function appleStatsPage(request, env, now = Date.now()) {
   const installs = await ever('first_launch', '');
   const funnelSteps = [['Installed', installs], ['Moved (lesson 1)', await ever('tutorial', 'move')], ['First crash (lesson 2)', await ever('tutorial', 'lead')],
     ['Reached level 2', await ever('level_reached', '2')], ['Dropped a bramble (lesson 3)', await ever('tutorial', 'bramble')],
-    ['Reached level 3', await ever('level_reached', '3')], ['Used Hidden Rot (lesson 4)', await ever('tutorial', 'rot')], ['Reached level 5', await ever('level_reached', '5')]];
+    ['Dashed (lesson 4)', await ever('tutorial', 'dash')], ['Reached level 3', await ever('level_reached', '3')], ['Used Hidden Rot (lesson 5)', await ever('tutorial', 'rot')],
+    ['Reached level 5', await ever('level_reached', '5')]];
   const funnel = funnelSteps.map(([label, n]) => [label, fmt(n), pct(n, installs)]);
   const retries = ['0-5', '5-15', '15-30', '30+'].map(b => [b, fmt(sum(r => r.event === 'retry' && r.detail === b))]);
   const losses = sum(r => r.event === 'level_fail' || r.event === 'daily_finish'); // every Daily Run ends in a loss
