@@ -225,8 +225,16 @@ export async function handleAppleControl(request, env) {
     if (request.method !== 'GET' && request.method !== 'HEAD') return bad(405, 'Method not allowed.');
     const rest = path.slice('/apple/portal'.length) || '/index.html';
     if (!['/index.html', '/app.js', '/style.css'].includes(rest)) return bad(404, 'Not found.');
-    const asset = await env.ASSETS.fetch(new URL('/apple-control' + rest, url));
-    return new Response(asset.body, { status: asset.status, headers: {
+    // Cloudflare Static Assets rewrites index.html to directory URLs when
+    // html_handling is enabled. Resolve internally, never redirect a signed-in
+    // visitor to the deliberately blocked raw /apple-control/* path.
+    const internalPath = rest === '/index.html' ? '/apple-control/' : '/apple-control' + rest;
+    let asset = await env.ASSETS.fetch(new URL(internalPath, url));
+    if (!asset.ok && rest === '/index.html')
+      asset = await env.ASSETS.fetch(new URL('/apple-control/index.html', url));
+    if (!asset.ok || asset.status >= 300)
+      return new Response('Private portal asset unavailable.', { status: 503, headers: JSON_HEADERS });
+    return new Response(asset.body, { status: 200, headers: {
       'Content-Type': rest.endsWith('.js') ? 'text/javascript; charset=utf-8' :
         rest.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/html; charset=utf-8',
       'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff',
