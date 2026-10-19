@@ -170,7 +170,10 @@ function renderSkins() {
  '<button type="button" class="skin-entry'+(s.id===state.selectedSkin?' selected':'')+'" data-skin="'+esc(s.id)+'"><span class="swatch" style="background:'+esc(s.base)+'"></span><span><b>'+esc(s.name)+'</b><small>'+esc(s.tour?'Tour reward':num(s.cost)+' stars')+(s.active?'':' · archived')+'</small></span></button>').join(''):
  '<div class="empty">No custom skins yet. Select “New skin” to start.</div>';
  if(!selectedSkin()&&skins.length)state.selectedSkin=skins[0].id;
- fillSkin(selectedSkin()||createSkin());
+ // Keep a newly created unsaved skin visible while editing. Do not replace
+ // it with the first catalog item merely because it has not been saved.
+ if(selectedSkin())fillSkin(selectedSkin());
+ else if(!$('#skin-id').value)fillSkin(createSkin());
 }
 function replaceItem(name,key,value) {
  const list=state.draft[name],index=list.findIndex(x=>x[key]===value[key]);
@@ -377,7 +380,7 @@ function setup() {
   if(state.dirty&&!confirm('Discard unsaved edits and reload saved draft?'))return;
   await load({resetEditor:true}).catch(e=>note(e.message,true));
  });
- $('#new-skin').addEventListener('click',()=>{fillSkin(createSkin());renderSkins();});
+ $('#new-skin').addEventListener('click',()=>{fillSkin(createSkin());});
  $('#duplicate-skin').addEventListener('click',()=>{
   const s=readSkin();s.id=createSkin().id;s.name=(s.name||'Apple')+' Copy';fillSkin(s);
  });
