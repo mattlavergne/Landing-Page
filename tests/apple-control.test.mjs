@@ -101,6 +101,19 @@ test('schema accepts safe content and rejects executable strings, extra fields, 
  assert.ok(validateContent(duplicate).length);
 });
 
+test('multiline announcements are normalized for already-installed clients',async()=>{
+ const {deviceCompatibleContent}=await import('../src/apple-control.js');
+ const c=blank();
+ c.notice={title:'Update',body:'First line\nSecond line\tand more',start:'2026-10-19',end:'2026-10-25',enabled:true};
+ assert.deepEqual(validateContent(c),[],'portal used to allow line breaks');
+ const safe=deviceCompatibleContent(c);
+ assert.equal(safe.notice.body,'First line Second line and more');
+ assert.equal(c.notice.body,'First line\nSecond line\tand more','input is not mutated');
+ assert.deepEqual(validateContent(safe),[]);
+ const saved=await json(await handleAppleControl(req('/apple/admin/api/content'),env));
+ assert.equal(saved.status,200);
+});
+
 test('admin is closed by default and rejects unsigned, expired, wrong-audience or unknown-identity tokens',async()=>{
  assert.equal(await verifyAppleAdmin(req('/apple/admin/api/content','GET',null,{token:false}),env),null);
  assert.equal(await verifyAppleAdmin(req('/apple/admin/api/content','GET',null,{token:'a.b.c'}),env),null);
