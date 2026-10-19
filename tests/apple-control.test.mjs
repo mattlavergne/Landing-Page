@@ -73,6 +73,8 @@ const valid=blank();
 
 test('schema accepts safe content and rejects executable strings, extra fields, conflicting schedules',()=>{
  assert.deepEqual(validateContent(valid),[]);
+ const incomplete=blank(); incomplete.flags={};
+ assert.ok(validateContent(incomplete).length,'all three ad flags are required');
  const withSkin=blank();withSkin.skins=[skin()];
  assert.deepEqual(validateContent(withSkin),[]);
  withSkin.skins[0].name='<img src=x onerror=alert(1)>';
@@ -167,5 +169,20 @@ test('publishing is verified, same-origin, versioned, read-only to public, and p
  const rollback=await json(await handleAppleControl(req('/apple/admin/api/rollback','POST',{version:1,liveVersion:2}),env));
  assert.equal(rollback.status,200);
  assert.equal(rollback.body.version,3,'rollback makes new version, not rewrites history');
+});
+test('analytics platform filtering excludes other OS and old levels',async()=>{
+ const day=new Date().toISOString().slice(0,10);
+ const old=new Date(Date.now()-50*864e5).toISOString().slice(0,10);
+ for(const [d,os,event,n] of [[day,'ios','level_clear',2],[day,'android','level_fail',3],[old,'ios','level_fail',7]]) {
+  await db.prepare('INSERT INTO apple_stats (day,os,app,event,detail,n) VALUES (?,?,?,?,?,?) ON CONFLICT (day,os,app,event,detail) DO UPDATE SET n=n+excluded.n').bind(d,os,'1.0',event,'3',n).run();
+ }
+ const ios=await json(await handleAppleControl(req('/apple/admin/api/stats?days=7&platform=ios'),env));
+ assert.equal(ios.status,200);
+ assert.ok(ios.body.levels.some(x=>x.event==='level_clear'&&x.n>=2));
+ assert.ok(!ios.body.levels.some(x=>x.event==='level_fail'));
+ assert.deepEqual(ios.body.ranks,[]);
+ const all=await json(await handleAppleControl(req('/apple/admin/api/stats?days=7&platform=all'),env));
+ assert.ok(all.body.levels.some(x=>x.event==='level_fail'&&x.n>=3));
+ assert.equal((await handleAppleControl(req('/apple/admin/api/stats?platform=bad'),env)).status,400);
 });
 process.on('exit',()=>{globalThis.fetch=realFetch;});
