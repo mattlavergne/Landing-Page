@@ -418,6 +418,25 @@ function setup() {
   markDirty();note('Announcement staged.');
  });
  $('#clear-notice').addEventListener('click',()=>{state.draft.notice=null;markDirty();renderMessages();});
+ $('#check-public-content').addEventListener('click',async()=>{
+  const el=$('#public-content-status');
+  el.textContent='Checking the public game endpoint…';
+  try {
+   const response=await fetch('/api/apple/content',{cache:'no-store',credentials:'omit'});
+   if(!response.ok)throw Error('Public endpoint returned HTTP '+response.status);
+   const type=response.headers.get('content-type')||'';
+   if(!type.includes('application/json'))throw Error('Public endpoint returned '+(type||'non-JSON data')+'. Check Cloudflare Access exclusions.');
+   const data=await response.json();
+   if(!Number.isInteger(data.version)||!data.content)throw Error('Invalid content response');
+   const n=data.content.notice;
+   const today=new Date(),day=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
+   const active=!!(n?.enabled&&n.start<=day&&day<=n.end);
+   el.textContent='Public v'+data.version+' / portal v'+(state.live?.version??'?')+
+    (data.version!==state.live?.version?' (version mismatch: stale deployment or cache)':' (versions match)')+
+    (n?' · announcement: '+(active?'ACTIVE':'NOT ACTIVE')+' ('+n.start+' to '+n.end+')':' · no announcement published')+
+    '. This checks delivery from your browser, not the native device.';
+  }catch(e){el.textContent='Public delivery failed: '+e.message;}
+ });
  for(const key of ['pauseInterstitials','pauseRewarded','pauseBanners'])$('#flag-'+key).addEventListener('change',e=>{
   state.draft.flags[key]=e.target.checked;markDirty();
  });
