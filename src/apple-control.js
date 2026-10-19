@@ -142,9 +142,9 @@ export async function verifyAppleAdmin(request, env) {
     return null;
   const cookie = (request.headers.get('Cookie') || '').match(/(?:^|;\s*)CF_Authorization=([^;]+)/);
   const token = request.headers.get('Cf-Access-Jwt-Assertion') || cookie?.[1];
-  if (!token) return null;
+  if (!token || token.length > 8192 || token.length < 80) return null;
   const parts = token.split('.');
-  if (parts.length !== 3) return null;
+  if (parts.length !== 3 || parts.some(p => p.length > 4096)) return null;
   try {
     const header = JSON.parse(decodeB64(parts[0])), claim = JSON.parse(decodeB64(parts[1]));
     const now = Math.floor(Date.now() / 1000);
@@ -177,6 +177,8 @@ export async function verifyAppleAdmin(request, env) {
 async function bodyJson(request) {
   if (!/^application\/json(?:;|$)/i.test(request.headers.get('Content-Type') || '') ||
     request.headers.get('X-Apple-Control') !== '1') throw Error('Use the portal to submit JSON.');
+  const size = Number(request.headers.get('Content-Length'));
+  if (Number.isFinite(size) && size > 80000) throw Error('Request exceeds 80 KB.');
   const raw = await request.text();
   if (raw.length > 80000) throw Error('Request exceeds 80 KB.');
   try { return JSON.parse(raw); } catch { throw Error('Invalid JSON.'); }
@@ -272,8 +274,9 @@ export async function handleAppleControl(request, env) {
       if (b.baseVersion !== version) return bad(409, 'Draft was changed elsewhere. Reload to avoid overwriting it.');
       const next = version + 1, content = JSON.stringify(b.content), at = new Date().toISOString();
       if (!existing) {
-        await db.prepare('INSERT OR IGNORE INTO apple_control_draft (id, version, content, edited_at, edited_by) VALUES (1, ?, ?, ?, ?)')
+        const created = await db.prepare('INSERT OR IGNORE INTO apple_control_draft (id, version, content, edited_at, edited_by) VALUES (1, ?, ?, ?, ?)')
           .bind(next, content, at, actor).run();
+        if (created.meta?.changes !== 1) return bad(409, 'A draft was created elsewhere. Reload.');
       } else {
         const r = await db.prepare('UPDATE apple_control_draft SET version=?, content=?, edited_at=?, edited_by=? WHERE id=1 AND version=?')
           .bind(next, content, at, actor, version).run();
