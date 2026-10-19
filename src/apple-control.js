@@ -67,7 +67,7 @@ export function validateContent(c) {
   });
   unique(c.weekly.map(w => w.monday), 'weekly dates');
   c.tours.forEach((t, i) => {
-    const skin = c.skins.find(s => s.id === t.skin);
+    const skin = c.skins.find(s => s.id === t?.skin);
     if (!hasKeys(t, ['number','name','icon','skin']) || !int(t.number, 1, 100000) ||
       !isText(t.name, 40) || !icon(t.icon) ||
       !(TOUR_SKINS.includes(t.skin) || (skin && skin.tour && skin.active)))
@@ -187,13 +187,25 @@ async function publish(db, content, liveVersion, actor, action, note) {
   const current = await live(db);
   if (!int(liveVersion, 0, 2147483647) || current.version !== liveVersion)
     return bad(409, 'Live content changed. Reload before publishing.');
+  // Never make an already released cosmetic inaccessible to its owners.
+  // If a skin is absent from a rollback/edited draft, retain its definition
+  // as archived. The user can still wear it, but new owners cannot buy it.
+  const published = JSON.parse(current.content);
+  const outgoing = JSON.parse(JSON.stringify(content));
+  const incomingIds = new Set(outgoing.skins.map(s => s.id));
+  for (const s of published.skins) if (!incomingIds.has(s.id)) {
+    outgoing.skins.push({ ...s, active: false });
+    incomingIds.add(s.id);
+  }
+  const mergedErrors = validateContent(outgoing);
+  if (mergedErrors.length) return bad(422, mergedErrors.join(' '));
   const next = current.version + 1, editedAt = new Date().toISOString();
   // One D1 transaction: an update and its history entry commit together.
   const results = await db.batch([
     db.prepare('UPDATE apple_control_live SET version = ?, content = ?, edited_at = ?, edited_by = ? WHERE id = 1 AND version = ?')
-      .bind(next, JSON.stringify(content), editedAt, actor, liveVersion),
+      .bind(next, JSON.stringify(outgoing), editedAt, actor, liveVersion),
     db.prepare('INSERT INTO apple_control_versions (version, content, created_at, actor, action, note) SELECT ?, ?, ?, ?, ?, ? WHERE EXISTS (SELECT 1 FROM apple_control_live WHERE id=1 AND version=?)')
-      .bind(next, JSON.stringify(content), editedAt, actor, action, note, next)
+      .bind(next, JSON.stringify(outgoing), editedAt, actor, action, note, next)
   ]);
   if (results[0].meta?.changes !== 1 || results[1].meta?.changes !== 1)
     return bad(409, 'Another publication completed first.');
