@@ -132,7 +132,7 @@ const decodeB64 = s => {
   return atob(b64 + '='.repeat((4 - b64.length % 4) % 4));
 };
 const bytes = s => Uint8Array.from(decodeB64(s), ch => ch.charCodeAt(0));
-async function authorize(request, env) {
+export async function verifyAppleAdmin(request, env) {
   const domain = (env.APPLE_ACCESS_TEAM_DOMAIN || '').replace(/^https:\/\//, '').replace(/\/+$/, '');
   const audience = env.APPLE_ACCESS_AUD;
   const emails = (env.APPLE_ADMIN_EMAILS || '').toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
@@ -188,18 +188,22 @@ async function publish(db, content, liveVersion, actor, action, note) {
   if (!int(liveVersion, 0, 2147483647) || current.version !== liveVersion)
     return bad(409, 'Live content changed. Reload before publishing.');
   const next = current.version + 1, editedAt = new Date().toISOString();
-  const result = await db.prepare('UPDATE apple_control_live SET version = ?, content = ?, edited_at = ?, edited_by = ? WHERE id = 1 AND version = ?')
-    .bind(next, JSON.stringify(content), editedAt, actor, liveVersion).run();
-  if (result.meta?.changes !== 1) return bad(409, 'Another publication completed first.');
-  await db.prepare('INSERT INTO apple_control_versions (version, content, created_at, actor, action, note) VALUES (?, ?, ?, ?, ?, ?)')
-    .bind(next, JSON.stringify(content), editedAt, actor, action, note).run();
+  // One D1 transaction: an update and its history entry commit together.
+  const results = await db.batch([
+    db.prepare('UPDATE apple_control_live SET version = ?, content = ?, edited_at = ?, edited_by = ? WHERE id = 1 AND version = ?')
+      .bind(next, JSON.stringify(content), editedAt, actor, liveVersion),
+    db.prepare('INSERT INTO apple_control_versions (version, content, created_at, actor, action, note) SELECT ?, ?, ?, ?, ?, ? WHERE EXISTS (SELECT 1 FROM apple_control_live WHERE id=1 AND version=?)')
+      .bind(next, JSON.stringify(content), editedAt, actor, action, note, next)
+  ]);
+  if (results[0].meta?.changes !== 1 || results[1].meta?.changes !== 1)
+    return bad(409, 'Another publication completed first.');
   return answer({ ok: true, version: next, editedAt });
 }
 
 // The portal HTML/CSS/JS are static assets, but reachable ONLY through
 // /apple/portal routes here, not by requesting the raw /apple-control/* path.
 export async function handleAppleControl(request, env) {
-  const actor = await authorize(request, env);
+  const actor = await verifyAppleAdmin(request, env);
   if (!actor) return new Response('Apple Control Center: verified Cloudflare Access sign-in required, with APPLE_ACCESS_TEAM_DOMAIN, APPLE_ACCESS_AUD and APPLE_ADMIN_EMAILS configured.', {
     status: 403, headers: { 'Cache-Control': 'no-store', 'Content-Type': 'text/plain; charset=utf-8' } });
   const url = new URL(request.url), path = url.pathname.replace(/\/+$/, '');
