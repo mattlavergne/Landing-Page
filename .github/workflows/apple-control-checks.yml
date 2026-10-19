@@ -1,0 +1,32 @@
+name: Apple Control Center safety checks
+
+on:
+  pull_request:
+    paths:
+      - "src/apple-control.js"
+      - "src/index.js"
+      - "public/apple-control/**"
+      - "tests/apple-control.test.mjs"
+      - ".github/workflows/apple-control-checks.yml"
+  push:
+    branches:
+      - "feature/apple-control-center"
+
+permissions:
+  contents: read
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify module syntax
+        run: |
+          node --check src/apple-control.js
+          node --check src/index.js
+          node --check public/apple-control/app.js
+      - name: Verify access controls, schema and publication safety
+        run: node --test tests/apple-control.test.mjs
