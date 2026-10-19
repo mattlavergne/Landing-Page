@@ -16,6 +16,18 @@ const int = (n, min, max) => Number.isInteger(n) && n >= min && n <= max;
 const color = v => typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v);
 const BOOLS = ['gloss', 'sparkle', 'stick', 'rainbow', 'active', 'tour'];
 const blank = () => JSON.parse(JSON.stringify(EMPTY));
+// Older released game clients reject ASCII control characters in every text
+// field. HTML textareas may submit newlines/tabs that the admin validator
+// historically permitted. Flatten only those whitespace controls so an
+// otherwise valid publication never becomes invalid on an installed phone.
+// Operates on a copy: no privileged fields or executable data are added.
+export function deviceCompatibleContent(value) {
+  if (typeof value === 'string') return value.replace(/[\x09-\x0d]+/g, ' ');
+  if (Array.isArray(value)) return value.map(deviceCompatibleContent);
+  if (isObj(value)) return Object.fromEntries(
+    Object.entries(value).map(([key, entry]) => [key, deviceCompatibleContent(entry)]));
+  return value;
+}
 const dateOk = d => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d) &&
   !Number.isNaN(Date.parse(d + 'T00:00:00Z')) &&
   new Date(d + 'T00:00:00Z').toISOString().slice(0, 10) === d;
@@ -117,7 +129,7 @@ export async function publicAppleContent(request, env) {
   try {
     await tables(env.APPLE_DB);
     const r = await live(env.APPLE_DB);
-    const body = JSON.stringify({ version: r.version, content: JSON.parse(r.content) });
+    const body = JSON.stringify({ version: r.version, content: deviceCompatibleContent(JSON.parse(r.content)) });
     return new Response(body, { headers: { ...headers, 'Cache-Control': 'public, max-age=60',
       'ETag': '"' + r.version + '"' } });
   } catch (err) {
@@ -199,15 +211,16 @@ async function publish(db, content, liveVersion, actor, action, note) {
     outgoing.skins.push({ ...s, active: false });
     incomingIds.add(s.id);
   }
-  const mergedErrors = validateContent(outgoing);
+  const compatible = deviceCompatibleContent(outgoing);
+  const mergedErrors = validateContent(compatible);
   if (mergedErrors.length) return bad(422, mergedErrors.join(' '));
   const next = current.version + 1, editedAt = new Date().toISOString();
   // One D1 transaction: an update and its history entry commit together.
   const results = await db.batch([
     db.prepare('UPDATE apple_control_live SET version = ?, content = ?, edited_at = ?, edited_by = ? WHERE id = 1 AND version = ?')
-      .bind(next, JSON.stringify(outgoing), editedAt, actor, liveVersion),
+      .bind(next, JSON.stringify(compatible), editedAt, actor, liveVersion),
     db.prepare('INSERT INTO apple_control_versions (version, content, created_at, actor, action, note) SELECT ?, ?, ?, ?, ?, ? WHERE EXISTS (SELECT 1 FROM apple_control_live WHERE id=1 AND version=?)')
-      .bind(next, JSON.stringify(outgoing), editedAt, actor, action, note, next)
+      .bind(next, JSON.stringify(compatible), editedAt, actor, action, note, next)
   ]);
   if (results[0].meta?.changes !== 1 || results[1].meta?.changes !== 1)
     return bad(409, 'Another publication completed first.');
@@ -289,7 +302,8 @@ export async function handleAppleControl(request, env) {
       if (errors.length) return bad(422, errors.join(' '));
       const existing = await draft(db), version = existing?.version || 0;
       if (b.baseVersion !== version) return bad(409, 'Draft was changed elsewhere. Reload to avoid overwriting it.');
-      const next = version + 1, content = JSON.stringify(b.content), at = new Date().toISOString();
+      const compatible = deviceCompatibleContent(b.content);
+      const next = version + 1, content = JSON.stringify(compatible), at = new Date().toISOString();
       if (!existing) {
         const created = await db.prepare('INSERT OR IGNORE INTO apple_control_draft (id, version, content, edited_at, edited_by) VALUES (1, ?, ?, ?, ?)')
           .bind(next, content, at, actor).run();
@@ -299,7 +313,7 @@ export async function handleAppleControl(request, env) {
           .bind(next, content, at, actor, version).run();
         if (r.meta?.changes !== 1) return bad(409, 'Draft changed while saving.');
       }
-      return answer({ ok: true, version: next, editedAt: at });
+      return answer({ ok: true, version: next, editedAt: at, content: compatible });
     }
     if (path === '/apple/admin/api/publish' && request.method === 'POST') {
       const b = await bodyJson(request), existing = await draft(db);
