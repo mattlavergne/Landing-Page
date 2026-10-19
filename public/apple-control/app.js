@@ -431,8 +431,12 @@ function setup() {
  $('#play-preview').addEventListener('click',()=>{
   // Same-origin private test game. Preview data is only used when ?contentPreview=1.
   localStorage.setItem('the-apple.content.preview.v1',JSON.stringify({version:0,content:state.draft,expires:Date.now()+3600000}));
-  const tab=window.open('/apple/test/?contentPreview=1','_blank','noopener');
-  if(!tab)note('Pop-up blocked. Allow the portal to open your private test game.',true);
+  // An anchor with rel=noopener prevents the test page from controlling the
+  // administration window and avoids a false "popup blocked" error in browsers
+  // that intentionally return null from window.open(..., 'noopener').
+  const a=document.createElement('a');
+  a.href='/apple/test/?contentPreview=1';a.target='_blank';a.rel='noopener noreferrer';
+  document.body.append(a);a.click();a.remove();
  });
  document.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();if(state.dirty)saveDraft().catch(err=>note(err.message,true));}
