@@ -72,3 +72,17 @@ Game:
 - node tools/retention-test.mjs
 
 The browser tests need Playwright and Chromium. Passing unit checks is not a substitute for testing authentication in the deployed Cloudflare environment and gameplay on real devices.
+
+## Configure the Cloudflare Access environment variables
+
+1. In Cloudflare Zero Trust > Access > Applications, create or review the **Self-hosted** application protecting the administrative routes on mattlavergne.com. Cover /apple/portal, /apple/portal/*, /apple/admin/api/* and /apple/stats. Also protect /apple/test/* separately or with an existing /apple/* rule. Only explicitly authorized identities should pass the Allow policy. Require MFA through the identity provider.
+2. In the Access application's settings, copy the **Application Audience (AUD) Tag**. Locate your Cloudflare Access **Team domain**, for example my-team.cloudflareaccess.com. Use the same Access application and AUD for the admin routes.
+3. In Cloudflare Dashboard > Workers & Pages > **trafficmap-proxy** > Settings > **Variables and Secrets**, add three production variables or secrets:
+   * `APPLE_ACCESS_TEAM_DOMAIN` = your actual team domain without the https:// prefix, for example my-team.cloudflareaccess.com.
+   * `APPLE_ACCESS_AUD` = the exact Application Audience tag from step 2.
+   * `APPLE_ADMIN_EMAILS` = exact comma-separated authorized login email addresses, for example owner@example.com. Use no wildcards.
+4. Save and deploy the updated Worker settings. Preserve the existing APPLE_DB D1 binding and GITHUB_TOKEN secret; never commit secret values.
+5. Navigate to https://mattlavergne.com/apple/portal/ and complete your Cloudflare Access login. Check that an anonymous browser cannot access the portal and that a signed-in but unlisted address gets HTTP 403.
+6. Check that https://mattlavergne.com/api/apple/content works without an Access login. Do **not** protect /api/apple/content, /api/apple/stats, /api/apple/daily, or the public sync API: game clients need these endpoints. Create a draft and test preview before publishing any changes.
+
+If any of the three values is missing or does not match the verified JWT's issuer, audience and email, the portal will deny access by design. Worker variables alone do not replace the Access policy or MFA.
