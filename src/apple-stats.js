@@ -48,6 +48,11 @@ const DETAILS = {
   tutorial: oneOf('move', 'lead', 'bramble', 'dash', 'rot'),
   retry: oneOf('0-5', '5-15', '15-30', '30+'),
   review_prompt: oneOf(''),
+  streak_broke: lvl,
+  streak_mended: lvl,
+  welcome_back: oneOf('3-6', '7-13', '14-29', '30+'),
+  helping_hand: lvl,
+  tour_tier: d => lvl(d) && Number(d) <= 15,
 };
 export const STAT_EVENTS = Object.keys(DETAILS);
 
@@ -221,6 +226,10 @@ export async function appleStatsPage(request, env, now = Date.now()) {
   const funnel = funnelSteps.map(([label, n]) => [label, fmt(n), pct(n, installs)]);
   const retries = ['0-5', '5-15', '15-30', '30+'].map(b => [b, fmt(sum(r => r.event === 'retry' && r.detail === b))]);
   const losses = sum(r => r.event === 'level_fail' || r.event === 'daily_finish'); // every Daily Run ends in a loss
+  const broke = sum(r => r.event === 'streak_broke'), mended = sum(r => r.event === 'streak_mended');
+  const streaks = [['Ended (3+ days)', fmt(broke)], ['Mended', fmt(mended)], ['Mend rate', pct(mended, broke)]];
+  const welcome = ['3-6', '7-13', '14-29', '30+'].map(b => [b, fmt(sum(r => r.event === 'welcome_back' && r.detail === b))]);
+  const byNum = event => by(event).sort((a, b) => Number(a[0]) - Number(b[0]));
   const loyalty = ['1', '2', '3', '4-7', '8-14', '15-30', '31+'].map(b => [b, fmt(sum(r => r.event === 'active_day' && r.detail === b && r.day >= dayKey(now - 6 * DAY)))]);
 
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -251,6 +260,10 @@ th:first-child, td:first-child { text-align: left; } th { font-weight: 600; }
 <div class="cols">
 <div><h2>Trying again</h2><p>After losing an Adventure level or a Daily Run, how soon players tried it again (last 30 days), out of ${fmt(losses)} losses.</p>${table(['Seconds', 'Retries'], retries)}</div>
 <div><h2>Coming back</h2><p>Devices active in the last 7 days, by how many days they've played.</p>${table(['Days played', 'Devices'], loyalty)}</div>
+<div><h2>Streaks</h2><p>Daily streaks of 3+ days that ended, and how many were mended by playing 3 Dailies that day.</p>${table(['', 'Count'], streaks)}</div>
+<div><h2>Welcome back</h2><p>Players back after days away (the welcome gift).</p>${table(['Days away', 'Count'], welcome)}</div>
+<div><h2>Helping hand</h2><p>Tries with slower snakes and a shield, by level: where players get stuck.</p>${table(['Level', 'Tries'], byNum('helping_hand'))}</div>
+<div><h2>Orchard Tour</h2><p>Tour tiers reached (all tours, last 30 days).</p>${table(['Tier', 'Reached'], byNum('tour_tier'))}</div>
 <div><h2>Unlock screen from</h2>${table(['From', 'Views'], by('paywall'))}</div>
 <div><h2>Purchases</h2>${table(['Result', 'Count'], by('purchase'))}</div>
 <div><h2>Shares</h2>${table(['What', 'Count'], by('share'))}</div>
