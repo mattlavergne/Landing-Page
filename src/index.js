@@ -34,6 +34,7 @@
 
 import { handleAppleApi } from "./apple-api.js";
 import { handleAppleStats, appleStatsPage } from "./apple-stats.js";
+import { handleAppleControl, publicAppleContent, verifyAppleAdmin } from "./apple-control.js";
 import { appleFix } from "./apple-fix.js";
 
 const APPS = {
@@ -125,10 +126,20 @@ export default {
     //    in front of it), so the parts the public app needs live outside it:
     //    the cloud-save API (src/apple-api.js) at /api/apple, and the privacy
     //    policy the App Store listing and AdMob link to at /privacy/apple.
-    // Anonymous play stats and the Daily Run ranking (src/apple-stats.js),
-    // and their summary page, which is under the locked /apple.
+    // Verified private portal and public, data-only content delivery.
+    // Raw portal assets are blocked so /apple/portal is the only entry point.
+    if (path === "/apple-control" || path.startsWith("/apple-control/"))
+      return new Response("Not found", { status: 404 });
+    if (path === "/api/apple/content" || path === "/api/apple/content/")
+      return publicAppleContent(request, env);
+    if (path === "/apple/portal" || path.startsWith("/apple/portal/") || path.startsWith("/apple/admin/api/"))
+      return handleAppleControl(request, env);
+    // Anonymous play stats and the Daily Run ranking (src/apple-stats.js).
     if (/^\/api\/apple\/(stats|daily)\/?$/.test(path)) return handleAppleStats(request, env, ctx);
-    if (path === "/apple/stats" || path === "/apple/stats/") return appleStatsPage(request, env);
+    if (path === "/apple/stats" || path === "/apple/stats/") {
+      if (!await verifyAppleAdmin(request, env)) return new Response("Verified admin sign-in required.", { status: 403 });
+      return appleStatsPage(request, env);
+    }
     if (path.startsWith("/api/apple/") || path.startsWith("/apple/api/")) return handleAppleApi(request, env, ctx);
     if (path === "/privacy/apple" || path === "/privacy/apple/") return applePrivacy(env, url);
     // A repair page for the test site, public so a sign-in problem can't block it.
