@@ -80,7 +80,7 @@ export function validateContent(c) {
       c.notice.end < c.notice.start || typeof c.notice.enabled !== 'boolean'))
     errors.push('Announcement needs a title, message and valid start/end dates.');
   if (!hasKeys(c.flags, ['pauseInterstitials', 'pauseRewarded', 'pauseBanners']) ||
-    !Object.values(c.flags).every(v => typeof v === 'boolean'))
+    !['pauseInterstitials', 'pauseRewarded', 'pauseBanners'].every(k => typeof c.flags[k] === 'boolean'))
     errors.push('Ad safety switches must be true or false.');
   if (JSON.stringify(c).length > 60000) errors.push('Content exceeds the 60 KB limit.');
   return errors.slice(0, 30);
@@ -267,12 +267,21 @@ export async function handleAppleControl(request, env) {
     }
     if (path === '/apple/admin/api/stats' && request.method === 'GET') {
       const days = Math.min(90, Math.max(7, Number.parseInt(url.searchParams.get('days') || '30', 10) || 30));
+      const platform = url.searchParams.get('platform') || 'all';
+      if (!['all', 'ios', 'android'].includes(platform)) return bad(400, 'Invalid platform filter.');
       const since = new Date(Date.now() - (days - 1) * 864e5).toISOString().slice(0, 10);
-      const daily = (await db.prepare('SELECT day, os, app, event, detail, SUM(n) AS n FROM apple_stats WHERE day >= ? GROUP BY day, os, app, event, detail ORDER BY day DESC LIMIT 20000').bind(since).all()).results;
-      const levels = (await db.prepare("SELECT event, detail, SUM(n) AS n FROM apple_stats WHERE event IN ('level_reached','level_clear','level_fail') GROUP BY event, detail").all()).results;
-      const ranks = (await db.prepare('SELECT num, score, n FROM apple_daily WHERE num >= ? AND n > 0 ORDER BY num DESC, score DESC LIMIT 2000')
-        .bind(Math.floor((Date.now() - Date.UTC(2026, 9, 1)) / 864e5) - 29).all()).results;
-      return answer({ days, since, daily, levels, ranks });
+      const osFilter = platform === 'all' ? '' : ' AND os = ?';
+      const args = platform === 'all' ? [since] : [since, platform];
+      const daily = (await db.prepare('SELECT day, os, app, event, detail, SUM(n) AS n FROM apple_stats WHERE day >= ?' + osFilter +
+        ' GROUP BY day, os, app, event, detail ORDER BY day DESC LIMIT 20000').bind(...args).all()).results;
+      const levels = (await db.prepare("SELECT event, detail, SUM(n) AS n FROM apple_stats WHERE day >= ?" + osFilter +
+        " AND event IN ('level_reached','level_clear','level_fail') GROUP BY event, detail").bind(...args).all()).results;
+      // The anonymous score table has no OS dimension. Keep it explicitly all-platform.
+      const rankSince = Math.floor((Date.parse(since + 'T00:00:00Z') - Date.UTC(2026, 9, 1)) / 864e5) + 1;
+      const ranks = platform === 'all'
+        ? (await db.prepare('SELECT num, score, n FROM apple_daily WHERE num >= ? AND n > 0 ORDER BY num DESC, score DESC LIMIT 2000')
+          .bind(rankSince).all()).results : [];
+      return answer({ days, since, platform, daily, levels, ranks, rankingAllPlatformOnly: true });
     }
     if (path === '/apple/admin/api/draft' && request.method === 'PUT') {
       const b = await bodyJson(request);
