@@ -4,12 +4,12 @@ const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num = v => Number(v || 0).toLocaleString('en-US');
-const dateKey = d => d.toISOString().slice(0,10);
-const shift = (date,days) => { const x = new Date(date+'T12:00:00Z'); x.setUTCDate(x.getUTCDate()+days); return dateKey(x); };
+const dateKey = d => [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
+const shift = (date,days) => { const x = new Date(date+'T12:00:00'); x.setDate(x.getDate()+days); return dateKey(x); };
 const nowKey = dateKey(new Date());
 const nextDay = shift(nowKey,1);
-const nextMonday = () => {const d=new Date(nowKey+'T12:00:00Z'); const n=(8-d.getUTCDay())%7||7;return shift(nowKey,n);};
-const tourIndex = () => Math.floor((Date.parse(nowKey+'T12:00Z') - Date.UTC(2026,9,1)) / (21*864e5))+2;
+const nextMonday = () => {const d=new Date(nowKey+'T12:00:00'); const n=(8-d.getDay())%7||7;return shift(nowKey,n);};
+const tourIndex = () => Math.floor((Date.parse(nowKey+'T12:00:00Z') - Date.UTC(2026,9,1)) / (21*864e5))+1;
 const monthDay = k => {try {return new Date(k+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'});}catch{return k;}};
 const EMPTY = { schema:1,skins:[],daily:[],weekly:[],tours:[],notice:null,
  flags:{pauseInterstitials:false,pauseRewarded:false,pauseBanners:false} };
@@ -48,7 +48,7 @@ function note(message,error=false) {
 function setStatus(message) {$('#save-state').textContent=message;$('#save-state').classList.toggle('dirty',state.dirty);}
 function updateToolbar() {
  $('#save-draft').disabled=!state.loaded||!state.dirty;
- $('#publish').disabled=!state.loaded||state.dirty||!state.saved;
+ $('#publish').disabled=!state.loaded||state.dirty||!state.saved||state.draftVersion===0;
  $('#live-version').textContent='Live v'+(state.live?.version??0);
  setStatus(!state.loaded?'Connecting…':state.dirty?'Unsaved edits':state.saved?'Draft saved · v'+state.draftVersion:'No draft');
 }
@@ -298,8 +298,9 @@ function renderAnalytics() {
   const x=rankMap.get(r.num)||{players:0,top:0};
   x.players+=r.n;x.top=Math.max(x.top,r.score);rankMap.set(r.num,x);
  }
- $('#rank-report').innerHTML=dataTable(['Daily #','Score reports','Top score'],
-  [...rankMap].sort((a,b)=>b[0]-a[0]).slice(0,20).map(([id,x])=>[id,num(x.players),num(x.top)]));
+ $('#rank-report').innerHTML=platform==='all'
+  ? dataTable(['Daily #','Score reports','Top score'],[...rankMap].sort((a,b)=>b[0]-a[0]).slice(0,20).map(([id,x])=>[id,num(x.players),num(x.top)]))
+  : '<div class="empty">Daily rankings have no platform data. Select Both platforms to view them.</div>';
  const byEvent=[...m].sort((a,b)=>b[1]-a[1]);
  $('#event-report').innerHTML=dataTable(['Event','Reports'],byEvent.map(([k,v])=>[k,num(v)]));
 }
@@ -322,12 +323,12 @@ function renderHistory() {
 }
 async function load({resetEditor=false}={}) {
  const [data,health,stats,history]=await Promise.all([
-  api('content'),api('health'),api('stats?days='+$('#stats-window').value),api('history')
+  api('content'),api('health'),api('stats?days='+$('#stats-window').value+'&platform='+$('#stats-platform').value),api('history')
  ]);
  if(state.dirty&&!resetEditor)throw Error('There are unsaved changes. Save or discard them before reloading.');
  state.live=data.live;state.draftVersion=data.draft?.version??0;
  state.draft=clone(data.draft?.content||data.live?.content||EMPTY);
- state.saved=clone(state.draft);state.dirty=false;state.loaded=true;
+ state.saved=data.draft?clone(state.draft):null;state.dirty=false;state.loaded=true;
  state.health=health;state.stats=stats;state.history=history.items||[];state.actor=data.actor||'';
  state.selectedSkin=null;
  updateToolbar();renderOverview();renderSkins();renderDaily();renderWeekly();renderTours();renderMessages();renderAnalytics();renderHistory();note('');
@@ -420,8 +421,9 @@ function setup() {
  for(const key of ['pauseInterstitials','pauseRewarded','pauseBanners'])$('#flag-'+key).addEventListener('change',e=>{
   state.draft.flags[key]=e.target.checked;markDirty();
  });
- $('#stats-window').addEventListener('change',async()=>{try{state.stats=await api('stats?days='+$('#stats-window').value);renderAnalytics();renderOverview();}catch(e){note(e.message,true);}});
- $('#stats-platform').addEventListener('change',renderAnalytics);
+ const refreshStats=async()=>{try{state.stats=await api('stats?days='+$('#stats-window').value+'&platform='+$('#stats-platform').value);renderAnalytics();renderOverview();}catch(e){note(e.message,true);}};
+ $('#stats-window').addEventListener('change',refreshStats);
+ $('#stats-platform').addEventListener('change',refreshStats);
  $('#export-stats').addEventListener('click',()=>{
   const rows=[['date','platform','app_version','event','detail','count'],
    ...(state.stats?.daily||[]).map(r=>[r.day,r.os,r.app,r.event,r.detail,r.n])];
