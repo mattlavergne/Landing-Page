@@ -131,7 +131,7 @@ export default {
     if (path === "/apple-control" || path.startsWith("/apple-control/"))
       return new Response("Not found", { status: 404 });
     if (path === "/api/apple/content" || path === "/api/apple/content/")
-      return publicAppleContent(request, env);
+      return publicAppleContent(request, env, ctx);
     if (path === "/apple/portal" || path.startsWith("/apple/portal/") || path.startsWith("/apple/admin/api/"))
       return handleAppleControl(request, env);
     // Anonymous play stats and the Daily Run ranking (src/apple-stats.js).
