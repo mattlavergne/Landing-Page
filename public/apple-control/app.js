@@ -657,7 +657,7 @@ function viewSettings() {
       <ol class="small">
         <li><b>Did you publish?</b> The bar at the top says “Everything is published” when you have.</li>
         <li><b>Look on the phone:</b> the game’s Settings shows “Published content: v${S.live.version} · current” when it has the latest. Open the game again, or switch away and back, to check.</li>
-        <li><b>It says “blocked by a bot check” or HTTP 403:</b> Cloudflare is stopping the app. In Cloudflare, go to Security → Bots and turn off <i>Bot Fight Mode</i>, or, on a paid plan, add a WAF rule that skips bot checks for paths starting with <code>/api/apple/</code>. Security → Events shows what was blocked.</li>
+        <li><b>It says “blocked (Cloudflare’s bot check…)”, or “offline” on a build from before October 20:</b> Cloudflare is stopping the app. In Cloudflare, go to Security → Bots and turn off <i>Bot Fight Mode</i>, or, on a paid plan, add a WAF rule that skips bot checks for paths starting with <code>/api/apple/</code>. Security → Events shows what was blocked.</li>
         <li><b>A build from Xcode</b> only has this if it was built after the live-content update: run <code>git pull</code>, then <code>npm run ios</code>, and build again.</li>
         <li><b>Today’s challenges:</b> a phone that already made a start on them keeps them (progress is never taken away). They change from tomorrow.</li>
       </ol>

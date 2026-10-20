@@ -30,7 +30,7 @@ It also has stats and a history you can go back to. Only you can open it: Cloudf
 
 1. **Check that you published.** The bar at the top says "Everything is published".
 2. **Check the phone.** The game's **Settings** shows "Published content: v12 · current" when it has the latest. Open the game again, or switch away and back, then look.
-3. **"Blocked by a bot check" or "HTTP 403" means Cloudflare is stopping the app.** A web page gets through because your browser can pass Cloudflare's "Just a moment…" check; the app can't. Here's how to fix it:
+3. **"blocked (Cloudflare's bot check stopped it…)" means Cloudflare is stopping the app.** Builds from before October 20 said "offline" for this, because the phone's web view hid Cloudflare's answer from the game; the app now downloads through the phone's own networking and can read it. A web page gets through because your browser can pass Cloudflare's "Just a moment…" check; the app can't. Here's how to fix it:
    - In Cloudflare, go to **Security → Bots** and turn off **Bot Fight Mode**.
    - On a paid plan, you can instead add a **WAF custom rule** that skips bot protection when the URL path starts with `/api/apple/`.
    - **Security → Events** shows what was blocked.
