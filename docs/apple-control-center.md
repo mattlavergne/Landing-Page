@@ -1,88 +1,87 @@
-# The Apple Control Center: secure operations
+# The Apple: Control Center
 
-The Control Center is an owner-only tool for The Apple. It publishes validated content data, not executable code. It never receives a GitHub write token or player records.
+The Control Center (`/apple/portal`) is your private dashboard for the game's live content. You can change what's on without an app update:
+- **Daily challenges:** the three challenges on any day.
+- **Weekly twists:** the twist each week, with your own name and words.
+- **Orchard Tours:** a tour's name, icon and reward skin.
+- **Announcements:** several, each scheduled.
+- **Skins:** new skins for the Orchard, or as tour rewards.
+- **Emergency ad switches:** pause one kind of ad.
 
-## Features
-- Overview: aggregated voluntary usage reports, schedules and backend health.
-- Skin studio: design with the real game renderer, star prices, cosmetic effects, archive status and tour rewards.
-- Daily challenges: choose one existing gameplay trigger for each of three tiers, with dated schedules.
-- Weekly events: schedule an existing effect for Monday and customize its name, icon and explanation.
-- Orchard Tours: name future 21-day seasons and their final cosmetic reward.
-- Announcements and emergency ad-format pause switches.
-- Analytics: event counts, difficulty reports, daily participation and CSV export.
-- Testing: links to the private game, existing test tools and isolated draft preview.
-- Publishing: drafts, release notes, numbered snapshots and rollback. Released skins are archived, not deleted from players' collections.
+It also has stats and a history you can go back to. Only you can open it: Cloudflare Access signs you in, and the Worker checks that sign-in itself.
 
-## Deployment blockers
+## How it fits together
 
-Do not merge or deploy until these are reviewed and configured.
+- **The game decides what's on each day by itself,** from the date, forever: the Daily Run, its challenges, the weekly twist and the tour. That logic lives in the game (`js/schedule.js` in the game repo). The portal loads that same file from the private test copy (`/apple/test/js/schedule.js`), so its calendar shows exactly what phones do: the automatic rotation, with your changes on top.
+- **Your changes are a draft that saves itself.** Nothing reaches players until **Review & publish**, which lists every change in plain words first. Each publish is a numbered version, and **History** can go back to any of them.
+- **Phones download the published content** from `https://mattlavergne.com/api/apple/content` when the game opens or comes back to the screen. Each item is checked on the phone, and anything bad or unknown is dropped on its own. The last good copy is kept for when there's no connection.
+  - The game asks for `?schema=2`: the list of announcements.
+  - Copies of the game from before get the old format: one announcement, the one showing today.
 
-1. The existing APPLE_DB D1 binding must point to the production game database.
-2. In Cloudflare Zero Trust Access, create or verify a self-hosted Access application protecting all private /apple/* paths, including /apple/portal/*, /apple/admin/api/*, /apple/stats and /apple/test/*. Require MFA, and allow only named admins.
-3. Configure the Worker's environment variables or secrets: APPLE_ACCESS_TEAM_DOMAIN (for example my-team.cloudflareaccess.com), APPLE_ACCESS_AUD (the audience for the Access application), and APPLE_ADMIN_EMAILS (comma-separated exact email addresses). No values are committed to source code.
-4. Do not protect /api/apple/content with Access: store app devices must fetch approved public configuration without sign-in. That endpoint exposes no credentials, usage reports or draft data.
-5. Preserve all existing Worker environment settings, including the GitHub read-only token and D1 database binding.
-6. Confirm that unsigned requests, tampered tokens, expired tokens, wrong audience, and unlisted email addresses all receive 403 from /apple/portal and /apple/admin/api, plus the older /apple/stats endpoint.
-7. Confirm direct /apple-control/index.html, /apple-control/app.js and /apple-control/style.css return 404. Only the private /apple/portal path can deliver those assets.
-8. Confirm the public privacy policy accurately describes the configuration download, and review the store privacy declarations.
+## What can't change from here (on purpose)
 
-A mere CF_Authorization cookie cannot bypass authorization. The Worker independently verifies the Cloudflare Access JWT RS256 signature, issuer, audience, expiry, and an email allowlist. If any of the three variables is missing, admin access is denied by default.
+- **New rules or mechanics.** Challenges and twists can only be ones the game already has. Apple doesn't allow downloading new game code, and it keeps players safe. New kinds need an app update.
+- **A tour that has started.** Its name, icon and reward can't change until it ends, because players are earning toward that skin. The server refuses.
+- **Today's challenges on a phone that has made a start on them.** Progress is never taken away. Phones that haven't started them get your new ones when they next open the game.
+- **Published skins can't be deleted.** Players may own them. Archive one instead: owners keep it, and it's no longer sold.
+- **Prices of the purchase, links, and anything personal.** Not in the content at all.
 
-## Safe release order
+## If phones don't get your changes
 
-1. Review both GitHub pull requests. Run security/unit tests and inspect the code changes.
-2. Set Access policy and secrets in a staging environment, then validate every protected route.
-3. Deploy the Worker backend. Public content starts with an empty version 0, and existing cloud sync/stat services remain untouched.
-4. On the private portal, test draft saving, publishing, history and rollback with cosmetic data. Verify no users are affected by drafts.
-5. Test game launch, offline launch, cloud save, purchases, events, tour rewards and ad flow on actual iOS and Android devices.
-6. Publish the store app update. Older versions cannot receive live content.
-7. Release small content changes first. Watch Cloudflare errors and Store/AdMob reports, with rollback available if needed.
+1. **Check that you published.** The bar at the top says "Everything is published".
+2. **Check the phone.** The game's **Settings** shows "Published content: v12 · current" when it has the latest. Open the game again, or switch away and back, then look.
+3. **"Blocked by a bot check" or "HTTP 403" means Cloudflare is stopping the app.** A web page gets through because your browser can pass Cloudflare's "Just a moment…" check; the app can't. Here's how to fix it:
+   - In Cloudflare, go to **Security → Bots** and turn off **Bot Fight Mode**.
+   - On a paid plan, you can instead add a **WAF custom rule** that skips bot protection when the URL path starts with `/api/apple/`.
+   - **Security → Events** shows what was blocked.
+   - The game's other addresses (`/api/apple/sync…`, `/stats`, `/daily`) need the same.
+4. **Check how a build from Xcode was made.** It has this only if it was built after the live-content update: run `git pull`, then `npm run ios`, and build again.
+5. **Check how many phones got it.** **Today → On phones** and **Stats → Content versions** count phones that received each version. They only count players who said yes to play stats.
 
-## Data and game safety rules
+## Security
 
-- Only strictly validated, data-only records may be published. No code, scripts, executable expressions, arbitrary event logic, store purchase changes, external links or personal data.
-- Challenge IDs and weekly mechanics are restricted to existing game capabilities, while cosmetic colors, labels and schedules may be edited.
-- Already started Daily challenges retain their progress, even after a new content version arrives.
-- Public content is checked again by the game; malformed or unreachable data falls back to a cached, valid version or bundled game defaults.
-- Content loads on launch, not in the middle of gameplay. Offline users and older releases might have earlier content.
-- Interstitial, banner and rewarded ad safety switches only pause an ad format; they do not increase advertising or affect purchases.
-- Previously released custom skin data is retained during rollbacks and archives so existing owners can still use it.
-- Write requests are same-origin JSON, include a dedicated CSRF header, and use version checks. Publications create history records.
-- Anonymous analytics counts are events, not verified individuals. Revenue numbers must be checked in AdMob and the app stores.
-- Keep the admin interface under MFA, review access logs, minimize admin privileges and verify production Cloudflare Access rules before deployment.
+- **The private side.** `/apple/portal` and `/apple/admin/api/*` need a verified Cloudflare Access token:
+  - the Worker checks the RS256 signature, issuer, audience, expiry and an email allowlist;
+  - a cookie or a header alone is never enough;
+  - without the three settings below, nobody gets in.
+- **Writes are protected.** They must come from the portal's own page (Origin check), carry a custom header (against cross-site forms) and match the version they were based on.
+- **The portal's page is locked down.** It has a strict Content Security Policy (no inline scripts or styles, no framing), and its raw files at `/apple-control/*` are blocked.
+- **The forged-token rate limit.** A stream of forged tokens can't make the Worker fetch Cloudflare's keys more than once a minute.
+- **The public side.** `/api/apple/content` is read-only (GET, HEAD, OPTIONS) and only ever has what's published: no drafts, no history, no email addresses. It is open because the game has no sign-in.
+  - Answers are cached at the edge for 30 seconds, so a flood of requests can't run up the database.
+  - A phone that already has the version gets a 304 (no body).
+  - Publishing empties the cache.
+- **Validation.** Everything is checked twice: by the server when you save or publish, and on each phone when it arrives.
+- **Recommended:** a Cloudflare **rate-limiting rule** on `/api/apple/*`, for example 60 requests a minute per IP. Real phones make a handful.
 
-## Automated checks
+## Setup (once)
 
-Worker:
-- node --check src/apple-control.js
-- node --check src/index.js
-- node --check public/apple-control/app.js
-- node --test tests/apple-control.test.mjs
+1. **The database.** The `APPLE_DB` D1 binding (`wrangler.toml`) must point at the production database.
+2. **Cloudflare Zero Trust → Access → Applications.** Create or check a **self-hosted** application that protects:
+   - `/apple/portal`, `/apple/portal/*`
+   - `/apple/admin/api/*`
+   - `/apple/stats`
+   - `/apple/test/*`
 
-Game:
-- node --check js/live-content.js
-- node --check js/main.js
-- node --test tools/live-content-test.mjs
-- node tools/ads-test.mjs
-- node tools/progress-test.mjs
-- npm ci && npm run build
-- node tools/native-smoke.mjs ios
-- node tools/native-smoke.mjs android
-- node tools/test-site.mjs
-- node tools/retention-test.mjs
+   Require multi-factor sign-in, and allow only your own email addresses. Do **not** protect `/api/apple/*`: phones need it.
+3. **Workers & Pages → trafficmap-proxy → Settings → Variables and Secrets.** Add:
+   - `APPLE_ACCESS_TEAM_DOMAIN`: your team domain, like `my-team.cloudflareaccess.com` (no `https://`);
+   - `APPLE_ACCESS_AUD`: the Access application's **Application Audience (AUD) Tag**;
+   - `APPLE_ADMIN_EMAILS`: your sign-in email addresses, comma-separated, exact.
 
-The browser tests need Playwright and Chromium. Passing unit checks is not a substitute for testing authentication in the deployed Cloudflare environment and gameplay on real devices.
+   Keep the existing `APPLE_DB` binding and `GITHUB_TOKEN` secret.
+4. **Check it.** Open `https://mattlavergne.com/apple/portal/` and sign in. A private browser window, signed out, must get "403".
 
-## Configure the Cloudflare Access environment variables
+## Trying it on your computer
 
-1. In Cloudflare Zero Trust > Access > Applications, create or review the **Self-hosted** application protecting the administrative routes on mattlavergne.com. Cover /apple/portal, /apple/portal/*, /apple/admin/api/* and /apple/stats. Also protect /apple/test/* separately or with an existing /apple/* rule. Only explicitly authorized identities should pass the Allow policy. Require MFA through the identity provider.
-2. In the Access application's settings, copy the **Application Audience (AUD) Tag**. Locate your Cloudflare Access **Team domain**, for example my-team.cloudflareaccess.com. Use the same Access application and AUD for the admin routes.
-3. In Cloudflare Dashboard > Workers & Pages > **trafficmap-proxy** > Settings > **Variables and Secrets**, add three production variables or secrets:
-   * `APPLE_ACCESS_TEAM_DOMAIN` = your actual team domain without the https:// prefix, for example my-team.cloudflareaccess.com.
-   * `APPLE_ACCESS_AUD` = the exact Application Audience tag from step 2.
-   * `APPLE_ADMIN_EMAILS` = exact comma-separated authorized login email addresses, for example owner@example.com. Use no wildcards.
-4. Save and deploy the updated Worker settings. Preserve the existing APPLE_DB D1 binding and GITHUB_TOKEN secret; never commit secret values.
-5. Navigate to https://mattlavergne.com/apple/portal/ and complete your Cloudflare Access login. Check that an anonymous browser cannot access the portal and that a signed-in but unlisted address gets HTTP 403.
-6. Check that https://mattlavergne.com/api/apple/content works without an Access login. Do **not** protect /api/apple/content, /api/apple/stats, /api/apple/daily, or the public sync API: game clients need these endpoints. Create a draft and test preview before publishing any changes.
+`node scripts/dev-apple.mjs` runs the real Worker locally, without touching production. It uses a temporary database and a stand-in sign-in, and serves the game from a game-repo checkout next to this one (`../The-Apple`). Open `http://localhost:8787/apple/portal/`.
 
-If any of the three values is missing or does not match the verified JWT's issuer, audience and email, the portal will deny access by design. Worker variables alone do not replace the Access policy or MFA.
+The game repo's `node tools/control-center-e2e.mjs` uses it for a full test: it edits in the portal, publishes, and checks a phone gets each change.
+
+## Checks
+
+- **Here:** `node --test tests/apple-control.test.mjs`. It covers sign-in, the format, publishing, caching, the tour lock, discarding drafts and forged tokens.
+- **In the game repo:**
+  - `node --test tools/live-content-test.mjs` checks the phone's side and that the schedule matches the game's rotation.
+  - `node tools/content-sync-test.mjs` checks that this server and the game agree on challenges, twists and tour skins, and that a full publication reaches a phone whole.
+  - `node tools/control-center-e2e.mjs` is the full end-to-end test.

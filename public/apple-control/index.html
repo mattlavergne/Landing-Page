@@ -4,160 +4,52 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#f6f5f1">
+<meta name="color-scheme" content="light dark">
 <title>The Apple · Control Center</title>
 <link rel="stylesheet" href="/apple/portal/style.css">
 <script type="module" src="/apple/portal/app.js"></script>
 </head>
 <body>
-<div class="layout">
-  <aside class="sidebar" aria-label="Main navigation">
-    <a class="brand" href="/apple/portal" aria-label="Apple Control Center home">
-      <span class="brand-mark">●</span><span><strong>The Apple</strong><small>CONTROL CENTER</small></span>
-    </a>
-    <p class="nav-label">WORKSPACE</p>
-    <nav id="navigation" aria-label="Admin sections">
-      <button class="nav-link current" data-section="overview"><span class="nav-ico">▦</span>Overview</button>
-      <button class="nav-link" data-section="skins"><span class="nav-ico">◉</span>Skin studio</button>
-      <button class="nav-link" data-section="daily"><span class="nav-ico">▤</span>Daily challenges</button>
-      <button class="nav-link" data-section="weekly"><span class="nav-ico">◷</span>Weekly events</button>
-      <button class="nav-link" data-section="tours"><span class="nav-ico">♜</span>Orchard Tours</button>
-      <button class="nav-link" data-section="messages"><span class="nav-ico">◌</span>Announcements & safety</button>
-      <button class="nav-link" data-section="analytics"><span class="nav-ico">▥</span>Player analytics</button>
-      <button class="nav-link" data-section="test"><span class="nav-ico">⌘</span>Testing & releases</button>
-      <button class="nav-link" data-section="history"><span class="nav-ico">▧</span>History & settings</button>
+<div class="app">
+  <aside class="side" aria-label="Sections">
+    <div class="brand"><span class="brand-apple" aria-hidden="true">🍎</span><span><b>The Apple</b><small>Control Center</small></span></div>
+    <nav id="nav">
+      <button data-view="today"><span aria-hidden="true">☀️</span>Today</button>
+      <button data-view="calendar"><span aria-hidden="true">📅</span>Calendar</button>
+      <button data-view="notices"><span aria-hidden="true">📣</span>Announcements</button>
+      <button data-view="tours"><span aria-hidden="true">🎪</span>Orchard Tours</button>
+      <button data-view="skins"><span aria-hidden="true">🎨</span>Skins</button>
+      <button data-view="stats"><span aria-hidden="true">📊</span>Stats</button>
+      <button data-view="history"><span aria-hidden="true">🕘</span>History</button>
+      <button data-view="settings"><span aria-hidden="true">⚙️</span>Settings</button>
     </nav>
-    <div class="sidebar-foot">
-      <span class="status-dot"></span><span>Private administration</span>
-      <small>Changes to content require Publish. Code changes require a store release.</small>
-      <a href="/apple/test/" target="_blank" rel="noopener">Open private game test site ↗</a>
+    <div class="side-foot">
+      <a href="/apple/test/" target="_blank" rel="noopener">Open the test game ↗</a>
+      <small id="who"></small>
     </div>
   </aside>
-  <div class="workspace">
-    <header class="topbar">
-      <div class="mobile-brand">The Apple <span>Control Center</span></div>
-      <div class="breadcrumbs"><span>Workspace</span><span>/</span><strong id="crumb">Overview</strong></div>
-      <div class="top-actions">
-        <span class="env-pill"><span class="status-dot"></span>Production</span>
-        <span id="live-version" class="revision">Live v0</span>
-        <button type="button" class="btn secondary" id="save-draft" disabled>Save draft</button>
-        <button type="button" class="btn primary" id="publish" disabled>Publish changes</button>
+  <div class="main">
+    <header class="bar">
+      <button class="menu-btn" id="menu-btn" aria-label="Sections" aria-expanded="false">☰</button>
+      <div class="bar-status" id="bar-status" role="status" aria-live="polite">Loading…</div>
+      <div class="bar-actions">
+        <span class="saved" id="saved"></span>
+        <button class="btn ghost" id="discard" hidden>Discard</button>
+        <button class="btn primary" id="review" hidden>Review &amp; publish</button>
       </div>
     </header>
-    <div class="mobile-nav" id="mobile-nav" aria-label="Navigate control center"></div>
-    <main class="main">
-      <div id="alert" role="alert" hidden></div>
-      <div class="page-header">
-        <div><div id="eyebrow" class="eyebrow">THE APPLE / OVERVIEW</div><h1 id="page-title">Overview</h1><p id="page-subtitle">Your operational view of the game, content and player experience.</p></div>
-        <div class="save-state" id="save-state" aria-live="polite">Loading...</div>
-      </div>
-      <section class="panel" id="panel-overview">
-        <div class="stats-grid" id="overview-kpis"></div>
-        <div class="two-col">
-          <article class="card"><div class="card-head"><h2>What's running</h2><span class="chip">Live content</span></div><div id="overview-schedule"></div></article>
-          <article class="card"><div class="card-head"><h2>System health</h2><span class="chip" id="health-chip">Checking</span></div><div id="health-box" class="definition"></div><div class="button-row"><button class="btn secondary" id="refresh-all">Refresh dashboard</button></div></article>
-        </div>
-        <article class="card"><div class="card-head"><h2>How publishing works</h2></div>
-          <div class="steps"><div><b>01</b><strong>Design</strong><p>Create a skin, select challenge mechanics, or schedule a tour. Work stays local until you save.</p></div><div><b>02</b><strong>Save draft</strong><p>Keep your work safely in D1. A draft never changes what players see.</p></div><div><b>03</b><strong>Publish</strong><p>Publish a versioned content snapshot. Players receive it at the next app launch, subject to connectivity and cache.</p></div><div><b>04</b><strong>Verify</strong><p>Open the private playtest, inspect anonymous activity, and restore a prior version if necessary.</p></div></div>
-        </article>
-      </section>
-      <section class="panel" id="panel-skins" hidden>
-        <div class="section-top"><p>Design using the same colors and visual effects as the real game. A custom skin is bought using earned stars, or can be a future Orchard Tour reward. Archiving hides it from new players without removing it from existing owners.</p><button class="btn primary" id="new-skin">+ New skin</button></div>
-        <div class="studio">
-          <article class="card"><div class="card-head"><h2>Skin catalog</h2><span class="chip" id="skin-count">0 custom</span></div><div id="skin-list" class="skin-list"></div></article>
-          <article class="card">
-            <h2>Skin designer</h2><p class="definition">Changes are staged in your current draft. A published skin becomes available without a new store release.</p>
-            <div class="preview"><canvas id="skin-preview" width="260" height="260" aria-label="Apple skin preview" role="img"></canvas><span id="skin-preview-name">Custom Apple</span></div>
-            <form id="skin-form" class="editor">
-              <div class="form-two"><label>Internal identifier<input id="skin-id" autocomplete="off" readonly></label><label>Display name<input id="skin-name" maxlength="34" required placeholder="Harvest Apple"></label></div>
-              <div class="color-grid">
-                <label>Base color<input type="color" id="skin-base"></label><label>Shadow<input type="color" id="skin-dark"></label>
-                <label>Highlight<input type="color" id="skin-light"></label><label>Leaf<input type="color" id="skin-leaf"></label>
-              </div>
-              <div class="form-two"><label>Star price<input type="number" id="skin-cost" min="0" max="10000" step="1"></label><div class="field-description">Used for shop skins only. For a tour reward, set the price to 0.</div></div>
-              <div class="checks"><label><input type="checkbox" id="skin-gloss"> Glossy finish</label><label><input type="checkbox" id="skin-sparkle"> Sparkles</label><label><input type="checkbox" id="skin-stick"> Candy stick</label><label><input type="checkbox" id="skin-rainbow"> Rainbow animation</label><label><input type="checkbox" id="skin-tour"> Tour reward only</label><label><input type="checkbox" id="skin-active"> Available / not archived</label></div>
-              <div class="button-row"><button type="submit" class="btn primary">Apply to draft</button><button type="button" class="btn secondary" id="duplicate-skin">Duplicate skin</button></div>
-            </form>
-          </article>
-        </div>
-      </section>
-      <section class="panel" id="panel-daily" hidden>
-        <div class="section-top"><p>Each day has three challenges, one from each difficulty tier. Select a supported gameplay trigger, target and optional custom description. Custom wording cannot add a brand-new mechanic. Schedule for tomorrow or later to avoid changing an active Daily.</p></div>
-        <div class="two-col">
-          <article class="card"><h2>Build a daily set</h2>
-            <form id="daily-form" class="editor"><label>Calendar date<input type="date" id="daily-date" required></label>
-              <div id="daily-editors"></div>
-              <div class="button-row"><button type="submit" class="btn primary">Add / update date</button><button type="button" class="btn danger" id="remove-daily">Remove date</button></div>
-            </form>
-          </article>
-          <article class="card"><h2>Scheduled daily sets</h2><p class="definition">Daily Run seed and existing player progress stay deterministic. Already-started daily challenges are not replaced mid-day.</p><div id="daily-list" class="schedule-list"></div></article>
-        </div>
-      </section>
-      <section class="panel" id="panel-weekly" hidden>
-        <div class="section-top"><p>Weekly events begin on Mondays. Select one of four mechanics already supported by the game, then customize the event's name, icon and description. New mechanics still require a native app update.</p></div>
-        <div class="two-col">
-          <article class="card"><h2>Schedule a weekly event</h2>
-            <form id="weekly-form" class="editor"><label>Monday start date<input id="weekly-date" type="date" required></label><label>Gameplay effect<select id="weekly-type"></select></label><div class="form-two"><label>Event title<input id="weekly-name" maxlength="40" required></label><label>Icon<input id="weekly-icon" maxlength="12" required></label></div><label>Description<input id="weekly-desc" maxlength="140" required></label>
-            <div class="button-row"><button type="submit" class="btn primary">Add / update week</button><button type="button" class="btn danger" id="remove-weekly">Remove week</button></div></form>
-          </article>
-          <article class="card"><h2>Weekly calendar</h2><p class="definition">The selected mechanic controls the actual in-game effect. The title and description are cosmetic.</p><div id="weekly-list" class="schedule-list"></div></article>
-        </div>
-      </section>
-      <section class="panel" id="panel-tours" hidden>
-        <div class="section-top"><p>Orchard Tours are 21-day reward tracks. Name future seasons and assign an apple skin as the final tier reward. Tier thresholds, XP and game economy remain unchanged.</p></div>
-        <div class="two-col">
-          <article class="card"><h2>Design a future tour</h2>
-            <form id="tour-form" class="editor"><label>Tour number<input type="number" id="tour-number" min="1" max="100000" step="1"></label><div class="form-two"><label>Tour title<input id="tour-name" maxlength="40" required></label><label>Icon<input id="tour-icon" maxlength="12" required></label></div><label>Final reward skin<select id="tour-skin"></select></label>
-            <p id="tour-dates" class="definition"></p>
-            <div class="button-row"><button type="submit" class="btn primary">Add / update tour</button><button type="button" id="remove-tour" class="btn danger">Remove tour</button></div></form>
-          </article>
-          <article class="card"><h2>Tour lineup</h2><p class="definition">A missing custom assignment falls back to the game's built-in theme cycle. Tours repeat automatically indefinitely.</p><div id="tour-list" class="schedule-list"></div></article>
-        </div>
-      </section>
-      <section class="panel" id="panel-messages" hidden>
-        <div class="two-col">
-          <article class="card"><h2>In-game announcement</h2><p class="definition">A short, optional message on the game's home screen. It never blocks a run and never opens an external link.</p>
-            <form id="notice-form" class="editor"><label>Title<input id="notice-title" maxlength="60" placeholder="Harvest Week is here"></label><label>Message<textarea id="notice-body" rows="4" maxlength="240" placeholder="Check this week's new event."></textarea></label><div class="form-two"><label>Start date<input id="notice-start" type="date"></label><label>End date<input id="notice-end" type="date"></label></div><label class="toggle-label"><input type="checkbox" id="notice-enabled"> Enabled</label><div class="button-row"><button type="submit" class="btn primary">Apply announcement</button><button id="clear-notice" type="button" class="btn danger">Clear</button></div></form>
-          </article>
-          <article class="card"><h2>Emergency ad controls</h2><p class="definition">These switches can pause ad formats if an ad provider is misbehaving. They do not change purchases, remove ads from other app versions, or control ad content.</p>
-            <div class="switch-list"><label><span><strong>Pause interstitials</strong><small>Stops automatic full-screen ads between runs.</small></span><input id="flag-pauseInterstitials" type="checkbox"></label><label><span><strong>Pause rewarded ads</strong><small>Disables ad-based extra stars and second chances. Other ways to continue remain.</small></span><input id="flag-pauseRewarded" type="checkbox"></label><label><span><strong>Pause banners</strong><small>Hides banner advertisements on menu screens.</small></span><input id="flag-pauseBanners" type="checkbox"></label></div>
-            <p class="definition">Changes require Save draft, then Publish. Offline devices use their last downloaded configuration.</p>
-            <div class="button-row"><button type="button" class="btn secondary" id="check-public-content">Check published delivery</button></div><p class="definition" id="public-content-status" role="status">Public delivery has not been checked.</p>
-          </article>
-        </div>
-      </section>
-      <section class="panel" id="panel-analytics" hidden>
-        <div class="section-top"><p>Aggregated voluntary play reports from iOS and Android. Counts are events, not identified people. Neither true revenue nor individual retention can be calculated from these records.</p><div class="button-row"><select id="stats-window" aria-label="Analytics date range"><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option></select><select id="stats-platform" aria-label="Platform"><option value="all">Both platforms</option><option value="ios">iOS</option><option value="android">Android</option></select><button class="btn secondary" id="export-stats">Export CSV</button></div></div>
-        <div class="stats-grid" id="analytics-kpis"></div>
-        <div class="two-col"><article class="card"><div class="card-head"><h2>Daily activity</h2><small>Active-day and first-launch reports</small></div><div id="activity-chart"></div></article><article class="card"><div class="card-head"><h2>Conversion signals</h2></div><div id="conversion-box"></div></article></div>
-        <div class="two-col"><article class="card"><h2>Hardest Adventure levels</h2><p class="definition">Clear rate = clears / (clears + failed attempts); not unique players.</p><div class="table-wrap" id="level-report"></div></article><article class="card"><h2>Daily Run participation</h2><p class="definition">Number of score comparisons. A score may be modified by the same device.</p><div class="table-wrap" id="rank-report"></div></article></div>
-        <article class="card"><h2>Event breakdown</h2><div class="table-wrap" id="event-report"></div></article>
-      </section>
-      <section class="panel" id="panel-test" hidden>
-        <div class="two-col">
-          <article class="card"><h2>Playtest your draft</h2><p>Preview your unpublished skins, dates and rewards with a completely separate test save. Your real progress and other players are not affected.</p><div class="button-row"><button id="play-preview" class="btn primary">Open draft in test game ↗</button><a class="btn secondary" href="/apple/test/" target="_blank" rel="noopener">Open regular test game ↗</a></div>
-            <p class="definition">The test game's existing tool panel is still available. Use its Save, Progress, Play, Ads and View tabs, and the backtick shortcut. For a draft preview, the test mode is forced on.</p>
-          </article>
-          <article class="card"><h2>Code releases</h2><p>New game mechanics, UI changes and platform integrations require a GitHub change and an App Store / Google Play release. This portal publishes configuration data only.</p>
-            <div class="quick-links">
-              <a href="https://github.com/mattlavergne/apple" target="_blank" rel="noopener">Game repository <span>↗</span></a>
-              <a href="https://github.com/mattlavergne/Landing-Page" target="_blank" rel="noopener">Worker repository <span>↗</span></a>
-              <a href="https://appstoreconnect.apple.com/" target="_blank" rel="noopener">App Store Connect <span>↗</span></a>
-              <a href="https://play.google.com/console/" target="_blank" rel="noopener">Google Play Console <span>↗</span></a>
-            </div>
-          </article>
-        </div>
-        <article class="card"><h2>Operational links</h2><div class="link-tiles"><a href="https://apps.admob.com/" target="_blank" rel="noopener"><strong>AdMob</strong><span>Ad revenue, fill rate, impressions and policy notices ↗</span></a><a href="https://dash.cloudflare.com/" target="_blank" rel="noopener"><strong>Cloudflare</strong><span>Worker errors, Access rules and D1 usage ↗</span></a><a href="/apple/stats" target="_blank" rel="noopener"><strong>Legacy stats page</strong><span>Existing aggregation and score reports ↗</span></a><a href="/apple/test/?realsave" target="_blank" rel="noopener"><strong>Test-game recovery</strong><span>Exit test save and restore the real web save ↗</span></a></div></article>
-      </section>
-      <section class="panel" id="panel-history" hidden>
-        <div class="two-col"><article class="card"><h2>Publication history</h2><p class="definition">Every publication creates a numbered, restorable version. Rollback publishes an earlier snapshot as a new version. Nothing is silently deleted.</p><div class="table-wrap" id="version-list"></div></article><article class="card"><h2>Configuration and definitions</h2>
-          <div id="settings-details"></div>
-          <div class="button-row"><button class="btn secondary" id="download-content">Download draft JSON</button><button class="btn secondary" id="reload-content">Reload from server</button></div>
-          <p class="definition">Owner-only access is enforced by a signed Cloudflare Access token plus an explicit email allowlist. Public game devices can fetch only approved content.</p>
-        </article></div>
-      </section>
-    </main>
+    <div id="banner" class="banner" hidden></div>
+    <main id="view" tabindex="-1"></main>
   </div>
 </div>
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" aria-modal="true" role="dialog" aria-labelledby="drawer-title" hidden>
+  <header><h2 id="drawer-title"></h2><button class="icon" id="drawer-close" aria-label="Close">✕</button></header>
+  <div class="drawer-body" id="drawer-body"></div>
+</aside>
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
+  <div class="modal-card"><h2 id="modal-title"></h2><div id="modal-body"></div></div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 </body>
 </html>

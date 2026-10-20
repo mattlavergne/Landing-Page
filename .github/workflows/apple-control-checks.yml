@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - "src/apple-control.js"
+      - "src/apple-stats.js"
+      - "scripts/dev-apple.mjs"
       - "src/index.js"
       - "public/apple-control/**"
       - "tests/apple-control.test.mjs"
@@ -28,5 +30,6 @@ jobs:
           node --check src/apple-control.js
           node --check src/index.js
           node --check public/apple-control/app.js
+          node --check scripts/dev-apple.mjs
       - name: Verify access controls, schema and publication safety
         run: node --test tests/apple-control.test.mjs

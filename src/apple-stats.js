@@ -53,6 +53,7 @@ const DETAILS = {
   welcome_back: oneOf('3-6', '7-13', '14-29', '30+'),
   helping_hand: lvl,
   tour_tier: d => lvl(d) && Number(d) <= 15,
+  content: d => /^[1-9]\d{0,6}$/.test(d), // the live content version that reached a device
 };
 export const STAT_EVENTS = Object.keys(DETAILS);
 
