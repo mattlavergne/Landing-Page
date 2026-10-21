@@ -18,6 +18,17 @@ It also has stats and a history you can go back to. Only you can open it: Cloudf
   - The game asks for `?schema=2`: the list of announcements.
   - Copies of the game from before get the old format: one announcement, the one showing today.
 
+## The live preview
+
+**📱 Preview** in the top bar opens the private test game beside the editor, playing your draft, as a phone would show it.
+- **It updates as you edit.** Every saved change shows at once, without restarting the game. Your draft goes from this page to the test game through your browser's own storage on this site, never through the address phones use, so players see nothing until you publish.
+- **It shows the day you're working on.** Opening a day, a week, a tour or an announcement moves the preview to that date. **Today** brings it back.
+- **It plays on the test game's own test save,** so your real progress is never touched. The test tools are there too, as on the test game's own page.
+- **It stays open next time** on a wide screen. On a narrow screen it opens over the editor; close it to keep editing.
+- **What it can't show:** how older versions of the app handle your content. They ignore anything they don't understand. The automated tests cover that.
+
+The test game can be shown inside this site only (its pages say `frame-ancestors 'self'`), not inside anyone else's.
+
 ## What can't change from here (on purpose)
 
 - **New rules or mechanics.** Challenges and twists can only be ones the game already has. Apple doesn't allow downloading new game code, and it keeps players safe. New kinds need an app update.
@@ -84,4 +95,4 @@ The game repo's `node tools/control-center-e2e.mjs` uses it for a full test: it 
 - **In the game repo:**
   - `node --test tools/live-content-test.mjs` checks the phone's side and that the schedule matches the game's rotation.
   - `node tools/content-sync-test.mjs` checks that this server and the game agree on challenges, twists and tour skins, and that a full publication reaches a phone whole.
-  - `node tools/control-center-e2e.mjs` is the full end-to-end test.
+  - `node tools/control-center-e2e.mjs` is the full end-to-end test, including the live preview.

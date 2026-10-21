@@ -103,6 +103,7 @@ function placeApples(root = document) {
 const changesFromLive = () => describeChanges(S.live.content, S.doc);
 function edit(fn, message) {
   fn(S.doc);
+  writePreview();
   S.look = 'draft';
   queueSave();
   render();
@@ -231,6 +232,7 @@ function setView(view) {
 }
 function render() {
   if (!S.loaded) return;
+  writePreview();
   const v = $('#view');
   v.innerHTML = ({ today: viewToday, calendar: viewCalendar, notices: viewNotices, tours: viewTours, skins: viewSkins, stats: viewStats, history: viewHistory, settings: viewSettings })[S.view]();
   placeApples(v);
@@ -327,6 +329,7 @@ function viewCalendar() {
   <div class="legend"><span><span class="tag custom">Custom</span> changed by you</span><span><span class="tag auto">Automatic</span> the game’s rotation</span><span><span class="tag lock">🎪</span> a new Orchard Tour starts</span><span><span class="tag draft">📣</span> an announcement shows</span><span>Striped: days that have passed</span></div>`;
 }
 function openDay(key) {
+  previewDay(key);
   if (!S.game) return toast('The automatic rotation isn’t available; see the note at the top.', true);
   const d = dayFor(key, S.doc), auto = S.game.autoChallenges(S.game.dayOf(key));
   const past = key < todayKey();
@@ -390,6 +393,7 @@ function saveDay(key) {
   closeDrawer();
 }
 function openWeek(monday) {
+  previewDay(monday);
   if (!S.game) return toast('The automatic rotation isn’t available; see the note at the top.', true);
   const d = dayFor(monday, S.doc);
   const set = S.doc.weekly.find(w => w.monday === monday);
@@ -441,6 +445,7 @@ function viewNotices() {
   ${all.length ? groups.filter(g => g[1].length).map(([name, list]) => `<article class="card"><header><h2>${name}</h2><span class="muted small">${list.length}</span></header><div class="list">${list.map(n => `<div class="row"><div class="grow"><div class="title">${h(n.title)}</div><div class="sub">${h(n.body) || '<i>No message</i>'}</div><div class="sub">${h(niceDate(n.start))} to ${h(niceDate(n.end))}</div></div><input type="checkbox" class="switch" data-act="notice-toggle" data-id="${h(n.id)}" ${n.enabled ? 'checked' : ''} aria-label="Show “${h(n.title)}”"><button class="btn small" data-act="notice-edit" data-id="${h(n.id)}">Edit</button></div>`).join('')}</div></article>`).join('') : '<div class="empty">No announcements yet.</div>'}`;
 }
 function openNotice(id, start = todayKey()) {
+  previewDay(S.doc.notices.find(n => n.id === id)?.start || start);
   const n = S.doc.notices.find(x => x.id === id) || { id: '', title: '', body: '', start, end: addDays(start, 6), enabled: true };
   openDrawer(id ? 'Edit announcement' : 'New announcement', `
     <section class="form" id="notice-form">
@@ -494,6 +499,7 @@ function viewTours() {
 }
 function openTour(n) {
   const first = S.game.tourDays(n).first;
+  previewDay(first);
   const auto = S.game.tourFor(S.game.dayOf(first).num).theme;
   const set = S.doc.tours.find(t => t.number === n);
   const cur = set || { name: auto.name, icon: auto.icon, skin: auto.skin };
@@ -786,6 +792,48 @@ const actions = {
   reload: async () => { $('#banner').hidden = true; await load(); render(); },
   'banner-close': () => { $('#banner').hidden = true; },
 };
+// ------------------------------------------------------------------ live preview
+// The private test game beside the editor, playing your draft. Each change is
+// written where the game reads its preview (PREVIEW_KEY, this site's own
+// storage, never the server), and the game takes it at once; opening a day,
+// week, tour or announcement moves the preview to that day.
+const PV_OPEN = 'apple-control.preview';
+let pvWritten = '';
+function writePreview() {
+  if (!S.doc || $('#preview').hidden) return;
+  const json = JSON.stringify(S.doc);
+  if (json === pvWritten) return;
+  pvWritten = json;
+  try { localStorage.setItem(PREVIEW_KEY, JSON.stringify({ version: 0, content: S.doc, expires: Date.now() + 3600000 })); } catch { /* storage blocked: the preview shows what's published */ }
+}
+function showPreview(open) {
+  $('#preview').hidden = !open;
+  $('.app').classList.toggle('with-preview', open);
+  $('#pv-toggle').setAttribute('aria-pressed', String(open));
+  try { localStorage.setItem(PV_OPEN, open ? '1' : ''); } catch { /* storage blocked */ }
+  if (open) { pvWritten = ''; writePreview(); previewDay(S.pvDay || todayKey(), true); fitPreview(); }
+  else $('#pv-frame').removeAttribute('src'); // stops the game
+}
+function previewDay(key, restart = false) {
+  S.pvDay = key;
+  $('#pv-day').textContent = key === todayKey() ? 'today' : niceDate(key);
+  if ($('#preview').hidden) return;
+  const src = `/apple/test/?contentPreview=1&day=${key}`, f = $('#pv-frame');
+  if (restart || f.getAttribute('src') !== src) f.setAttribute('src', src);
+}
+// The game is drawn at an iPhone's size (390 × 844) and scaled to fit.
+function fitPreview() {
+  const stage = $('#pv-stage'), f = $('#pv-frame');
+  const k = Math.min(stage.clientWidth / 390, stage.clientHeight / 844) || 1;
+  f.style.transform = `scale(${k})`;
+  f.style.marginLeft = Math.max(0, (stage.clientWidth - 390 * k) / 2) + 'px';
+}
+$('#pv-toggle').addEventListener('click', () => showPreview($('#preview').hidden));
+$('#pv-close').addEventListener('click', () => showPreview(false));
+$('#pv-reload').addEventListener('click', () => previewDay(S.pvDay || todayKey(), true));
+$('#pv-today').addEventListener('click', () => previewDay(todayKey()));
+window.addEventListener('resize', () => { if (!$('#preview').hidden) fitPreview(); });
+
 function download(name, content, type) {
   const url = URL.createObjectURL(new Blob([content], { type }));
   const a = document.createElement('a');
@@ -828,6 +876,10 @@ new MutationObserver(() => {
     await Promise.all([load(), loadGame()]);
     if (S.gameError) banner(S.gameError);
     setView(location.hash.slice(1) || 'today');
+    // The preview stays open between visits on a wide screen.
+    let wasOpen = false;
+    try { wasOpen = localStorage.getItem(PV_OPEN) === '1'; } catch { /* storage blocked */ }
+    if (wasOpen && matchMedia('(min-width: 1200px)').matches) showPreview(true);
   } catch (e) {
     $('#bar-status').textContent = 'Couldn’t load';
     banner(`Couldn’t load the control center: ${e.message}`, 'reload', true);
