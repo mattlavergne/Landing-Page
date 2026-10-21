@@ -33,6 +33,7 @@
       <button class="menu-btn" id="menu-btn" aria-label="Sections" aria-expanded="false">☰</button>
       <div class="bar-status" id="bar-status" role="status" aria-live="polite">Loading…</div>
       <div class="bar-actions">
+        <button class="btn ghost" id="pv-toggle" aria-pressed="false" title="The test game beside the editor, playing your draft">📱 Preview</button>
         <span class="saved" id="saved"></span>
         <button class="btn ghost" id="discard" hidden>Discard</button>
         <button class="btn primary" id="review" hidden>Review &amp; publish</button>
@@ -41,6 +42,11 @@
     <div id="banner" class="banner" hidden></div>
     <main id="view" tabindex="-1"></main>
   </div>
+  <aside class="preview" id="preview" aria-label="Live preview" hidden>
+    <header><b>📱 Preview</b><span class="muted small" id="pv-day"></span><span class="grow"></span><button class="btn small ghost" id="pv-today">Today</button><button class="icon" id="pv-reload" aria-label="Start the preview again">↻</button><button class="icon" id="pv-close" aria-label="Close the preview">✕</button></header>
+    <div class="pv-stage" id="pv-stage"><iframe id="pv-frame" title="The test game, playing your draft"></iframe></div>
+    <p class="muted small pv-note">Your draft in the test game, on its own test save. Edits show at once; opening a day, week or tour shows that day. Players see nothing until you publish.</p>
+  </aside>
 </div>
 <div class="scrim" id="scrim" hidden></div>
 <aside class="drawer" id="drawer" aria-modal="true" role="dialog" aria-labelledby="drawer-title" hidden>

@@ -224,3 +224,26 @@ td.num, th.num { text-align: right; }
   .colors { grid-template-columns: repeat(2, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* Live preview (app.js showPreview): beside the editor on a wide screen,
+   over it on a narrow one. */
+.app.with-preview { grid-template-columns: 232px 1fr 400px; }
+.preview { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 8px; padding: 12px; border-left: 1px solid var(--line); background: var(--panel); }
+.preview header { display: flex; align-items: center; gap: 8px; }
+.preview header .grow { flex: 1; }
+.pv-stage { flex: 1; min-height: 0; overflow: hidden; }
+#pv-frame { width: 390px; height: 844px; border: 0; border-radius: 28px; box-shadow: 0 0 0 8px #1f1a1c, 0 10px 30px rgba(0, 0, 0, 0.25); transform-origin: top left; background: #fff; }
+.pv-note { margin: 0; }
+@media (max-width: 1199px) {
+  .app.with-preview { grid-template-columns: 232px 1fr; }
+  .preview { position: fixed; inset: 0; z-index: 50; height: auto; border-left: 0; }
+}
+@media (max-width: 760px) {
+  .app.with-preview { grid-template-columns: 1fr; }
+}
+/* With the preview beside the editor, an editing drawer opens to its left, so
+   the change can be seen as it's made. */
+@media (min-width: 1200px) {
+  .app.with-preview ~ .drawer { right: 400px; }
+  .app.with-preview ~ .scrim { right: 400px; }
+}

@@ -155,7 +155,7 @@ export default {
           headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" },
         });
       }
-      if (fromRepo) return repoFile(request, env, ctx, target.app.repo, target.rest);
+      if (fromRepo) return sameSiteFramesOnly(await repoFile(request, env, ctx, target.app.repo, target.rest));
       const originUrl = target.app.proxy + target.rest + url.search;
       const originResponse = await fetch(originUrl, {
         cf: { cacheTtl: 300, cacheEverything: true },
@@ -164,13 +164,10 @@ export default {
       // Reuse assets in the browser but always revalidate with the edge, so
       // fresh map data isn't hidden behind a stale browser cache.
       headers.set("Cache-Control", "no-cache");
-      // Allow the content to be embedded in the app window (same origin).
-      headers.delete("X-Frame-Options");
-      headers.delete("Content-Security-Policy");
-      return new Response(originResponse.body, {
+      return sameSiteFramesOnly(new Response(originResponse.body, {
         status: originResponse.status,
         headers,
-      });
+      }));
     }
 
     // 2) A framed app's pretty URL -> the mattOS app-window shell.
@@ -247,6 +244,15 @@ async function repoHead(env, ctx, repo) {
     return null;
   }
 }
+// A proxied app's pages can be shown inside this site (the mattOS app window,
+// the Apple Control Center's live preview), never inside anyone else's.
+function sameSiteFramesOnly(response) {
+  const headers = new Headers(response.headers);
+  headers.delete("X-Frame-Options");
+  headers.set("Content-Security-Policy", "frame-ancestors 'self'");
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
+
 async function repoFile(request, env, ctx, repo, rest) {
   const file = (rest.endsWith("/") ? rest + "index.html" : rest).replace(/^\/+/, "");
   if (!file || file.split("/").some(s => s === ".." || s.startsWith("."))) return new Response("Not found", { status: 404 });
