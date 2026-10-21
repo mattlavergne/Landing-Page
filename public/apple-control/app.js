@@ -77,7 +77,7 @@ function dayFor(key, content = shown()) {
   useSkins(content);
   return S.game.scheduleFor(S.game.dayOf(key), content);
 }
-const todayKey = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+const todayKey = (offset = 0) => { const d = new Date(); d.setDate(d.getDate() + offset); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 const addDays = (key, n) => { const [y, m, d] = key.split('-').map(Number); const t = new Date(y, m - 1, d + n, 12); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; };
 const niceDate = (key, opts = { weekday: 'short', month: 'short', day: 'numeric' }) => { const [y, m, d] = key.split('-').map(Number); return new Date(y, m - 1, d, 12).toLocaleDateString(undefined, opts); };
 const skinById = id => S.game?.SKINS.find(s => s.id === id) || shown().skins.find(s => s.id === id);
@@ -485,7 +485,10 @@ function viewTours() {
     const first = S.game.tourDays(n).first;
     const tour = dayFor(first).tour;
     const started = n <= current;
-    rows.push(`<div class="row tour-row${n === current ? ' current' : ''}"><span data-apple="${h(tour.theme.skin)}" data-size="48"></span><div class="grow"><div class="title">${h(tour.theme.icon)} Tour ${n}: ${h(tour.theme.name)} ${kind(tour.custom)}</div><div class="sub">${h(niceDate(tour.first))} to ${h(niceDate(tour.last))} · reward: ${h(skinById(tour.theme.skin)?.name || tour.theme.skin)}</div></div>${n === current ? '<span class="tag lock">Running</span>' : started ? '<span class="tag off">Finished</span>' : `<button class="btn small" data-act="tour" data-n="${n}">Change</button>`}</div>`);
+    // The server already treats a tour starting tomorrow as started (players
+    // ahead of UTC may be in it), so it can't change either.
+    const soon = !started && first <= todayKey(1);
+    rows.push(`<div class="row tour-row${n === current ? ' current' : ''}"><span data-apple="${h(tour.theme.skin)}" data-size="48"></span><div class="grow"><div class="title">${h(tour.theme.icon)} Tour ${n}: ${h(tour.theme.name)} ${kind(tour.custom)}</div><div class="sub">${h(niceDate(tour.first))} to ${h(niceDate(tour.last))} · reward: ${h(skinById(tour.theme.skin)?.name || tour.theme.skin)}</div></div>${n === current ? '<span class="tag lock">Running</span>' : started ? '<span class="tag off">Finished</span>' : soon ? '<span class="tag lock">Starts tomorrow</span>' : `<button class="btn small" data-act="tour" data-n="${n}">Change</button>`}</div>`);
   }
   return `${head}<article class="card"><div class="list">${rows.join('')}</div></article>`;
 }
