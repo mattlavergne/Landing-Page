@@ -280,6 +280,17 @@ const LIST = [
     launch:null
   },
 
+  {
+    // drafted from github.com/mattlavergne/RSSFeed by scripts/sync-projects.mjs — review, then delete this line
+    slug:"rssfeed", name:"Tributary", category:"research", status:"code", url:"#",
+    repo:"mattlavergne/RSSFeed",
+    icon:"code", modified:"Source",
+    tagline:"A free, private RSS reader for Chrome",
+    tags:["JavaScript"],
+    desc:"Tributary is a browser-extension RSS reader with the features you'd normally pay for — unlimited feeds, fast refresh, keyword alerts, filters, full-article view, sync — and no account, server, or subscription. Everything runs inside your browser.",
+    launch:null
+  },
+
   /* ↑ new projects go above this line (scripts/sync-projects.mjs inserts here) */
 ];
 
