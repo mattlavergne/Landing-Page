@@ -55,6 +55,7 @@
   --bad: #dc2626;
   --bar-track: rgba(15,23,42,0.09);
   --menubar-h: 30px;
+  --sat: 0px;                 /* safe-area top, only non-zero in phone mode */
 
   /* wallpaper blob palette, set live by JS (defaults: "Aurora") */
   --wb1:#5eead4; --wb2:#818cf8; --wb3:#c084fc; --wb4:#f0abfc; --wb5:#38bdf8;
@@ -241,6 +242,13 @@ html[data-theme="dark"] .desk-icon:hover{background:rgba(148,163,184,.14)}
 .win-title .wt-ico{width:15px;height:15px;flex:none;opacity:.8}
 .win-title .wt-ico svg{width:15px;height:15px;display:block}
 .win-bar .win-spacer{width:52px;flex:none}
+.win-back{display:none}
+/* snapping: a window gliding into a half of the screen, and the ghost that previews it */
+.win.snapping{transition:left .22s cubic-bezier(.3,1,.4,1),top .22s cubic-bezier(.3,1,.4,1),width .22s cubic-bezier(.3,1,.4,1),height .22s cubic-bezier(.3,1,.4,1)}
+#snapPreview{position:fixed;z-index:90;display:none;border-radius:18px;pointer-events:none;
+  background:var(--accent-soft);border:1.5px solid color-mix(in srgb,var(--accent) 60%,transparent);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:var(--edge);animation:fade .12s ease}
+#snapPreview.on{display:block}
 .win-body{flex:1;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .win-resize{position:absolute;width:16px;height:16px;right:0;bottom:0;cursor:nwse-resize;z-index:5}
 .win.max .win-resize{display:none}
@@ -597,18 +605,6 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
 .dock-sep{width:1px;height:40px;background:var(--hairline);margin:0 3px;align-self:center;flex:none}
 .dock-item.bounce{animation:bounce .5s ease}
 @keyframes bounce{0%,100%{transform:translateY(0)}40%{transform:translateY(-18px)}}
-@media(max-width:640px){
-  /* Dock spans the width and fits EVERY icon, never scrolls horizontally.
-     Items flex to share the available width, so any count stays on one row. */
-  #dock{left:8px;right:8px;transform:none;max-width:none;gap:5px;padding:7px 8px;
-    overflow:visible;border-radius:20px}
-  .dock-item{flex:1 1 0;min-width:0;max-width:54px;width:auto;height:auto;aspect-ratio:1}
-  .dock-item .di,.dock-item .di svg{width:100%;height:100%}
-  .dock-sep{display:none}                 /* drop separators to save width */
-  .dock-item .tip{display:none}           /* no hover tooltips on touch */
-  .finder-side{width:132px}               /* narrower sidebar → usable content area */
-}
-
 /* Touch devices: bigger, more forgiving tap targets */
 @media(pointer:coarse){
   .win-bar{height:46px}
@@ -630,36 +626,216 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
   .spot-box{width:94vw}
 }
 
-/* ═══════════════════ MOBILE HOME SCREEN ═══════════════════
-   A phone can't sensibly run a draggable-window desktop, so on small screens
-   mattOS becomes a scrollable home screen: widgets up top, apps in a tidy
-   grid, the Dock pinned to the bottom. Apps still open full-screen, one at a
-   time (see makeWindow / isPhone). */
-@media(max-width:640px){
-  #desktop{inset:var(--menubar-h) 0 0 0;display:flex;flex-direction:column;gap:14px;
-    padding:16px 16px calc(104px + env(safe-area-inset-bottom));
-    overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
-  /* widgets: shown again, stacked full-width at the top */
-  #widgets{display:flex!important;position:static;flex-direction:column;max-width:none;
-    top:auto;left:auto;gap:12px}
-  #widgets .widget{padding:15px 17px}
-  .w-clock .time{font-size:34px}
-  /* app icons: a centered springboard grid, not a cramped right-edge column */
-  #iconLayer{position:static;top:auto;right:auto;display:grid;
-    grid-template-columns:repeat(4,1fr);gap:16px 4px;align-items:start;justify-items:center;margin-top:2px}
-  .desk-icon{width:100%;max-width:88px;gap:7px;padding:8px 2px}
-  .desk-icon .di-label{font-size:11px;line-height:1.2;max-width:100%;overflow-wrap:anywhere}
-  /* Finder: a two-column grid fits a phone better than one giant column */
-  .finder-side{width:118px}
-  .fs-item .fs-n,.fs-item svg{display:none}   /* room for the names */
-  .f-sec span{display:none}
-  .f-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .f-file .fi,.f-file .fi svg{width:46px;height:46px}
-  .f-file .fn{font-size:11.5px}
-}
-@media(max-width:360px){
-  #iconLayer{grid-template-columns:repeat(3,1fr)}
-}
+
+/* ═══════════════════ PHONE MODE ═══════════════════
+   A phone can't sensibly run a draggable-window desktop, so on a small
+   screen mattOS turns into a phone OS instead: a status bar, a paged home
+   screen with every app on it, a four-app Dock, apps that open full-screen
+   with a back button, a home indicator you can swipe, and a card switcher.
+
+   All of it hangs off one class, html.phone, which the runtime sets from a
+   media query (narrow screens, plus phones held sideways).  Nothing below
+   applies to the desktop.  */
+#homeScreen,#homeSearch,#homeBar,#switcher{display:none}
+#iconDefs{position:absolute;width:0;height:0;overflow:hidden;visibility:hidden;pointer-events:none}
+html.phone{--menubar-h:38px;--sat:env(safe-area-inset-top,0px)}
+html.phone #brandmark{display:none}
+
+/* ── status bar: the menu bar, reduced to a clock and three glyphs ── */
+html.phone #menubar{height:calc(var(--menubar-h) + var(--sat));padding:var(--sat) 12px 0 20px;gap:0;
+  background:transparent;border-bottom:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;
+  font-size:15px;touch-action:none}
+html.phone .mb-logo,html.phone .mb-app,html.phone .mb-menu-only,html.phone #traySearch,
+html.phone #trayTheme,html.phone #mbDate,html.phone #mbBatteryPct{display:none}
+html.phone .mb-tray{display:contents}
+html.phone .mb-tray .mb-item{order:1;height:34px;padding:0 6px;border-radius:10px}
+html.phone #trayClock{order:-1;padding:0 4px}
+html.phone #mbClock{font-weight:700;letter-spacing:-.01em}
+html.phone .mb-spacer{order:0}
+html.phone .tray-icon{width:18px;height:18px}
+html.phone #trayBattery .tray-icon{width:24px;height:24px}
+
+/* ── home screen ── */
+html.phone #desktop{inset:0;overflow:hidden}
+/* kept in the tree (zero-sized, not display:none) so the icon gradients it
+   defines keep resolving for every other copy of those icons */
+html.phone #iconLayer{position:absolute;width:0;height:0;overflow:hidden;visibility:hidden;pointer-events:none}
+html.phone #homeScreen{display:block;position:absolute;
+  inset:calc(var(--menubar-h) + var(--sat)) 0 calc(152px + env(safe-area-inset-bottom)) 0;
+  transition:transform .34s cubic-bezier(.2,.9,.3,1),opacity .24s ease}
+html.phone.short #homeScreen{bottom:calc(112px + env(safe-area-inset-bottom))}
+#homePages{height:100%;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+#homePages::-webkit-scrollbar,.home-page::-webkit-scrollbar{display:none}
+.home-page{flex:0 0 100%;min-width:0;scroll-snap-align:start;scroll-snap-stop:always;overflow-y:auto;
+  padding:8px 14px 0;scrollbar-width:none}
+.home-grid{display:grid;grid-template-columns:repeat(var(--hcols,4),minmax(0,1fr));grid-auto-rows:var(--hrow,92px)}
+.h-app{all:unset;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:5px;justify-content:center;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;min-width:0}
+.h-app .hi{width:64px;height:64px;flex:none;filter:drop-shadow(0 6px 10px rgba(15,23,42,.24));
+  transition:transform .14s ease,filter .14s ease}
+.h-app .hi svg{width:100%;height:100%;display:block}
+.h-app:active .hi{transform:scale(.9);filter:drop-shadow(0 3px 6px rgba(15,23,42,.2)) brightness(.82)}
+.h-app:focus-visible{outline:none}
+.h-app:focus-visible .hi{outline:2px solid var(--accent);outline-offset:1px;border-radius:20px}
+.h-app .hl{font-size:11.5px;font-weight:600;line-height:1.2;max-width:100%;padding:0 3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);
+  text-shadow:0 1px 2px rgba(255,255,255,.55)}
+html[data-theme="dark"] .h-app .hl{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.h-app[data-open="trash"] .hi{color:var(--text)}
+
+/* widgets: two small squares across the top of the first page */
+html.phone #widgets{display:grid!important;position:static;grid-template-columns:1fr 1fr;gap:14px;
+  max-width:none;height:132px;margin:2px 6px 18px}
+html.phone.short #widgets{display:none!important}
+html.phone #widgets .widget{border-radius:24px;padding:12px 15px;display:flex;flex-direction:column;
+  justify-content:center;min-width:0;-webkit-tap-highlight-color:transparent}
+html.phone .w-clock .time{font-size:36px;white-space:nowrap}
+html.phone .w-clock .date{margin-top:8px}
+html.phone .w-clock .zone{margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.phone .w-profile{cursor:pointer}
+html.phone .w-profile .wp-top{flex-direction:column;align-items:flex-start;gap:8px}
+html.phone .w-profile .wp-av{width:38px;height:38px;border-radius:12px;font-size:18px}
+html.phone .w-profile .loc{display:none}
+
+/* the Search pill above the Dock; it shows page dots while you swipe */
+html.phone #homeSearch{all:unset;box-sizing:border-box;display:flex;position:fixed;left:50%;transform:translateX(-50%);
+  bottom:calc(116px + env(safe-area-inset-bottom));z-index:8990;height:30px;min-width:96px;padding:0 14px;
+  align-items:center;justify-content:center;gap:6px;border-radius:999px;cursor:pointer;
+  font-size:13px;font-weight:600;color:var(--text);
+  background:var(--panel);border:1px solid var(--panel-border);box-shadow:var(--edge);
+  backdrop-filter:var(--glass-blur-lite);-webkit-backdrop-filter:var(--glass-blur-lite);
+  transition:opacity .2s ease;-webkit-tap-highlight-color:transparent}
+html.phone.short #homeSearch{display:none}
+#homeSearch svg{width:13px;height:13px;opacity:.8}
+#homeSearch .dots{display:none;gap:7px;align-items:center}
+#homeSearch .dots i{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.3;transition:opacity .15s}
+#homeSearch .dots i.on{opacity:1}
+#homeSearch.paging .lbl,#homeSearch.paging svg{display:none}
+#homeSearch.paging .dots{display:flex}
+
+/* ── Dock: four apps, thumb-sized ── */
+html.phone #dock{left:12px;right:12px;transform:none;max-width:480px;margin:0 auto;
+  bottom:calc(24px + env(safe-area-inset-bottom));justify-content:space-around;align-items:center;gap:0;
+  padding:11px 8px;border-radius:32px;
+  transition:transform .36s cubic-bezier(.3,.9,.3,1),opacity .24s ease}
+html.phone .dock-item{width:60px;height:60px}
+html.phone .dock-item .di,html.phone .dock-item .di svg{width:100%;height:100%}
+html.phone .dock-item .tip,html.phone .dock-item .run{display:none}
+html.phone .dock-item:active .di{filter:brightness(.82)}
+/* everything else stays in the tree (so its listeners and gradients survive), just out of sight */
+html.phone .dock-item:not(.pd),html.phone .dock-sep{position:absolute;width:0;height:0;overflow:hidden;
+  visibility:hidden;pointer-events:none}
+html.phone.in-app #dock,html.phone.switching #dock{transform:translateY(170%);opacity:0;pointer-events:none}
+html.phone.in-app #homeScreen,html.phone.switching #homeScreen{opacity:0;transform:scale(.9);pointer-events:none}
+html.phone.in-app #homeSearch,html.phone.switching #homeSearch{opacity:0;pointer-events:none}
+
+/* ── the home indicator: tap or flick up for Home, a long swipe for the switcher ── */
+html.phone #homeBar{display:flex;position:fixed;left:50%;transform:translateX(-50%);
+  bottom:env(safe-area-inset-bottom);width:46%;max-width:210px;height:22px;z-index:9100;
+  align-items:center;justify-content:center;touch-action:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#homeBar i{display:block;width:100%;max-width:138px;height:5px;border-radius:3px;background:var(--text);opacity:.5;
+  transition:opacity .15s,transform .15s}
+#homeBar:active i{opacity:.85;transform:scaleX(1.06)}
+
+/* ── apps: full-screen, one in front, with a navigation bar ── */
+html.phone .win{position:fixed;left:0!important;top:0!important;right:0;bottom:0;width:auto!important;height:auto!important;
+  min-width:0;min-height:0;border:0;border-radius:0;box-shadow:none;animation:none;
+  padding-top:calc(var(--menubar-h) + var(--sat));padding-bottom:calc(22px + env(safe-area-inset-bottom));
+  background:color-mix(in srgb,var(--panel-solid) 90%,transparent)}
+html.phone .win.p-open{animation:p-open .36s cubic-bezier(.2,.9,.25,1)}
+html.phone .win.closing{animation:p-close .16s ease forwards}
+@keyframes p-open{from{opacity:0;transform:scale(.18);border-radius:60px}60%{opacity:1}to{opacity:1;transform:none;border-radius:0}}
+@keyframes p-close{to{opacity:0;transform:translateY(5%) scale(.94)}}
+html.phone .win-bar{height:44px;padding:0 8px;cursor:default}
+html.phone .win-lights,html.phone .win-resize,html.phone .win-bar .win-spacer{display:none}
+html.phone .win-back{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:1px;height:40px;
+  padding:0 10px 0 2px;max-width:30%;color:var(--accent);font-size:16px;font-weight:500;cursor:pointer;
+  border-radius:10px;-webkit-tap-highlight-color:transparent;position:relative;z-index:1}
+html.phone .win-back:active{opacity:.5}
+html.phone .win-back svg{width:24px;height:24px;flex:none;stroke-width:2.4}
+html.phone .win-back span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.phone .win-title{position:absolute;left:29%;right:29%;top:0;bottom:0;font-size:16px;font-weight:650;color:var(--text)}
+html.phone .win-title .wt-ico{display:none}
+html.phone .win-title span:last-child{overflow:hidden;text-overflow:ellipsis}
+
+/* ── the app switcher (Mission Control, as cards) ── */
+html.phone #switcher.on{display:block;position:fixed;inset:0;z-index:9200;animation:fade .18s ease}
+.sw-card{position:absolute;border-radius:16px;touch-action:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sw-label{position:absolute;left:2px;right:26px;top:-31px;display:flex;align-items:center;gap:7px;
+  font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.5);white-space:nowrap;overflow:hidden}
+.sw-label .swi{width:22px;height:22px;flex:none}
+.sw-label .swi svg{width:22px;height:22px;display:block}
+.sw-label b{overflow:hidden;text-overflow:ellipsis;font-weight:700}
+.sw-x{all:unset;position:absolute;right:-9px;top:-36px;width:34px;height:34px;display:flex;align-items:center;
+  justify-content:center;cursor:pointer}
+.sw-x i{width:22px;height:22px;border-radius:50%;background:rgba(20,24,36,.72);color:#fff;display:flex;
+  align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.2)}
+.sw-x svg{width:10px;height:10px}
+.sw-hint{position:absolute;left:0;right:0;bottom:calc(34px + env(safe-area-inset-bottom));text-align:center;
+  font-size:12.5px;font-weight:600;color:rgba(255,255,255,.78);text-shadow:0 1px 4px rgba(0,0,0,.5);pointer-events:none}
+html.phone #mcScrim{backdrop-filter:blur(16px) saturate(1.2);-webkit-backdrop-filter:blur(16px) saturate(1.2);background:rgba(8,12,22,.42)}
+html.phone #mcHint{display:none}
+
+/* ── sheets and banners ── */
+html.phone #control{top:calc(var(--menubar-h) + var(--sat) + 4px);left:10px;right:10px;width:auto;max-width:440px;
+  margin:0 auto;border-radius:28px;padding:14px;
+  max-height:calc(100dvh - var(--menubar-h) - var(--sat) - 34px);
+  box-shadow:var(--shadow),var(--edge),0 0 0 100vmax rgba(8,12,22,.3);
+  animation:sheet-in .26s cubic-bezier(.2,.9,.3,1)}
+@keyframes sheet-in{from{opacity:0;transform:translateY(-18px) scale(.97)}to{opacity:1;transform:none}}
+html.phone .cc-tile{border-radius:18px;padding:11px 13px}
+html.phone .seg button{padding:10px 0;font-size:13.5px}
+html.phone .wall-swatches{gap:12px}
+html.phone .wall-swatches button{width:46px;height:46px;border-radius:14px}
+html.phone .toggle{width:46px;height:28px}
+html.phone .toggle::after{width:24px;height:24px}
+html.phone .toggle.on::after{transform:translateX(18px)}
+html.phone .cc-slider input[type=range]{height:8px}
+html.phone .cc-slider input[type=range]::-webkit-slider-thumb{width:26px;height:26px}
+html.phone .cc-slider input[type=range]::-moz-range-thumb{width:26px;height:26px}
+html.phone .cc-actions button{padding:13px 0 10px;font-size:11.5px}
+html.phone #calendar{top:calc(var(--menubar-h) + var(--sat) + 4px);left:10px;right:auto;
+  width:min(300px,calc(100vw - 20px));border-radius:26px;box-shadow:var(--shadow),var(--edge),0 0 0 100vmax rgba(8,12,22,.3)}
+html.phone #notify{top:calc(var(--menubar-h) + var(--sat) + 2px);left:10px;right:10px;max-width:460px;margin:0 auto}
+html.phone .toast{border-radius:22px;animation:toast-drop .36s cubic-bezier(.2,.9,.3,1.1)}
+html.phone .toast.out{animation:toast-lift .24s ease forwards}
+html.phone .toast:nth-last-child(n+3){display:none}       /* two banners at most */
+@keyframes toast-drop{from{opacity:0;transform:translateY(-130%)}to{opacity:1;transform:none}}
+@keyframes toast-lift{to{opacity:0;transform:translateY(-130%)}}
+html.phone #spotlight{padding-top:calc(var(--menubar-h) + var(--sat) + 10px)}
+html.phone .spot-box{width:calc(100vw - 20px);border-radius:24px}
+html.phone .spot-results{max-height:min(56dvh,460px)}
+html.phone .spot-row{padding:11px 12px}
+html.phone #launchpad{padding:calc(var(--menubar-h) + var(--sat) + 14px) 10px calc(34px + env(safe-area-inset-bottom))}
+html.phone .lp-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:18px 2px}
+html.phone .menu{max-width:calc(100vw - 16px)}
+/* iOS zooms the whole page when a focused field is under 16px */
+html.phone input,html.phone textarea,html.phone select{font-size:16px!important}
+
+/* ── Finder on a phone: the sidebar becomes a row of chips ── */
+html.phone .finder{flex-direction:column}
+html.phone .finder-side{width:auto;flex:none;display:flex;gap:7px;padding:10px 12px;overflow-x:auto;overflow-y:hidden;
+  border-right:0;border-bottom:1px solid var(--hairline);scrollbar-width:none;-webkit-overflow-scrolling:touch}
+html.phone .finder-side::-webkit-scrollbar{display:none}
+html.phone .fs-group{display:none}
+html.phone .fs-item{flex:none;gap:6px;padding:8px 13px;border-radius:999px;background:var(--chip);
+  font-size:13.5px;font-weight:600}
+html.phone .fs-item svg{width:15px;height:15px}
+html.phone .fs-item .fs-n{margin-left:1px}
+html.phone .finder-main{min-height:0}
+html.phone .finder-body{padding:14px 10px}
+html.phone .f-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 2px}
+html.phone .f-file .fi,html.phone .f-file .fi svg{width:58px;height:58px}
+html.phone .f-sec span{display:none}
+html.phone .f-list .lrow{grid-template-columns:minmax(0,1fr) auto;padding:11px 8px;font-size:14.5px}
+html.phone .f-list .lrow>:nth-child(3){display:none}
+html.phone .f-list .lname svg{width:30px;height:30px}
+html.phone .pd .hero{padding:20px 18px 18px;gap:14px}
+html.phone .pd .content{padding:18px}
+html.phone .btn{padding:11px 16px;font-size:14px}
+html.phone .agrid{grid-template-columns:1fr 1fr}
+@media(max-width:350px){html.phone .agrid{grid-template-columns:1fr}}
 
 /* ═══════════════════ SPOTLIGHT ═══════════════════ */
 #spotlight{position:fixed;inset:0;z-index:9700;display:none;align-items:flex-start;justify-content:center;
@@ -681,8 +857,8 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
 .spot-row .si{width:30px;height:30px;flex:none;border-radius:8px;display:flex;align-items:center;justify-content:center}
 .spot-row .si svg{width:26px;height:26px}
 .spot-row .sbody{flex:1;min-width:0}
-.spot-row .st{font-weight:600;font-size:14px}
-.spot-row .ss{font-size:12px;color:var(--text-3)}
+.spot-row .st{display:block;font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spot-row .ss{display:block;font-size:12px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .spot-row.sel .ss{color:rgba(255,255,255,.8)}
 .spot-row .skind{font-size:11px;color:var(--text-3);font-family:var(--mono)}
 .spot-row.sel .skind{color:rgba(255,255,255,.85)}
@@ -694,6 +870,9 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
   box-shadow:var(--shadow),var(--edge);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
   animation:menu-in .16s cubic-bezier(.34,1.3,.64,1)}
 #control.on{display:block}
+#control{max-height:calc(100vh - var(--menubar-h) - 16px);max-height:calc(100dvh - var(--menubar-h) - 16px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+#control::-webkit-scrollbar{display:none}
+#control .cc-grid{margin-bottom:0}
 .cc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
 .cc-tile{background:var(--chip);border:1px solid var(--panel-border);border-radius:14px;padding:12px;box-shadow:var(--edge)}
 .cc-tile .cc-h{font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
@@ -714,6 +893,13 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
 .wall-swatches{display:flex;gap:8px;margin-top:2px}
 .wall-swatches button{all:unset;width:34px;height:34px;border-radius:10px;cursor:pointer;border:2px solid transparent;box-shadow:var(--edge)}
 .wall-swatches button.on{border-color:var(--accent)}
+.cc-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.cc-actions button{all:unset;display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 0 8px;
+  border-radius:12px;background:var(--bar-track);cursor:pointer;font-size:11px;font-weight:600;color:var(--text-2);
+  transition:background .12s ease,transform .1s ease}
+.cc-actions button:hover{background:var(--chip-hover);color:var(--text)}
+.cc-actions button:active{transform:scale(.95)}
+.cc-actions button svg{width:18px;height:18px;color:var(--text)}
 
 /* ═══════════════════ CALENDAR / TODAY POPOVER ═══════════════════ */
 #calendar{position:fixed;top:calc(var(--menubar-h) + 6px);right:8px;z-index:9600;width:280px;display:none;
@@ -859,11 +1045,22 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
 <div id="desktop">
   <div id="widgets" aria-hidden="false"></div>
   <div id="iconLayer"></div>
+  <!-- phone mode: the paged home screen (built by buildHome) -->
+  <div id="homeScreen"><div id="homePages"></div></div>
 </div>
 
 <div id="windowLayer"></div>
 
 <nav id="dock" aria-label="Dock"></nav>
+<div id="snapPreview" aria-hidden="true"></div>
+
+<!-- phone mode chrome: Search pill, home indicator, app switcher -->
+<button id="homeSearch" aria-label="Search">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+  <span class="lbl">Search</span><span class="dots" id="homeDots"></span>
+</button>
+<div id="homeBar" role="button" tabindex="0" aria-label="Home. Swipe up for the app switcher"><i></i></div>
+<div id="switcher" role="dialog" aria-label="App switcher"></div>
 
 <div id="spotlight" role="dialog" aria-label="Spotlight search" aria-modal="true">
   <div class="spot-box">
@@ -886,7 +1083,7 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
   <div class="lname">
     <div class="lav">M</div>
     <div style="font-weight:700;font-size:17px">Matt Lavergne</div>
-    <div class="lhint">Click or press any key to unlock</div>
+    <div class="lhint" id="lockHint">Click or press any key to unlock</div>
   </div>
 </div>
 
@@ -941,7 +1138,13 @@ html[data-theme="light"] .term{background:color-mix(in srgb,#0b1020 88%,transpar
 ════════════════════════════════════════════════════════════════════ */
 const REDUCE = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const COARSE = window.matchMedia("(pointer: coarse)").matches;   // touch device
-const isPhone = ()=> window.innerWidth < 640;
+/* Phone mode: a narrow screen, or a phone held sideways.  One media query
+   decides it, one class (html.phone) carries it, and every phone rule in
+   the stylesheet hangs off that class. */
+const mqPhone = window.matchMedia("(max-width: 640px), (pointer: coarse) and (max-height: 500px)");
+let PHONE = mqPhone.matches;
+document.documentElement.classList.toggle("phone", PHONE);
+const isPhone = ()=> PHONE;
 const $ = (s,r=document)=>r.querySelector(s);
 const el = (t,c,h)=>{const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e;};
 const esc = s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -1222,6 +1425,7 @@ function focusWin(id){
   // a history entry (only opening something does that)
   if(routeOf(id)) syncURL(id,false);
   else if(appForPath(location.pathname)) syncURL(null,false);
+  syncPhone();
 }
 function bringToFront(id){ const w=wins.get(id); if(w) w.node.style.zIndex=(++zTop); focusWin(id); }
 
@@ -1238,6 +1442,7 @@ function makeWindow(id, app){
         <button class="wl min" aria-label="Minimize">${I.minus}</button>
         <button class="wl max" aria-label="Zoom">${I.plus}</button>
       </div>
+      <button class="win-back" aria-label="Back">${I.chevL}<span>Home</span></button>
       <div class="win-title">${ico}<span>${esc(app.title)}</span></div>
       <div class="win-spacer"></div>
     </div>
@@ -1251,7 +1456,7 @@ function makeWindow(id, app){
   const dr = desktopRect();
   const w = Math.min(app.w||520, dr.right-dr.left);
   const h = Math.min(app.h||420, dr.bottom-dr.top);
-  const small = window.innerWidth<720;
+  const small = window.innerWidth<720 || isPhone();
   let left, top;
   if(small){ left = Math.max(6,(window.innerWidth-w)/2); top = dr.top+6; }
   else { left = clamp(dr.left + 60 + cascade*28, dr.left, dr.right-w); top = clamp(dr.top + 24 + cascade*26, dr.top, dr.bottom-h); cascade=(cascade+1)%6; }
@@ -1266,38 +1471,102 @@ function makeWindow(id, app){
   $(".wl.close",node).addEventListener("click",e=>{e.stopPropagation();closeWin(id);});
   $(".wl.min",node).addEventListener("click",e=>{e.stopPropagation();minimizeWin(id);});
   $(".wl.max",node).addEventListener("click",e=>{e.stopPropagation();toggleMax(id);});
+  $(".win-back",node).addEventListener("click",e=>{e.stopPropagation();closeWin(id);});
   const bar=$(".win-bar",node);
-  bar.addEventListener("dblclick",e=>{ if(!e.target.closest(".wl")) toggleMax(id); });
+  bar.addEventListener("dblclick",e=>{ if(!e.target.closest(".wl,.win-back")) toggleMax(id); });
   enableDrag(node,bar,id);
   enableResize(node,$(".win-resize",node),id);
   if(app.mount) app.mount(body,id,node);
   focusWin(id);
   // On phones, open full-screen (one app at a time), no fiddly drag/resize.
   // toggleMax stores the normal rect above as the restore size.
-  if(isPhone()) toggleMax(id);
+  if(isPhone()){ toggleMax(id); phoneOpenAnim(node,id); syncPhone(); }
   return node;
 }
 
 function enableDrag(node, handle, id){
-  let sx,sy,ox,oy,drag=false,pid=null;
+  let sx,sy,ox,oy,drag=false,pid=null,zone=null,unsnap=false;
   handle.addEventListener("pointerdown",e=>{
-    if(e.target.closest(".wl")) return;
+    if(e.target.closest(".wl,.win-back")) return;
     const w=wins.get(id); if(w&&w.max) return;
-    drag=true; pid=e.pointerId; sx=e.clientX; sy=e.clientY;
+    drag=true; pid=e.pointerId; sx=e.clientX; sy=e.clientY; zone=null; unsnap=!!(w&&w.snap);
     ox=parseFloat(node.style.left); oy=parseFloat(node.style.top);
     node.classList.add("dragging"); handle.setPointerCapture(pid);
   });
   handle.addEventListener("pointermove",e=>{
     if(!drag) return;
+    if(unsnap){
+      // a tiled window gets its old size back the moment it is dragged away,
+      // and stays under the pointer at the same relative spot
+      if(Math.abs(e.clientX-sx)<5 && Math.abs(e.clientY-sy)<5) return;
+      unsnap=false;
+      const w=wins.get(id), r=w&&w.snapPrev;
+      if(r){
+        const ratio=clamp((sx-node.offsetLeft)/node.offsetWidth,0,1);
+        node.style.width=r.width; node.style.height=r.height;
+        ox=sx-ratio*parseFloat(r.width); node.style.left=ox+"px";
+      }
+      if(w) w.snap=null;
+    }
     const dr=desktopRect();
     let nl=ox+(e.clientX-sx), nt=oy+(e.clientY-sy);
     nl=clamp(nl, dr.left-node.offsetWidth+90, dr.right-90);
     nt=clamp(nt, dr.top, dr.bottom-40);
     node.style.left=nl+"px"; node.style.top=nt+"px";
+    zone=snapZone(e); showSnap(zone);
   });
-  const end=()=>{ if(drag){drag=false; node.classList.remove("dragging"); try{handle.releasePointerCapture(pid);}catch(e){}} };
+  const end=e=>{
+    if(!drag) return;
+    drag=false; node.classList.remove("dragging"); try{handle.releasePointerCapture(pid);}catch(_){}
+    showSnap(null);
+    if(zone && e && e.type==="pointerup") snapWin(id,zone);
+    zone=null;
+  };
   handle.addEventListener("pointerup",end);
   handle.addEventListener("pointercancel",end);
+}
+
+/* ── Snapping ─────────────────────────────────────────────────────────
+   Drag a window against the left or right edge to tile it to that half,
+   or up into the menu bar to zoom it.  ⌃⌥ + arrows does the same from the
+   keyboard (down puts it back). */
+function snapRect(zone){
+  const dr=desktopRect(), half=(dr.right-dr.left-8)/2, h=dr.bottom-dr.top;
+  if(zone==="left") return {left:dr.left, top:dr.top, width:half, height:h};
+  if(zone==="right") return {left:dr.left+half+8, top:dr.top, width:half, height:h};
+  return {left:dr.left, top:dr.top, width:dr.right-dr.left, height:h};
+}
+function snapZone(e){
+  if(isPhone()) return null;
+  if(e.clientX<=4) return "left";
+  if(e.clientX>=window.innerWidth-5) return "right";
+  if(e.clientY<=desktopRect().top-8) return "max";
+  return null;
+}
+function showSnap(zone){
+  const g=$("#snapPreview"); if(!g) return;
+  if(!zone){ g.classList.remove("on"); return; }
+  const r=snapRect(zone);
+  g.style.left=r.left+"px"; g.style.top=r.top+"px"; g.style.width=r.width+"px"; g.style.height=r.height+"px";
+  g.classList.add("on");
+}
+function snapWin(id, zone){
+  const w=wins.get(id); if(!w||isPhone()) return;
+  const node=w.node;
+  const glide=()=>{ if(REDUCE) return; node.classList.add("snapping"); setTimeout(()=>node.classList.remove("snapping"),260); };
+  if(zone==="max"){ if(!w.max){ glide(); toggleMax(id); } return; }
+  if(zone==="restore"){
+    if(w.max){ glide(); toggleMax(id); }
+    else if(w.snap && w.snapPrev){ glide(); const r=w.snapPrev;
+      node.style.left=r.left; node.style.top=r.top; node.style.width=r.width; node.style.height=r.height; w.snap=null; }
+    return;
+  }
+  if(w.max) toggleMax(id);
+  if(!w.snap) w.snapPrev={left:node.style.left,top:node.style.top,width:node.style.width,height:node.style.height};
+  const r=snapRect(zone);
+  glide();
+  node.style.left=r.left+"px"; node.style.top=r.top+"px"; node.style.width=r.width+"px"; node.style.height=r.height+"px";
+  w.snap=zone;
 }
 function enableResize(node,grip,id){
   let sx,sy,ow,oh,rz=false,pid=null;
@@ -1318,6 +1587,7 @@ function enableResize(node,grip,id){
 function toggleMax(id){
   const w=wins.get(id); if(!w) return;
   const node=w.node, dr=desktopRect();
+  if(w.max && isPhone()) return;          // a phone app is always full-screen
   if(w.max){
     const r=w.prevRect;
     node.classList.remove("max");
@@ -1341,7 +1611,7 @@ function dockItemFor(id){
 function minimizeWin(id){
   const w=wins.get(id); if(!w||w.min) return;
   const node=w.node;
-  const dockItem=dockItemFor(id);
+  const dockItem=animTargetFor(id);
   const nr=node.getBoundingClientRect();
   let tx=0,ty=window.innerHeight;
   if(dockItem){ const dr=dockItem.getBoundingClientRect(); tx=dr.left+dr.width/2-(nr.left+nr.width/2); ty=dr.top-nr.top; }
@@ -1350,15 +1620,16 @@ function minimizeWin(id){
   node.style.transformOrigin="center bottom";
   node.style.transform=`translate(${tx}px,${ty}px) scale(.1)`;
   node.style.opacity="0";
-  setTimeout(()=>{ node.style.display="none"; node.classList.remove("minimizing"); },320);
-  refreshDock();
+  setTimeout(()=>{ node.classList.remove("minimizing"); if(w.min) node.style.display="none"; },320);
+  refreshDock(); syncPhone();
 }
 function restoreWin(id){
   const w=wins.get(id); if(!w) return;
   const node=w.node;
   node.style.display="";
-  requestAnimationFrame(()=>{ node.style.transform=""; node.style.opacity=""; });
+  requestAnimationFrame(()=>{ if(!w.min){ node.style.transform=""; node.style.opacity=""; } });
   w.min=false; bringToFront(id); refreshDock();
+  if(isPhone()){ if(!w.max) toggleMax(id); phoneOpenAnim(node,id); }
 }
 function closeWin(id, opts){
   const w=wins.get(id); if(!w) return;
@@ -1370,7 +1641,11 @@ function closeWin(id, opts){
     wins.forEach((o,k)=>{ if(k!==id && routeOf(k) && !o.min){ const z=+o.node.style.zIndex||0; if(z>top){top=z; next=k;} } });
     syncURL(next, false);
   }
-  setTimeout(()=>{ w.node.remove(); wins.delete(id); if(activeId===id){activeId=null; updateMenubarApp();} refreshDock(); },160);
+  syncPhone();
+  setTimeout(()=>{ w.node.remove(); wins.delete(id); if(activeId===id){activeId=null; updateMenubarApp();} refreshDock();
+    // on a phone the app underneath is now the one in front
+    if(isPhone() && !swOn && !activeId){ const t=topWin(); if(t) focusWin(t[0]); }
+  },160);
 }
 
 /* Back / forward: a game is a page, so leaving its URL closes its window. */
@@ -1653,7 +1928,8 @@ APPS.readme = {
         <li>Open <b>Projects</b> in the Finder to browse everything I've built.</li>
         <li>Tap the <b>Dock</b> icons at the bottom to launch apps.</li>
         <li>Press <span class="kbd">⌘K</span> / <span class="kbd">Ctrl K</span> for Spotlight.</li>
-        <li>On a desktop, drag windows by their title bar and resize from the corner.</li>
+        <li>On a desktop, drag windows by their title bar and resize from the corner. Drag one against a screen edge to tile it.</li>
+        <li>On a phone, swipe between home screens, flick the bar at the bottom to go Home, and swipe it further up for the app switcher.</li>
         <li>Try the <b>Terminal</b>: type <span class="kbd">help</span>.</li>
         <li>Open the <b>Arcade</b> for nine games: Snake, Chomper, Flap, Bricks, Twenty48, Stacks, Invaders, Hopper and Sweeper.</li>
         <li>Right-click the desktop for more. Toggle light/dark in the menu bar.</li>
@@ -1968,7 +2244,7 @@ function buildDock(){
   const dock=$("#dock"); dock.innerHTML="";
   dockList().forEach(d=>{
     if(d.sep){ dock.appendChild(el("div","dock-sep")); return; }
-    const item=el("div","dock-item");
+    const item=el("div","dock-item"+(PHONE_DOCK.includes(d.id)?" pd":""));   // pd = also in the phone Dock
     item.dataset.open=d.id;
     item.innerHTML=`<span class="di">${d.icon}</span><span class="run"></span><span class="tip">${esc(d.label)}</span>`;
     item.addEventListener("click",()=>{
@@ -2083,6 +2359,9 @@ function menuItems(kind){
     const items=[
       {label:"Minimize All", action:()=>wins.forEach((w,k)=>!w.min&&minimizeWin(k))},
       {label:"Bring All to Front", action:()=>wins.forEach((w,k)=>w.min&&restoreWin(k))},
+      {divider:true},
+      {label:"Tile Left", sc:"⌃⌥←", disabled:!w, action:()=>w&&snapWin(activeId,"left")},
+      {label:"Tile Right", sc:"⌃⌥→", disabled:!w, action:()=>w&&snapWin(activeId,"right")},
     ];
     if(open.length){ items.push({divider:true}); open.forEach(([k,w])=>items.push({label:(k===activeId?"✓ ":"")+w.app.title, action:()=>{ if(w.min)restoreWin(k); else bringToFront(k); }})); }
     return items;
@@ -2144,12 +2423,23 @@ function buildControl(){
         <div class="cc-h">Motion</div>
         <div class="cc-toggle"><div class="toggle ${REDUCE?'on':''}" id="ccMotion"></div><span style="font-size:12px">Reduce motion</span></div>
       </div>
+      <div class="cc-tile wide">
+        <div class="cc-h">Quick Actions</div>
+        <div class="cc-actions">
+          <button data-cc="search">${I.search}<span>Search</span></button>
+          <button data-cc="windows">${I.grid}<span>Windows</span></button>
+          <button data-cc="lock">${I.lock}<span>Lock</span></button>
+          <button data-cc="restart">${I.restart}<span>Restart</span></button>
+        </div>
+      </div>
     </div>`;
   c.addEventListener("click",e=>e.stopPropagation());
   c.querySelectorAll("[data-theme-seg]").forEach(b=>b.addEventListener("click",()=>setTheme(b.dataset.themeSeg)));
   c.querySelectorAll("[data-wall]").forEach(b=>b.addEventListener("click",()=>setWall(b.dataset.wall)));
   $("#ccBright").addEventListener("input",e=>{ brightness=+e.target.value; localStorage.setItem("mattos-bright",brightness); applyBright(); });
   const tog=(id,fn)=>{ const t=$(id); t.addEventListener("click",()=>{ t.classList.toggle("on"); fn&&fn(t.classList.contains("on")); }); };
+  const CC_ACT={search:openSpotlight, windows:()=>missionControl(), lock:lockScreen, restart:()=>runBoot(false)};
+  c.querySelectorAll("[data-cc]").forEach(b=>b.addEventListener("click",()=>{ c.classList.remove("on"); CC_ACT[b.dataset.cc](); }));
   tog("#ccWifi", v=>setWifi(v));
   tog("#ccDnd", v=>setDnd(v));
   tog("#ccMotion",v=>{ document.documentElement.style.setProperty("--wall-motion",v?"paused":"running"); document.querySelectorAll("#wallpaper .blob").forEach(b=>b.style.animationPlayState=v?"paused":"running"); });
@@ -2331,13 +2621,13 @@ $("#lock").addEventListener("click",unlock);
 /* Desktop icons = Projects folder + About + any `pinned:true` PROJECTS + README.
    Pinning a project shows it on the desktop, the Dock, and (always) the Finder. */
 function deskIconList(){
-  const projs=pinnedProjects().map(p=>({label:p.name, icon:projIcon(p), open:()=>openApp("project:"+p.slug)}));
+  const projs=pinnedProjects().map(p=>({id:"project:"+p.slug, label:p.name, icon:projIcon(p), open:()=>openApp("project:"+p.slug)}));
   return [
-    {label:"Projects", icon:APPICON.folder, open:()=>{ finderLoc="projects"; openApp("finder"); setTimeout(()=>refreshFinderAll(),20); }},
-    {label:"About Me", icon:APPICON.about, open:()=>openApp("about")},
+    {id:"finder", label:"Projects", icon:APPICON.folder, open:()=>{ finderLoc="projects"; openApp("finder"); setTimeout(()=>refreshFinderAll(),20); }},
+    {id:"about", label:"About Me", icon:APPICON.about, open:()=>openApp("about")},
     ...projs,
-    ...(ARCADE?[{label:"Arcade", icon:APPICON.arcade, open:()=>openApp("arcade")}]:[]),
-    {label:"README.txt", icon:APPICON.note, open:()=>openApp("readme")}
+    ...(ARCADE?[{id:"arcade", label:"Arcade", icon:APPICON.arcade, open:()=>openApp("arcade")}]:[]),
+    {id:"readme", label:"README.txt", icon:APPICON.note, open:()=>openApp("readme")}
   ];
 }
 function buildDesktop(){
@@ -2368,6 +2658,8 @@ function buildDesktop(){
       </div>
       <div class="loc">${I.pin}<span>${esc(PROFILE.location)}</span></div>
     </div>`;
+  // on the phone home screen the profile widget is a shortcut to About
+  $("#widgets .w-profile").addEventListener("click",()=>{ if(isPhone()) openApp("about"); });
   tickClock();
 }
 
@@ -2559,6 +2851,10 @@ $("#launchpad").addEventListener("click",e=>{ if(e.target===$("#launchpad")) clo
    Spread every open window across the desktop; click one to focus. */
 let mcOn=false;
 function missionControl(force){
+  if(isPhone()){                       // on a phone this is the app switcher
+    if(force===false || swOn) closeSwitcher(); else if(openSwitcher()) MATTOS.egg("mission-control");
+    return;
+  }
   const open=[...wins.entries()].filter(([k,w])=>!w.min);
   if(mcOn || force===false){ exitMissionControl(); return; }
   if(!open.length){ toast("Mission Control","No windows are open. Open something first.", I.window); return; }
@@ -2583,6 +2879,7 @@ function missionControl(force){
   MATTOS.egg("mission-control");
 }
 function exitMissionControl(){
+  if(swOn){ closeSwitcher(); return; }
   if(!mcOn) return;
   mcOn=false;
   layer.classList.remove("mc");
@@ -2703,6 +3000,282 @@ Rebooting in a moment. Nothing was actually harmed.<span class="cursor"></span>`
   setTimeout(()=>{ el.classList.remove("on"); runBoot(false); },5200);
 }
 
+/* ═══════════════════════ PHONE MODE ═══════════════════════
+   The phone shell.  Same windows, same apps, same registry: a window on a
+   phone is simply full-screen, and the things around it change shape.
+
+     home screen   every app, paged to whatever fits the screen
+     Dock          four apps (PHONE_DOCK); the rest of the Dock stays in
+                   the tree, hidden, so its listeners keep working
+     back button   closes the app in front and reveals the one beneath,
+                   so Finder → a project → back works like a nav stack
+     home bar      tap or flick up: Home (apps keep running).  Swipe it
+                   further: the app switcher
+     switcher      Mission Control drawn as cards; swipe one up to quit */
+const HTML=document.documentElement;
+const PHONE_DOCK=["about","contact",ARCADE?"arcade":"career","terminal"];
+const byZ=(a,b)=>(+a[1].node.style.zIndex||0)-(+b[1].node.style.zIndex||0);
+function visibleWins(){ return [...wins.entries()].filter(([k,w])=>!w.min && !w.node.classList.contains("closing")).sort(byZ); }
+function topWin(){ const v=visibleWins(); return v.length?v[v.length-1]:null; }
+
+let wasInApp=false;
+function syncPhone(){
+  if(!PHONE){ HTML.classList.remove("in-app"); wasInApp=false; return; }
+  const vis=visibleWins();
+  HTML.classList.toggle("in-app", vis.length>0);
+  // the back button names whatever it will reveal
+  vis.forEach(([k,w],i)=>{
+    const s=w.node.querySelector(".win-back span");
+    if(s) s.textContent = i>0 ? (vis[i-1][1].app.appName||vis[i-1][1].app.title) : "Home";
+  });
+  if(wasInApp && !vis.length) buildHome();      // picks up anything unlocked meanwhile
+  wasInApp = vis.length>0;
+}
+
+/* where a window flies to (or from): its home-screen icon if that is on
+   screen, else its Dock tile.  On a desktop it is always the Dock. */
+function animTargetFor(id){
+  if(!PHONE) return dockItemFor(id);
+  const base=id.split(":")[0], fam = base==="game" ? "arcade" : base;
+  const sels=[`#homePages [data-open="${CSS.escape(id)}"]`, `#dock .pd[data-open="${CSS.escape(id)}"]`, `#dock .pd[data-open="${fam}"]`];
+  for(const sel of sels){
+    const e=$(sel); if(!e) continue;
+    const r=e.getBoundingClientRect();
+    if(r.width && r.left>=-4 && r.right<=window.innerWidth+4) return e;
+  }
+  return null;
+}
+function phoneOpenAnim(node,id){
+  if(REDUCE) return;
+  const t=animTargetFor(id);
+  if(t){ const r=t.getBoundingClientRect(); node.style.transformOrigin=`${r.left+r.width/2}px ${Math.min(r.top+r.height/2, window.innerHeight)}px`; }
+  else node.style.transformOrigin="50% 55%";
+  node.classList.remove("p-open"); void node.offsetWidth; node.classList.add("p-open");
+  setTimeout(()=>node.classList.remove("p-open"),420);
+}
+
+/* Home: the app in front shrinks back to its icon; anything stacked under
+   it is put away quietly.  Nothing is closed. */
+function goHome(){
+  if(swOn){ closeSwitcher(); }
+  const vis=visibleWins(); if(!vis.length) return false;
+  vis.slice(0,-1).forEach(([k,w])=>{ w.min=true; w.node.style.display="none"; });
+  minimizeWin(vis[vis.length-1][0]);
+  activeId=null; updateMenubarApp();
+  return true;
+}
+
+/* ── the home screen ── */
+function homeItems(){
+  const list=[];
+  const add=(id,label,icon,open)=>{ if(PHONE_DOCK.includes(id) || list.some(x=>x.id===id)) return; list.push({id,label,icon,open}); };
+  deskIconList().forEach(d=>add(d.id,d.label,d.icon,d.open));
+  add("career","Career",APPICON.career,()=>openApp("career"));
+  add("activity","Activity",APPICON.activity,()=>openApp("activity"));
+  add("contact","Mail",APPICON.contact,()=>openApp("contact"));
+  add("terminal","Terminal",APPICON.terminal,()=>openApp("terminal"));
+  EXTRA_APPS.forEach(a=>add("app:"+a.id,a.title,a.icon,()=>openApp("app:"+a.id)));
+  if(ARCADE) add("arcade","Arcade",APPICON.arcade,()=>openApp("arcade"));
+  if(secretsUnlocked) add("secrets","Secrets.txt",APPICON.note,()=>openApp("secrets"));
+  openGames().forEach(g=>add("game:"+g.id,g.name,g.icon,()=>openApp("game:"+g.id)));
+  // the Trash lives on the (hidden) Dock tile, so its jokes and its
+  // achievement keep counting from one place
+  add("trash","Trash",(APPSTORE&&APPSTORE.icons.trash)||APPICON.trash,()=>{
+    const t=$('#dock .dock-item[data-open="trash"]'); t ? t.click() : trashClick(); });
+  return list;
+}
+const homePage=()=>{ const p=$("#homePages"); return p.clientWidth ? Math.round(p.scrollLeft/p.clientWidth) : 0; };
+function buildHome(){
+  const pages=$("#homePages"), widgets=$("#widgets"), desk=$("#desktop");
+  if(!pages || !widgets) return;
+  if(!PHONE){                               // desktop: widgets go home, pages are emptied
+    if(widgets.parentNode!==desk) desk.insertBefore(widgets, $("#iconLayer"));
+    pages.innerHTML=""; return;
+  }
+  const keep=homePage();
+  const short=window.innerHeight<480;       // a phone on its side: no room for widgets
+  HTML.classList.toggle("short", short);
+  const W=pages.clientWidth||window.innerWidth, H=(pages.clientHeight||420)-8;
+  const cols=clamp(Math.floor((W-28)/86),4,9);
+  const WIDGETS=short?0:152, CELL=92;
+  const rowsOf=h=>Math.max(1,Math.floor(h/CELL));
+  const items=homeItems();
+  widgets.remove(); pages.innerHTML="";
+  pages.style.setProperty("--hcols",cols);
+  let i=0, n=0;
+  while(i<items.length || n===0){
+    const avail = n===0 ? H-WIDGETS : H, rows=rowsOf(avail);
+    const page=el("div","home-page"), grid=el("div","home-grid");
+    grid.style.setProperty("--hrow", clamp(Math.floor(avail/rows),CELL,112)+"px");
+    if(n===0) page.appendChild(widgets);
+    items.slice(i,i+rows*cols).forEach(it=>{
+      const b=el("button","h-app",`<span class="hi">${it.icon}</span><span class="hl">${esc(it.label)}</span>`);
+      b.dataset.open=it.id; b.setAttribute("aria-label",it.label);
+      b.addEventListener("click",e=>{ e.stopPropagation(); it.open(); });
+      b.addEventListener("pointerdown",()=>{
+        if(it.id.startsWith("game:")&&ARCADE) ARCADE.preload(it.id.slice(5));
+        if(it.id.startsWith("app:")&&APPSTORE) APPSTORE.preload(it.id.slice(4));
+      });
+      grid.appendChild(b);
+    });
+    i+=rows*cols; page.appendChild(grid); pages.appendChild(page); n++;
+  }
+  $("#homeDots").innerHTML = n>1 ? Array.from({length:n},()=>"<i></i>").join("") : "";
+  pages.scrollLeft=Math.min(keep,n-1)*W;
+  paintDots();
+}
+function paintDots(){ const p=homePage(); document.querySelectorAll("#homeDots i").forEach((d,i)=>d.classList.toggle("on",i===p)); }
+(function wireHome(){
+  const pages=$("#homePages"), pill=$("#homeSearch");
+  let t=0;
+  pages.addEventListener("scroll",()=>{
+    paintDots();
+    if(!$("#homeDots").children.length) return;
+    pill.classList.add("paging"); clearTimeout(t); t=setTimeout(()=>pill.classList.remove("paging"),1100);
+  },{passive:true});
+  pill.addEventListener("click",e=>{ e.stopPropagation(); openSpotlight(); });
+  // pull down on the home screen for Spotlight, as on a phone
+  let sx=0, sy=0, on=false;
+  pages.addEventListener("touchstart",e=>{ const p=e.touches[0]; sx=p.clientX; sy=p.clientY;
+    const pg=e.target.closest(".home-page"); on = e.touches.length===1 && (!pg || pg.scrollTop<=0); },{passive:true});
+  pages.addEventListener("touchend",e=>{ if(!on) return; on=false; const p=e.changedTouches[0];
+    if(p.clientY-sy>70 && Math.abs(p.clientX-sx)<50) openSpotlight(); },{passive:true});
+})();
+
+/* ── the home indicator ── */
+(function wireHomeBar(){
+  const bar=$("#homeBar");
+  let s=null;
+  const reset=n=>{ n.style.transition="transform .22s ease,border-radius .22s ease"; n.style.transform=""; n.style.borderRadius="";
+    setTimeout(()=>{ n.style.transition=""; },240); };
+  bar.addEventListener("pointerdown",e=>{
+    const t=topWin();
+    s={y:e.clientY, dy:0, node:t?t[1].node:null};
+    try{ bar.setPointerCapture(e.pointerId); }catch(_){}
+  });
+  bar.addEventListener("pointermove",e=>{
+    if(!s) return;
+    s.dy=Math.min(0,e.clientY-s.y);
+    if(s.node && !REDUCE && s.dy<-4){                 // the app follows the thumb
+      const k=clamp(-s.dy/520,0,.42);
+      s.node.style.transition="none"; s.node.style.transformOrigin="50% 100%";
+      s.node.style.transform=`translateY(${(s.dy*.3).toFixed(1)}px) scale(${(1-k).toFixed(3)})`;
+      s.node.style.borderRadius=Math.round(k*90)+"px";
+    }
+  });
+  const end=e=>{
+    if(!s) return;
+    const {dy,node}=s; s=null;
+    if(e.type==="pointercancel"){ if(node) reset(node); return; }
+    if(dy<-130){ if(node) reset(node); openSwitcher(); return; }
+    if(node){ node.style.transition=""; node.style.transform=""; node.style.borderRadius=""; goHome(); return; }
+    if(dy<-40) openSwitcher();
+    else $("#homePages").scrollTo({left:0, behavior:REDUCE?"auto":"smooth"});
+  };
+  bar.addEventListener("pointerup",end);
+  bar.addEventListener("pointercancel",end);
+  bar.addEventListener("click",e=>e.stopPropagation());
+  bar.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); goHome(); } });
+})();
+
+/* ── status bar: pull it down for Control Center ── */
+(function wireStatusBar(){
+  let y0=null;
+  $("#menubar").addEventListener("pointerdown",e=>{ if(PHONE) y0=e.clientY; });
+  addEventListener("pointerup",e=>{
+    if(y0===null) return;
+    const far = PHONE && e.clientY-y0>28; y0=null;
+    if(far) setTimeout(()=>{ closeMenus(); $("#calendar").classList.remove("on"); $("#control").classList.add("on"); },40);
+  });
+  addEventListener("pointercancel",()=>{ y0=null; });
+})();
+
+/* ── the app switcher ── */
+let swOn=false, swPrev=new Set();
+const switchable=()=>[...wins.entries()].filter(([k,w])=>!w.node.classList.contains("closing")).sort(byZ);
+function openSwitcher(){
+  if(swOn){ closeSwitcher(); return false; }
+  if(!switchable().length){ toast("App Switcher","Nothing is open yet. Tap an app to start it.", I.window); return false; }
+  closeMenus(); closeContext(); $("#control").classList.remove("on"); $("#calendar").classList.remove("on");
+  swOn=true; swPrev=new Set(visibleWins().map(x=>x[0]));
+  HTML.classList.add("switching"); $("#mcScrim").classList.add("on");
+  layoutSwitcher();
+  return true;
+}
+function layoutSwitcher(){
+  const host=$("#switcher"), all=switchable().reverse();        // most recent first
+  if(!all.length){ closeSwitcher(); return; }
+  host.classList.add("on"); host.innerHTML="";
+  const VW=window.innerWidth, VH=window.innerHeight, mb=$("#menubar").offsetHeight;
+  const ax=12, ay=mb+8, aw=VW-24, ah=VH-ay-70, n=all.length;
+  const cols = n===1 ? 1 : VW>VH ? Math.min(n,4) : n<=4 ? 2 : 3;
+  const rows=Math.ceil(n/cols), cw=aw/cols, ch=ah/rows;
+  const sc=Math.min((cw-20)/VW, (ch-50)/VH, .62);
+  all.forEach(([id,w],i)=>{
+    const node=w.node, cardW=VW*sc, cardH=VH*sc;
+    const x=ax+(i%cols)*cw+(cw-cardW)/2, y=ay+Math.floor(i/cols)*ch+38+Math.max(0,(ch-50-cardH)/2);
+    const place=dy=>{ node.style.transform=`translate(${x}px,${y+(dy||0)}px) scale(${sc.toFixed(4)})`; };
+    node.style.display=""; node.style.opacity=""; node.style.pointerEvents="none";
+    node.style.transformOrigin="0 0";
+    node.style.transition=REDUCE?"none":"transform .34s cubic-bezier(.2,.9,.3,1),border-radius .34s ease";
+    node.style.borderRadius=Math.round(18/sc)+"px";
+    node.style.boxShadow="0 40px 120px rgba(0,0,0,.5)";
+    place(0);
+    const card=el("div","sw-card",
+      `<div class="sw-label"><span class="swi">${w.app.icon||I.window}</span><b>${esc(id.startsWith("game:") ? w.app.title : (w.app.appName||w.app.title))}</b></div>
+       <button class="sw-x" aria-label="Quit ${esc(w.app.title)}"><i>${I.close}</i></button>`);
+    card.style.cssText=`left:${x}px;top:${y}px;width:${cardW}px;height:${cardH}px`;
+    card.setAttribute("role","button"); card.tabIndex=0; card.setAttribute("aria-label","Open "+w.app.title);
+    const kill=()=>{ node.style.animation="none"; node.style.display="none"; card.remove(); closeWin(id); layoutSwitcher(); };
+    let sy=null, dy=0;
+    card.addEventListener("pointerdown",e=>{ if(e.target.closest(".sw-x")) return; sy=e.clientY; dy=0; try{card.setPointerCapture(e.pointerId);}catch(_){} });
+    card.addEventListener("pointermove",e=>{
+      if(sy===null) return;
+      dy=Math.min(0,e.clientY-sy);
+      if(dy<-6){ node.style.transition="none"; place(dy); node.style.opacity=String(clamp(1+dy/300,.2,1)); card.style.transform=`translateY(${dy}px)`; }
+    });
+    card.addEventListener("pointerup",()=>{
+      if(sy===null) return; sy=null;
+      if(dy<-70) kill();                                  // flicked away
+      else if(dy>-8) closeSwitcher(id);                   // a tap
+      else layoutSwitcher();                              // changed their mind
+    });
+    card.addEventListener("pointercancel",()=>{ if(sy!==null){ sy=null; layoutSwitcher(); } });
+    card.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); closeSwitcher(id); } });
+    card.querySelector(".sw-x").addEventListener("click",e=>{ e.stopPropagation(); kill(); });
+    host.appendChild(card);
+  });
+  host.appendChild(el("div","sw-hint","Tap an app to open it · swipe it up to quit"));
+}
+function closeSwitcher(pick){
+  if(!swOn) return;
+  swOn=false;
+  HTML.classList.remove("switching"); $("#mcScrim").classList.remove("on");
+  const host=$("#switcher"); host.classList.remove("on"); host.innerHTML="";
+  wins.forEach((w,k)=>{
+    const n=w.node, show = pick ? k===pick : swPrev.has(k);
+    n.style.pointerEvents=""; n.style.boxShadow=""; n.style.borderRadius=""; n.style.opacity="";
+    if(show){ w.min=false; n.style.transform=""; setTimeout(()=>{ n.style.transition=""; },360); }
+    else { w.min=true; n.style.transition=""; n.style.transform=""; n.style.display="none"; }
+  });
+  if(pick) bringToFront(pick);
+  syncPhone(); refreshDock();
+}
+$("#switcher").addEventListener("click",e=>{ e.stopPropagation(); if(e.target===$("#switcher")) closeSwitcher(); });
+
+/* entering or leaving phone mode (a rotation, a resized browser window) */
+function applyPhoneMode(){
+  PHONE=mqPhone.matches;
+  HTML.classList.toggle("phone",PHONE);
+  if(swOn) closeSwitcher();
+  if(mcOn) exitMissionControl();
+  showSnap(null);
+  if(PHONE) wins.forEach((w,k)=>{ if(!w.max) toggleMax(k); });
+  else HTML.classList.remove("in-app","short","switching");
+  const h=$("#lockHint"); if(h) h.textContent = COARSE ? "Tap to unlock" : "Click or press any key to unlock";
+  buildHome(); syncPhone();
+}
+
 /* ═══════════════════════ THE BRIDGE ═══════════════════════
    A small, stable surface that /eggs.js and the bundled apps use, so
    they never have to reach into the desktop's internals. */
@@ -2711,7 +3284,7 @@ const MATTOS = window.MATTOS = {
   wins, get activeId(){ return activeId; },
   confetti: n=>confettiBurst(n), rainbow: ms=>rainbowWallpaper(ms), party: ()=>partyMode(),
   setTheme, setWall, cycleWall, PALETTES, get palette(){ return palName; },
-  openLaunchpad, missionControl, kernelPanic,
+  openLaunchpad, missionControl, kernelPanic, snapWin, goHome, isPhone,
   icons: I, appIcons: APPICON, profile: PROFILE, projects: PROJECTS, skills: SKILLS,
   experience: EXPERIENCE, education: EDUCATION,
   el, esc, $, clamp, COARSE, REDUCE,
@@ -2753,8 +3326,10 @@ document.addEventListener("click",e=>{
   if(!e.target.closest(".desk-icon")) document.querySelectorAll(".desk-icon.sel").forEach(x=>x.classList.remove("sel"));
 });
 $("#desktop").addEventListener("contextmenu",e=>{ e.preventDefault(); closeMenus(); buildContext(e.clientX,e.clientY); });
+const SNAP_KEYS={ArrowLeft:"left",ArrowRight:"right",ArrowUp:"max",ArrowDown:"restore"};
 document.addEventListener("keydown",e=>{
-  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){ e.preventDefault(); spot.classList.contains("on")?closeSpotlight():openSpotlight(); }
+  if(e.ctrlKey&&e.altKey&&activeId&&SNAP_KEYS[e.key]){ e.preventDefault(); snapWin(activeId,SNAP_KEYS[e.key]); }
+  else if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){ e.preventDefault(); spot.classList.contains("on")?closeSpotlight():openSpotlight(); }
   else if(e.key==="F4"||((e.metaKey||e.ctrlKey)&&e.shiftKey&&e.key.toLowerCase()==="a")){ e.preventDefault(); toggleLaunchpad(); }
   else if(e.key==="F3"){ e.preventDefault(); missionControl(); }
   else if(e.key==="Escape"&&(e.metaKey||e.ctrlKey)&&e.altKey){ e.preventDefault(); openApp("forcequit"); }
@@ -2763,10 +3338,15 @@ document.addEventListener("keydown",e=>{
   else if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="m"&&activeId){ e.preventDefault(); minimizeWin(activeId); }
   else if($("#lock").classList.contains("on")){ unlock(); }
 });
+let homeRAF=0;
 window.addEventListener("resize",()=>{
+  // the phone home screen re-flows its pages to whatever now fits
+  if(isPhone()){ cancelAnimationFrame(homeRAF); homeRAF=requestAnimationFrame(()=>{ if(swOn) closeSwitcher(); buildHome(); }); }
   // keep windows within bounds
   const dr=desktopRect();
-  wins.forEach(w=>{ if(w.max){ w.node.style.width=(dr.right-dr.left)+"px"; w.node.style.height=(dr.bottom-dr.top)+"px"; w.node.style.left=dr.left+"px"; w.node.style.top=dr.top+"px"; return; }
+  wins.forEach(w=>{ if(w.snap && !w.max){ const r=snapRect(w.snap); const n=w.node;
+      n.style.left=r.left+"px"; n.style.top=r.top+"px"; n.style.width=r.width+"px"; n.style.height=r.height+"px"; return; }
+    if(w.max){ w.node.style.width=(dr.right-dr.left)+"px"; w.node.style.height=(dr.bottom-dr.top)+"px"; w.node.style.left=dr.left+"px"; w.node.style.top=dr.top+"px"; return; }
     const n=w.node; n.style.left=clamp(parseFloat(n.style.left),dr.left-n.offsetWidth+90,dr.right-90)+"px"; n.style.top=clamp(parseFloat(n.style.top),dr.top,dr.bottom-40)+"px"; });
 });
 
@@ -2822,6 +3402,7 @@ function addSecretsIcon(){
   i.addEventListener("dblclick",e=>{ e.stopPropagation(); open(); });
   i.addEventListener("keydown",e=>{ if(e.key==="Enter") open(); });
   $("#iconLayer").appendChild(i);
+  buildHome();
 }
 APPS.secrets = {
   title:"Secrets.txt", icon:APPICON.note, w:470, h:450,
@@ -2913,12 +3494,26 @@ const TRASH_MSGS=[
 function trashClick(){ toast("Trash", TRASH_MSGS[Math.min(trashN,TRASH_MSGS.length-1)], I.trash); trashN++; if(trashN===3) unlockSecrets(false); }
 
 /* ═══════════════════════ INIT ═══════════════════════ */
+/* Every icon is an inline SVG whose gradient is referenced by id, and an id
+   resolves to its FIRST copy in the document.  If that copy sits inside
+   something display:none (a minimized window, the closed Launchpad) every
+   other copy of the icon loses its fill.  So one always-rendered, zero-sized
+   copy of each icon goes first in the document and owns the ids. */
+(function iconDefs(){
+  const all=[...Object.values(APPICON), ...Object.values(PROJICON), ...GAMES.map(g=>g.icon), ...EXTRA_APPS.map(a=>a.icon),
+    ...(ARCADE?Object.values(ARCADE.icons||{}):[]), ...(APPSTORE?Object.values(APPSTORE.icons||{}):[])]
+    .filter(x=>typeof x==="string" && x.includes("<defs"));
+  const d=el("div",null,[...new Set(all)].join("")); d.id="iconDefs"; d.setAttribute("aria-hidden","true");
+  document.body.insertBefore(d, document.body.firstChild);
+})();
 buildMenubar();
 buildDesktop();
 buildControl();
 buildDock();
 tickClock();
 if(secretsUnlocked) addSecretsIcon();
+applyPhoneMode();
+mqPhone.addEventListener("change", applyPhoneMode);
 /* Did someone link straight to a game?  Then boot fast and open it. */
 const bootRoute = appForPath(location.pathname);
 runBoot(true, !!bootRoute);
@@ -2928,13 +3523,16 @@ if(bootRoute){
 } else {
   // open the Finder to Projects shortly after boot, and greet
   setTimeout(()=>{
-    if(window.innerWidth>720){ openApp("finder"); }
-    const msg = COARSE
+    if(window.innerWidth>720 && !isPhone()){ openApp("finder"); }
+    const msg = isPhone()
+      ? "Tap Projects to explore, or Search to find anything. Swipe for more apps. Everything here is interactive."
+      : COARSE
       ? "Tap the Projects folder to explore, or tap the search icon up top. Everything here is interactive."
       : "Double-click the Projects folder, or press ⌘K to search. Everything here is interactive.";
     setTimeout(()=>toast("Welcome to mattOS", msg, I.apple), 900);
     if(ARCADE) setTimeout(()=>toast("Arcade",
       GAMES.length+" games live in the Dock, each at its own address like mattlavergne.com/arcade/snake.", APPICON.arcade), 6200);
+    // (on a phone the Arcade is one of the four Dock apps, so that line holds there too)
   }, REDUCE?400:2100);
 }
 </script>

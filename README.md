@@ -67,8 +67,37 @@ Everything is real and interactive:
   **Hopper** (cross the road, ride the logs) and **Sweeper** (Minesweeper).
   Keyboard on a desktop; swipes and an on-screen pad on a phone. High scores
   persist per device.
-- **Spotlight** (`⌘K` / `Ctrl-K`), **Control Center**, right-click **context
-  menu**, **notifications**, and a **lock screen**.
+- **Spotlight** (`⌘K` / `Ctrl-K`), **Control Center** (with quick actions:
+  Search, Windows, Lock, Restart), right-click **context menu**,
+  **notifications**, and a **lock screen**.
+- **Window snapping** — drag a window against the left or right edge to tile
+  it to that half, or up into the menu bar to zoom it. `⌃⌥←` / `⌃⌥→` / `⌃⌥↑`
+  do the same from the keyboard and `⌃⌥↓` puts it back.
+
+### On a phone
+
+A phone can't sensibly run a draggable-window desktop, so on a small screen
+mattOS becomes a phone OS instead. Same apps, same windows, same registry; only
+the shell around them changes:
+
+- **Status bar** in place of the menu bar: clock, Control Center, Wi-Fi,
+  battery. Pull it down (or tap the Control Center glyph) for Control Center.
+- **Home screen** — every app, game and pinned project as icons, paged to
+  whatever fits the screen, with the clock and profile widgets on page one.
+  Swipe between pages; pull down, or tap the **Search** pill, for Spotlight.
+- **Dock** — four apps: About, Mail, Terminal, Arcade (`PHONE_DOCK` in
+  `index.html`).
+- **Apps open full-screen** with a back button that names what it returns to,
+  so Finder → a project → back behaves like a navigation stack.
+- **Home indicator** — tap or flick it up to go Home (apps keep running);
+  swipe it further up for the **app switcher**, where a tap opens a card and
+  an upward flick quits it.
+- The Finder's sidebar becomes a row of chips, banners drop from the top, and
+  text fields are 16px so iOS doesn't zoom the page on focus.
+
+Phone mode is one class, `html.phone`, set from a single media query (narrow
+screens, plus phones held sideways). Every phone rule in the stylesheet hangs
+off that class, and resizing a desktop browser below 640px switches live.
 
 Preferences (theme, wallpaper palette, brightness, Finder view) persist in
 `localStorage`. Reduced-motion is respected, and the page ships a crawlable /
