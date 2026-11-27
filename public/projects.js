@@ -280,6 +280,28 @@ const LIST = [
     launch:null
   },
 
+  {
+    // drafted from github.com/mattlavergne/Reporting-Software by scripts/sync-projects.mjs — review, then delete this line
+    slug:"reporting-software", name:"Report Manager", category:"research", status:"code", url:"#",
+    repo:"mattlavergne/Reporting-Software",
+    icon:"code", modified:"Source",
+    tagline:"Internal, on-prem report manager for a department's SQL, Crystal…",
+    tags:["Python"],
+    desc:"Internal, on-prem report manager for a department's SQL, Crystal Reports and SSRS reports: catalogue, run, schedule, deliver, and version them. One Python process, SQLite by default.",
+    launch:null
+  },
+
+  {
+    // drafted from github.com/mattlavergne/RSSFeed by scripts/sync-projects.mjs — review, then delete this line
+    slug:"rssfeed", name:"Tributary", category:"research", status:"code", url:"#",
+    repo:"mattlavergne/RSSFeed",
+    icon:"code", modified:"Source",
+    tagline:"A free, private RSS reader for Chrome",
+    tags:["JavaScript"],
+    desc:"Tributary is a browser-extension RSS reader with the features you'd normally pay for — unlimited feeds, fast refresh, keyword alerts, filters, full-article view, sync — and no account, server, or subscription. Everything runs inside your browser.",
+    launch:null
+  },
+
   /* ↑ new projects go above this line (scripts/sync-projects.mjs inserts here) */
 ];
 
